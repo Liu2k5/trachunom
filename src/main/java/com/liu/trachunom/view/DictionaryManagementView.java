@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Route("dictionary-management")
@@ -939,6 +940,8 @@ public class DictionaryManagementView extends VerticalLayout {
             }
 
             subStructureService.deleteById(subStructure.getId());
+            structure.getSubStructures().remove(subStructure);
+            structureService.save(structure);
 
             // Refresh structure để lấy subStructures mới
             Structure refreshedStructure = structureService.findById(structure.getId());
@@ -958,32 +961,30 @@ public class DictionaryManagementView extends VerticalLayout {
         subStructureLayout.setSpacing(true);
         subStructureLayout.add(subStructureHeader, subStructureGrid, subStructureButtons);
         structureAndSubStructureLayout.add(structureSubLayout, subStructureLayout);
-        structureSubLayout.setWidth("30%");
-        subStructureLayout.setWidth("70%");
+        structureSubLayout.setWidth("40%");
+        subStructureLayout.setWidth("60%");
 
-        // Sử dụng array để lưu tham chiếu có thể thay đổi trong lambda
-        final HorizontalLayout[] structurePreviewLayoutHolder = new HorizontalLayout[1];
-        structurePreviewLayoutHolder[0] = new HorizontalLayout();
-        structurePreviewLayoutHolder[0].setSpacing(true);
-        structurePreviewLayoutHolder[0].setWidthFull();
-
-        structureLayout.add(structureAndSubStructureLayout, structurePreviewLayoutHolder[0]);
+        HorizontalLayout structurePreviewLayout = new HorizontalLayout();
+        structureLayout.add(structureAndSubStructureLayout, structurePreviewLayout);
 
         // Khi chọn Structure, hiển thị các SubStructure của nó
         structureGrid.addSelectionListener(selection -> {
             Structure selectedStructure = selection.getFirstSelectedItem().orElse(null);
-            HorizontalLayout newStructurePreview;
+
+            structureLayout.removeAll();
+
+            HorizontalLayout newStructurePreview = new HorizontalLayout();
             if (selectedStructure != null) {
                 subStructureGrid.setItems(selectedStructure.getSubStructures());
-                newStructurePreview = visualTool.drawStructure(selectedStructure.getSubStructures());
+                newStructurePreview = structureService.drawStructure(selectedStructure.getSubStructures());
             } else {
                 subStructureGrid.setItems(new ArrayList<>());
                 newStructurePreview = new HorizontalLayout();
             }
             newStructurePreview.setSpacing(true);
             newStructurePreview.setWidthFull();
-            structureLayout.replace(structurePreviewLayoutHolder[0], newStructurePreview);
-            structurePreviewLayoutHolder[0] = newStructurePreview;
+            structureLayout.add(structureAndSubStructureLayout, newStructurePreview);
+//            structurePreviewLayout = newStructurePreview;
         });
 
         // ===== PHẦN ÂM ĐỌC =====

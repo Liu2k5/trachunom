@@ -28,7 +28,7 @@ public class Structure {
     private CharacterX character;
 
 
-    @OneToMany(mappedBy = "structure", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "structure", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Builder.Default
     private List<SubStructure> subStructures = new ArrayList<>();
 

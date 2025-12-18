@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Objects;
 
 import com.liu.trachunom.entity.SubStructure;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import org.springframework.stereotype.Service;
 
 import com.liu.trachunom.dto.StructureDto;
@@ -23,6 +24,7 @@ public class StructureService {
     private final CharacterService characterService;
     private final StructureRepository structureRepository;
     private final SubStructureService subStructureService;
+    private final VisualTool visualTool;
 
     public Structure findById(Long id) {
         return structureRepository.findById(id).orElse(null);
@@ -189,4 +191,16 @@ public class StructureService {
     public void deleteById(Long id) {
         structureRepository.deleteById(id);
     }
+
+    public HorizontalLayout drawStructure(Structure structure) {
+        if (structure == null) {
+            return new HorizontalLayout();
+        }
+        return drawStructure(structure.getSubStructures());
+    }
+
+    public HorizontalLayout drawStructure(List<SubStructure> structures) {
+        return visualTool.drawStructure(structures);
+    }
+
 }
