@@ -1,0 +1,47 @@
+package com.liu.trachunom.service;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import com.liu.trachunom.entity.Language;
+import com.liu.trachunom.repository.LanguageRepository;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+public class LanguageService {
+    private final LanguageRepository languageRepository;
+    
+    public Language findById(Long id) {
+        return languageRepository.findById(id).orElseThrow(() -> new RuntimeException("Ngôn ngữ không tồn tại"));
+    }
+
+    public List<Language> findAll() {
+        return languageRepository.findAll();
+    }
+
+    @Transactional
+    public Language save(Language language) {
+        return languageRepository.save(language);
+    }
+
+    @Transactional
+    public void delete(Long id) {
+        languageRepository.deleteById(id);
+    }
+
+    public boolean existsById(Long id) {
+        return languageRepository.existsById(id);
+    }
+
+    public boolean existsByAbbreviation(String abbreviation) {
+        return languageRepository.existsByAbbreviation(abbreviation);
+    }
+
+    public void deleteById(Long id) {
+        languageRepository.deleteById(id);
+    }
+}

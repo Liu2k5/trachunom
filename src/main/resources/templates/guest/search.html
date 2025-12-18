@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div th:replace="fragments/search_bar :: searchBar"></div>
+    <div>
+        <h1>Kết Quả Tìm Kiếm</h1>
+        <div th:if="${err != null}">
+            <p th:text="${err}" style="color: red;"></p>
+        </div>
+        <div th:if="${character != null}" th:object="${character}">
+            <p><strong>Ký tự:</strong> <span th:text="*{string}"></span></p>
+            <p><strong>Mã Unicode:</strong> <span th:text="'U+' + ${T(java.lang.Integer).toHexString(character.unicode).toUpperCase()}">U+0041</span></p>
+            <p th:if="*{radical != null}"><strong>Bộ thủ:</strong> <span th:text="*{radical.string}"></span> (<span th:text="'U+' + ${T(java.lang.Integer).toHexString(character.radical.unicode).toUpperCase()}">U+0041</span>)</p>
+            <p><strong>Số nét:</strong> <span th:text="${character.totalStrokeNumber != null ? character.totalStrokeNumber : (character.radical != null ? character.radical.strokeNumber + character.additionalStrokeNumber : character.additionalStrokeNumber)}"></span></p>
+            <p><strong>Ý nghĩa:</strong></p>
+            <!-- Thêm các thông tin khác về ký tự nếu cần -->
+        </div>
+        <div>
+            <div th:each="i : ${entities}">
+                <h5 th:text="${i.structure.character.string + ' ' + i.meaning.pronunciation.pronunciation}"></h5>
+                <p th:text="${i.meaning.description}"></p>
+            </div>
+        </div>
+</body>
+</html>

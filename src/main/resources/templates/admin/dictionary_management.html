@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lí từ điển</title>
+</head>
+    <body>
+        <div style="height: 0px">
+            <h4><span style="color: red" th:text="${err}"></span></h4>
+            <h4><span style="color: green" th:text="${msg}"></span></h4>
+        </div>
+        <a href="/">Quay về</a>
+        <div style="display: grid; grid-template-columns: 25% 25% 25% 25%;">
+            <div>
+                <h1>Kí tự</h1>
+                <form th:action="@{/admin/dictionary_management/character}" method="post" th:object="${characterDto}">
+                    <p style="color: red;" th:text="${character_err}"></p><br>
+                    <table>
+                        <tr>
+                            <td>Kí tự</td>
+                            <td><input th:name="character" id="character" onchange="loadCharacter(this.value)"></td>
+                        </tr>
+                        <tr>
+                            <td>Bộ thủ</td>
+                            <td><input th:name="radicalId" id="radicalId" readonly></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <table>
+                                    <tr th:each="row : ${#numbers.sequence(0, session.radicals.size() / 10)}">
+                                        <td th:each="i, idx : ${session.radicals.subList(row * 10, (row + 1) * 10 > session.radicals.size() ? session.radicals.size() : (row + 1) * 10)}">
+                                            <input name="character_radicalObject" th:id="'radical_' + ${i.id}"
+                                                   th:value="${i.id}" th:text="${session.radicalsString[idx.index + row * 10]}"
+                                                   type="radio"
+                                                   th:selected="characterDto.radicalId == i.id"
+                                                   onclick="document.getElementById('radicalId').value = this.value;">
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Số nét thêm</td>
+                            <td><input th:name="additionalStrokeNumber" id="character_additionalStrokeNumber" type="number"></td>
+                        </tr>
+                        <tr>
+                            <td>Tổng số nét</td>
+                            <td><input th:name="totalStrokeNumber" id="character_totalStrokeNumber" type="number"></td>
+                        </tr>
+                    </table>
+                    <button type="submit">Gửi</button>
+                </form>
+            </div>
+
+            <div>
+                <h1>Cấu tạo</h1>
+                <form th:action="@{/admin/dictionary_management/structure}" method="post" th:object="${structureFormDto}">
+                    <p style="color: red;" th:text="${structure_err}"></p><br>
+                    <table>
+                        <tr>
+                            <td>Id cấu tạo</td>
+                            <td><input type="number" th:field="*{structureDto.id}" id="structure_id" placeholder="(tự động tạo)" onchange="onStructureIdChange(this.value)"></td>
+                        </tr>
+                        <tr>
+                            <td>Ký tự</td>
+                            <td><input type="text" th:field="*{structureDto.string}" id="structure_character"></td>
+                        </tr>
+                    </table>
+                    <p>Cấu tạo thuộc kiểu: <span id="structure_check"></span></p>
+                    <div th:each="i : ${#numbers.sequence(0,9)}">
+                        <input type="number" th:field="*{subStructures[__${i}__].subStructureId}" th:id="'subStructure' + ${i}" value="" th:placeholder="${i + 1}" th:onchange="|classificationHighlight(${i}); checkStructure(); updateStructurePreview()|">
+                        <span> x </span>
+                        <input type="number" th:field="*{subStructures[__${i}__].quantity}" th:id="'quantity' + ${i}" onchange="checkStructure(); updateStructurePreview()">
+                        <select th:field="*{subStructures[__${i}__].classificationId}" th:id="'classification' + ${i}" th:onchange="|classificationHighlight(${i}); checkStructure(); updateStructurePreview()|">
+                            <option th:each="classification : ${session.classifications}"
+                                    th:value="${classification.id}"
+                                    th:selected="${classification.id == 0}"
+                                    th:text="${classification.description}">
+                            </option>
+                        </select>
+                        <br th:if="${(i + 1) % 5 == 0}">
+
+                    </div>
+                    <button type="submit" id="structure_submit">Gửi</button>
+                </form>
+                <h1>Xem trước</h1>
+                <div id="structure_preview"></div>
+            </div>
+
+            <div>
+                <div>
+                    <h1>Ý nghĩa</h1>
+                    <form th:action="@{/admin/dictionary_management/meaning}" method="post" th:object="${meaningDto}">
+                        <table>
+                            <tr>
+                                <td>Id ý nghĩa</td>
+                                <td><input type="number" name="id" id="meaning_meaningId" placeholder="(tự động tạo)" onchange="loadMeaning(this.value)"></td>
+                            </tr>
+                            <tr>
+                                <td>Ngôn ngữ</td>
+                                <td>
+                                    <select name="languageId" id="languageId">
+                                        <div th:each="i : ${session.languages}">
+                                            <option th:value="${i.id}" th:text="${i.abbreviation}"></option>
+                                        </div>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Phát âm</td>
+                                <td><input type="text" name="pronunciation" id="pronunciation" onchange="checkPronunciation(this.value)"><span id="meaning_pronunciation_check"></span></td>
+                            </tr>
+                            <tr>
+                                <td>Mô tả</td>
+                                <td><input type="text" name="description" id="description" required=""></td>
+                            </tr>
+                            <tr>
+                                <td>Id nghĩa gốc</td>
+                                <td><input type="number" name="originalMeaningId" id="originalMeaningId"></td>
+                            </tr>
+                        </table>
+                        <button type="submit" id="meaning_submit">Gửi</button>
+                    </form>
+                </div>
+                <div>
+                    <h1>Xem trước</h1>
+                    <span>Nhập phát âm: <input type="text" placeholder="nôm"></span>
+                </div>
+            </div>
+
+            <div>
+                <div>
+                    <h1>Thực thể</h1>
+                    <form th:action="@{/admin/dictionary_management/entity}" method="post" th:object="${entityDto}">
+                        <table>
+                            <tr>
+                                <td>Id thực thể</td>
+                                <td><input type="number" name="id" id="entity_entityId" placeholder="(tự động tạo)" onchange="loadEntity(this.value)"></td>
+                            </tr>
+                            <tr>
+                                <td>Id ý nghĩa</td>
+                                <td><input type="number" name='meaningId' id="entity_meaningId" required=""></td>
+                            </tr>
+                            <tr>
+                                <td>Id cấu tạo</td>
+                                <td><input type="number" name="structureId" id="entity_sId"></td>
+                            </tr>
+                        </table>
+                        <button type="submit">Gửi</button>
+                    </form>
+                </div>
+                <div>
+                    <h1>Chuẩn hóa</h1>
+                    <form th:action="@{/admin/dictionary_management/standardisedEntity}" method="post" th:object="${standardisedDto}">
+                        <table>
+                            <tr>
+                                <td>Id chuẩn hóa</td>
+                                <td><input type="text" name="standardisedEntityId" id="standardisedEntity_Id" placeholder="(tự động tạo)" onchange="loadStandardisedEntity(this.value)"></td>
+                            </tr>
+                            <tr>
+                                <td>Id thực thể</td>
+                                <td><input type="number" name="entityId" id="standardisedEntity_entityId"></td>
+                            </tr>
+                        </table>
+                        <button type="submit">Gửi</button>
+                    </form>
+                </div>
+            </div>
+    </div>
+
+
+    </body>
+    <script>
+        window.onload = function() {
+            for (let i = 0; i < 10; i++) {
+                classificationHighlight(i);
+            }
+            checkStructure(); // Tự động chạy khi trang vừa load
+            updateStructurePreview();
+        }
+
+        function getCharFromUnicode(unicode) {
+            return String.fromCodePoint(unicode);
+        }
+
+        function classificationHighlight(idx) {
+            let cIdObject = document.getElementById("classification" + idx);
+            let ssIdObject = document.getElementById("subStructure" + idx);
+            ssIdObject.style.backgroundColor = undefined;
+            ssIdObject.style.color = undefined;
+            if (ssIdObject.value === "" || parseInt(ssIdObject.value) < 0) {
+                ssIdObject.style.backgroundColor = "white";
+                ssIdObject.style.color = "black";
+            } else {
+                switch (parseInt(cIdObject.value)) {
+                    case - 1:
+                        ssIdObject.style.backgroundColor = "blue";
+                        ssIdObject.style.color = "white";
+                        break;
+                    case 0:
+                        ssIdObject.style.backgroundColor = "gray";
+                        ssIdObject.style.color = "white";
+                        break;
+                    case 1:
+                        ssIdObject.style.backgroundColor = "red";
+                        ssIdObject.style.color = "white";
+                        break;
+                    default:
+                        ssIdObject.style.backgroundColor = "white";
+                        ssIdObject.style.color = "black";
+                        break;
+                }
+            }
+        }
+
+        function checkStructure() {
+            let cm1 = 0, c1 = 0, c0 = 0; // nhom cau tao bieu am, bieu y, trung lap
+            let isValid = true;
+            for (let i = 0; i < 10; i++) {
+                let cIdObject = document.getElementById("classification" + i);
+                let ssQuantityObject = document.getElementById("quantity" + i);
+                let ssIdObject = document.getElementById("subStructure" + i);
+                if (!(ssIdObject.value === "" || parseInt(ssIdObject.value) < 0)) {
+                    if (parseInt(cIdObject.value) === -1) {
+                        cm1 += parseInt(ssQuantityObject.value);
+                    } else if (parseInt(cIdObject.value) === 0) {
+                        c0 += parseInt(ssQuantityObject.value);
+                    } else if (parseInt(cIdObject.value) === 1) {
+                        c1 += parseInt(ssQuantityObject.value);
+                    }
+                } else {
+                    if (parseInt(ssQuantityObject.value) > 1) {
+                        isValid = false;
+                    }
+                }
+            }
+            // window.alert('cm1 = ' + cm1 + '\n c0 = ' + c0 + '\n c1 = ' + c1);
+            let structure_check = document.getElementById("structure_check");
+            structure_check.style.color = "unset";
+            let structure_submit = document.getElementById("structure_submit");
+            structure_submit.disabled = false;
+            if (c0 === 0 && c1 === 0 && cm1 === 0) {
+                structure_check.innerHTML = "Tượng hình";
+            } else if (c0 === 1 && c1 === 0 && cm1 === 0) {
+                structure_check.innerHTML = "Sai khác";
+            } else if (c0 === 1 && c1 === 1 && cm1 === 0) {
+                structure_check.innerHTML = "Chỉ sự";
+            } else if ((c0 === 0 && c1 === 0 && cm1 > 1) || (c0 === 1 && c1 === 0 && cm1 === 1)) {
+                structure_check.innerHTML = "Biểu âm";
+            } else if (c0 === 0 && c1 > 1 && cm1 === 0) {
+                structure_check.innerHTML = "Hội ý";
+            } else if (c0 === 0 && c1 > 0 && cm1 > 0) {
+                structure_check.innerHTML = "Hình thanh";
+            } else {
+                isValid = false;
+            }
+            if (!isValid) {
+                structure_check.innerHTML = "Không hợp lệ";
+                structure_check.style.color = "red";
+                structure_submit.disabled = true;
+            }
+
+
+        }
+
+        async function checkPronunciation(pronunciation) {
+            let response = await fetch('/api/admin/dictionary_management/check_pronunciation?pronunciation=' + pronunciation);
+            let check = await response.json();
+            let message = document.getElementById("meaning_pronunciation_check");
+            let pronunciation_submit = document.getElementById("meaning_submit");
+
+            if (check) {
+                message.innerHTML = " hợp lệ";
+                message.style.color = "unset";
+                pronunciation_submit.disabled = false;
+            } else {
+                message.innerHTML = " không hợp lệ";
+                message.style.color = "red";
+                pronunciation_submit.disabled = true;
+            }
+        }
+
+        async function loadCharacter(value) {
+            let response = await fetch('/api/admin/dictionary_management/characterDto?value=' + value);
+            let characterDto = await response.json();
+            document.getElementById("radicalId").value = characterDto.radicalId;
+            document.getElementById("radical_" + characterDto.radicalId).checked = true;
+            document.getElementById("character_additionalStrokeNumber").value = characterDto.additionalStrokeNumber;
+            document.getElementById("character_totalStrokeNumber").value = characterDto.totalStrokeNumber;
+        }
+
+        async function loadStructure(id) {
+            let response = await fetch('/api/admin/dictionary_management/structureFormDto?id=' + id);
+            let structureFormDto = await response.json();
+            document.getElementById("structure_character").value = structureFormDto.structureDto.string;
+            let subStructureDtos = structureFormDto.subStructures;
+            for (let index = 0; index < 10; index++) {
+                document.getElementById("subStructure" + index).value = undefined;
+                document.getElementById("classification" + index).value = 0;
+                document.getElementById("quantity" + index).value = 1;
+                classificationHighlight(index);
+            }
+
+
+            if (structureFormDto.structureDto.id == null) {
+                return;
+            }
+            let index = 0;
+            for (let i of subStructureDtos) {
+                document.getElementById("subStructure" + index).value = i.subStructureId;
+                document.getElementById("classification" + index).value = i.classificationId;
+                document.getElementById("quantity" + index).value = i.quantity;
+                classificationHighlight(index);
+                index = index + 1;
+            }
+            // window.alert('okkk');
+        }
+
+        async function loadMeaning(id) {
+            let response = await fetch('/api/admin/dictionary_management/meaningDto?id=' + id);
+            let meaningDto = await response.json();
+            document.getElementById("languageId").value = 1;
+            document.getElementById("pronunciation").value = undefined;
+            document.getElementById("description").value = undefined;
+            document.getElementById("originalMeaningId").value = undefined;
+
+            if (meaningDto.id == null) {
+                return;
+            }
+
+            document.getElementById("languageId").value = meaningDto.languageId;
+            document.getElementById("pronunciation").value = meaningDto.pronunciation;
+            document.getElementById("description").value = meaningDto.description;
+            document.getElementById("originalMeaningId").value = meaningDto.originalMeaningId;
+        }
+
+        async function loadEntity(id) {
+            let response = await fetch('/api/admin/dictionary_management/entityDto?id=' + id);
+            let entityDto = await response.json();
+            document.getElementById("entity_meaningId").value = undefined;
+            document.getElementById("entity_sId").value = undefined;
+
+            if (entityDto.id == null) {
+                return;
+            }
+
+            document.getElementById("entity_meaningId").value = entityDto.meaningId;
+            document.getElementById("entity_sId").value = entityDto.structureId;
+        }
+
+        async function drawStructure(id) {
+            let response = await fetch('/api/admin/dictionary_management/structureFormDto?id=' + id);
+            let structureFormDto = await response.json();
+            let subStructureDtos = structureFormDto.subStructures;
+            if (subStructureDtos == null || subStructureDtos.length === 0) {
+                return '';
+            }
+
+            let head = '<table style="width: 100%">';
+            let foot = '</table>';
+            let body = '';
+            for (let subStructureDto of subStructureDtos) {
+                body += '<td>';
+                body += '<table border="2" style="width: 100%"><tr style="color: white; background-color: ' + (subStructureDto.classificationId === 0 ? 'grey' :
+                        (subStructureDto.classificationId === 1 ? 'red' : 'blue'))
+                    + '" ><td>' + subStructureDto.string + 'x' + subStructureDto.quantity + '</td></tr></table>';
+                body += '<table border="2" style="width: 100%"><tr><td>' + await drawStructure(subStructureDto.subStructureId) + '</td></tr></table>';
+                body += '</td>';
+            }
+            body += '</tr>';
+            return head + body + foot;
+        }
+
+        async function updateStructurePreview() {
+            let head = '<table style="width: 100%; display: flex; justify-content: start;">';
+            let foot = '</table>';
+            let body = '';
+            body += '<tr>';
+            for (let i = 0; i < 10; i++) {
+                body += '<td>';
+                let ssIdObject = document.getElementById("subStructure" + i);
+                let quantityObject = document.getElementById("quantity" + i);
+                let classificationObject = document.getElementById("classification" + i);
+
+                if (!(ssIdObject.value === "" || parseInt(ssIdObject.value) < 0)) {
+                    let response = await fetch('/api/admin/dictionary_management/structureFormDto?id=' + ssIdObject.value);
+                    let structureFormDto = await response.json();
+                    let structureDto = structureFormDto.structureDto;
+                        body += '<table border="2" style="width: 100%"><tr style="color: white; background-color: ' + (parseInt(classificationObject.value) === 0 ? 'grey' :
+                            (parseInt(classificationObject.value) === 1 ? 'red' : 'blue'))
+                        + '" ><td>' + structureDto.string + 'x' + quantityObject.value + '</td></tr></table>';
+                    body += '<table border="2" style="width: 100%"><tr><td>' + await drawStructure(ssIdObject.value) + '</td></tr></table>';
+                }
+                body += '</td>';
+            }
+            body += '</tr>';
+
+            let previewDiv = document.getElementById("structure_preview");
+            previewDiv.innerHTML = head + body + foot;
+        }
+
+        async function onStructureIdChange(value) {
+            await loadStructure(value);           // wait until form fields are populated
+            checkStructure();                     // sync validation based on new values
+            await updateStructurePreview();       // wait until preview finishes building
+        }
+
+        async function loadStandardisedEntity(id) {
+            let response = await fetch('/api/admin/dictionary_management/standardisedDto?id=' + id);
+            let standardisedDto = await response.json();
+            if (standardisedDto.standardisedEntityId == null) {
+                return;
+            }
+            document.getElementById("standardisedEntity_entityId").value = standardisedDto.entityId;
+        }
+    </script>
+</html>

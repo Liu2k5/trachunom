@@ -1,0 +1,6 @@
+<div th:fragment="searchBar">
+    <form th:action="@{/search}" method="get">
+        <input type="text" name="query" placeholder="Nhập ký tự chữ Nôm..." required>
+        <button type="submit">Tìm Kiếm</button>
+    </form>
+</div>
