@@ -68,7 +68,7 @@ public class StructureService {
         for (SubStructure subStructure : subStructureService.findByStructure(structure)) {
             subStructureDtos.add(SubStructureDto.builder()
                 .subStructureId(subStructure.getId().getSubStructureId())
-                .classificationId(subStructure.getClassification().getId())
+                .classificationId(subStructure.getStructureClassification().getId())
                 .quantity(subStructure.getQuantity())
                 .string(getCharacterStringById(subStructure.getId().getSubStructureId()))
                 .build());
@@ -149,7 +149,7 @@ public class StructureService {
             if (comp != 0) {
                 return comp;
             }
-            comp = (int) (o1.getClassification().getId() - o2.getClassification().getId());
+            comp = (int) (o1.getStructureClassification().getId() - o2.getStructureClassification().getId());
             if (comp != 0) {
                 return comp;
             }
@@ -184,8 +184,9 @@ public class StructureService {
     }
 
     public List<Structure> findAll() {
-        // Use fetch-join repository method to load subStructures eagerly for UI
-        return structureRepository.findAllWithSubStructures();
+//        // Use fetch-join repository method to load subStructures eagerly for UI
+//        return structureRepository.findAllWithSubStructures();
+        return structureRepository.findAll();
     }
 
     public void deleteById(Long id) {

@@ -2,7 +2,7 @@ package com.liu.trachunom.service;
 
 import java.util.List;
 
-import com.liu.trachunom.entity.Classification;
+import com.liu.trachunom.entity.StructureClassification;
 import org.springframework.stereotype.Service;
 
 import com.liu.trachunom.dto.SubStructureDto;
@@ -18,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SubStructureService {
     private final SubStructureRepository subStructureRepository;
-    private final ClassificationService classificationService;
+    private final StructureClassificationService structureClassificationService;
     private final StructureRepository structureRepository;
 
     public SubStructure parse(SubStructureDto subStructureDto, Structure structure) {
@@ -30,15 +30,15 @@ public class SubStructureService {
         if (!structureRepository.existsById(subStructureId)) {
             throw new RuntimeException("Cấu tạo con không tồn tại với id = " +  subStructureId);
         }
-        Classification classification = classificationService.findById(subStructureDto.getClassificationId());
+        StructureClassification structureClassification = structureClassificationService.findById(subStructureDto.getClassificationId());
         SubStructure subStructure = SubStructure.builder()
                 .id(SubStructureId.builder()
                         .structureId(structure.getId())
                         .subStructureId(subStructureId)
-                        .classificationId(classification.getId())
+                        .classificationId(structureClassification.getId())
                         .build())
                 .structure(structure)
-                .classification(classification)
+                .structureClassification(structureClassification)
                 .quantity(subStructureDto.getQuantity())
                 .build();
         return subStructure;
@@ -57,9 +57,9 @@ public class SubStructureService {
     public void save(List<SubStructure> subStructures) {
         for (int i = 0; i < subStructures.size(); i++) {
             SubStructure subStructure = subStructures.get(i);
-            SubStructure existingSubStructure = subStructureRepository.findByStructure_IdAndClassification_Id(
+            SubStructure existingSubStructure = subStructureRepository.findByStructure_IdAndStructureClassification_Id(
                     subStructure.getStructure().getId(),
-                    subStructure.getClassification().getId()
+                    subStructure.getStructureClassification().getId()
             ).stream()
             .filter((o) -> o.getId().getSubStructureId().equals(subStructure.getId().getSubStructureId()))
             .findFirst().orElse(null);

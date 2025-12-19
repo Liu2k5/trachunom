@@ -2,30 +2,30 @@ package com.liu.trachunom.service;
 
 import java.util.List;
 
+import com.liu.trachunom.entity.StructureClassification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.liu.trachunom.entity.Classification;
 import com.liu.trachunom.repository.ClassificationRepository;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class ClassificationService {
+public class StructureClassificationService {
     private final ClassificationRepository classificationRepository;
 
-    public List<Classification> findAll() {
+    public List<StructureClassification> findAll() {
         return classificationRepository.findAll();
     }
 
-    public Classification findById(Long classificationId) {
+    public StructureClassification findById(Long classificationId) {
         return classificationRepository.findById(classificationId).orElseThrow(() -> new RuntimeException("Phân loại không tồn tại"));
     }
 
     @Transactional
-    public Classification save(Classification classification) {
-        return classificationRepository.save(classification);
+    public StructureClassification save(StructureClassification structureClassification) {
+        return classificationRepository.save(structureClassification);
     }
 
     @Transactional
@@ -37,44 +37,44 @@ public class ClassificationService {
         return classificationRepository.existsById(id);
     }
 
-    public Classification getPhoneticClassification() {
+    public StructureClassification getPhoneticClassification() {
         return classificationRepository.findByDescription("Biểu âm");
     }
 
-    public Classification getNoneClassification() {
+    public StructureClassification getNoneClassification() {
         return classificationRepository.findByDescription("Không");
     }
 
-    public Classification getIdeographicClassification() {
+    public StructureClassification getIdeographicClassification() {
         return classificationRepository.findByDescription("Biểu ý");
     }
 
-    public boolean isPhoneticClassification(Classification classification) {
-        if (classification == null || classification.getDescription() == null) {
+    public boolean isPhoneticClassification(StructureClassification structureClassification) {
+        if (structureClassification == null || structureClassification.getDescription() == null) {
             return false;
         }
-        if (classification.getDescription().equals("Biểu âm")) {
+        if (structureClassification.getDescription().equals("Biểu âm")) {
             return true;
         } else {
             return false;
         }
     }
 
-    public boolean isNoneClassification(Classification classification) {
-        if (classification == null || classification.getDescription() == null) {
+    public boolean isNoneClassification(StructureClassification structureClassification) {
+        if (structureClassification == null || structureClassification.getDescription() == null) {
             return false;
         }
-        if (classification.getDescription().equals("Không")) {
+        if (structureClassification.getDescription().equals("Không")) {
             return true;
         } else {
             return false;
         }
     }
-    public boolean isIdeographicClassification(Classification classification) {
-        if (classification == null || classification.getDescription() == null) {
+    public boolean isIdeographicClassification(StructureClassification structureClassification) {
+        if (structureClassification == null || structureClassification.getDescription() == null) {
             return false;
         }
-        if (classification.getDescription().equals("Biểu ý")) {
+        if (structureClassification.getDescription().equals("Biểu ý")) {
             return true;
         } else {
             return false;

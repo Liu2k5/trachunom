@@ -72,11 +72,11 @@
                         <input type="number" th:field="*{subStructures[__${i}__].subStructureId}" th:id="'subStructure' + ${i}" value="" th:placeholder="${i + 1}" th:onchange="|classificationHighlight(${i}); checkStructure(); updateStructurePreview()|">
                         <span> x </span>
                         <input type="number" th:field="*{subStructures[__${i}__].quantity}" th:id="'quantity' + ${i}" onchange="checkStructure(); updateStructurePreview()">
-                        <select th:field="*{subStructures[__${i}__].classificationId}" th:id="'classification' + ${i}" th:onchange="|classificationHighlight(${i}); checkStructure(); updateStructurePreview()|">
-                            <option th:each="classification : ${session.classifications}"
-                                    th:value="${classification.id}"
-                                    th:selected="${classification.id == 0}"
-                                    th:text="${classification.description}">
+                        <select th:field="*{subStructures[__${i}__].classificationId}" th:id="'structureClassification' + ${i}" th:onchange="|classificationHighlight(${i}); checkStructure(); updateStructurePreview()|">
+                            <option th:each="structureClassification : ${session.structureClassifications}"
+                                    th:value="${structureClassification.id}"
+                                    th:selected="${structureClassification.id == 0}"
+                                    th:text="${structureClassification.description}">
                             </option>
                         </select>
                         <br th:if="${(i + 1) % 5 == 0}">
@@ -185,7 +185,7 @@
         }
 
         function classificationHighlight(idx) {
-            let cIdObject = document.getElementById("classification" + idx);
+            let cIdObject = document.getElementById("structureClassification" + idx);
             let ssIdObject = document.getElementById("subStructure" + idx);
             ssIdObject.style.backgroundColor = undefined;
             ssIdObject.style.color = undefined;
@@ -218,7 +218,7 @@
             let cm1 = 0, c1 = 0, c0 = 0; // nhom cau tao bieu am, bieu y, trung lap
             let isValid = true;
             for (let i = 0; i < 10; i++) {
-                let cIdObject = document.getElementById("classification" + i);
+                let cIdObject = document.getElementById("structureClassification" + i);
                 let ssQuantityObject = document.getElementById("quantity" + i);
                 let ssIdObject = document.getElementById("subStructure" + i);
                 if (!(ssIdObject.value === "" || parseInt(ssIdObject.value) < 0)) {
@@ -297,7 +297,7 @@
             let subStructureDtos = structureFormDto.subStructures;
             for (let index = 0; index < 10; index++) {
                 document.getElementById("subStructure" + index).value = undefined;
-                document.getElementById("classification" + index).value = 0;
+                document.getElementById("structureClassification" + index).value = 0;
                 document.getElementById("quantity" + index).value = 1;
                 classificationHighlight(index);
             }
@@ -309,7 +309,7 @@
             let index = 0;
             for (let i of subStructureDtos) {
                 document.getElementById("subStructure" + index).value = i.subStructureId;
-                document.getElementById("classification" + index).value = i.classificationId;
+                document.getElementById("structureClassification" + index).value = i.classificationId;
                 document.getElementById("quantity" + index).value = i.quantity;
                 classificationHighlight(index);
                 index = index + 1;
@@ -381,7 +381,7 @@
                 body += '<td>';
                 let ssIdObject = document.getElementById("subStructure" + i);
                 let quantityObject = document.getElementById("quantity" + i);
-                let classificationObject = document.getElementById("classification" + i);
+                let classificationObject = document.getElementById("structureClassification" + i);
 
                 if (!(ssIdObject.value === "" || parseInt(ssIdObject.value) < 0)) {
                     let response = await fetch('/api/admin/dictionary_management/structureFormDto?id=' + ssIdObject.value);

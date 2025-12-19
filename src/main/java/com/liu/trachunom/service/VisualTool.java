@@ -1,8 +1,9 @@
 package com.liu.trachunom.service;
 
-import com.liu.trachunom.entity.SubStructure;
-import com.liu.trachunom.repository.ClassificationRepository;
+import com.liu.trachunom.entity.*;
+import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H5;
+import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.dom.Style;
@@ -14,7 +15,8 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class VisualTool {
-    private final ClassificationService classificationService;
+    private final StructureClassificationService structureClassificationService;
+    private final PronunciationClassificationService pronunciationClassificationService;
 
     private final int MAX_DEPTH = 50;
 
@@ -50,23 +52,29 @@ public class VisualTool {
             container.setMargin(false);
             container.add(content);
 
+            StructureClassification structureClassification = subStructure.getStructureClassification();
             container.getStyle().setBackgroundColor(
-                    classificationService.isPhoneticClassification(subStructure.getClassification()) ? "blue" :
-                            classificationService.isNoneClassification(subStructure.getClassification()) ? "grey" :
-                                    classificationService.isIdeographicClassification(subStructure.getClassification()) ? "red" : "white");
-            container.getStyle().setWidth("100%");
-            container.getStyle().setMargin("0px");
-            container.getStyle().setDisplay(Style.Display.FLEX);
-            container.getStyle().setJustifyContent(Style.JustifyContent.CENTER);
-            container.getStyle().setAlignItems(Style.AlignItems.CENTER);
+                structureClassificationService.isPhoneticClassification(structureClassification) ? "blue" :
+                structureClassificationService.isNoneClassification(structureClassification) ? "grey" :
+                structureClassificationService.isIdeographicClassification(structureClassification) ? "red" : "white");
+            container.getStyle().setWidth("100%")
+                    .setMargin("0px")
+                    .setPadding("5px 0px 5px")
+                    .setDisplay(Style.Display.FLEX)
+                    .setJustifyContent(Style.JustifyContent.CENTER)
+                    .setAlignItems(Style.AlignItems.CENTER);
             vLayout.setPadding(false);
             vLayout.setMargin(false);
             vLayout.getStyle().setWidth("100%");
             vLayout.getStyle().setGap("0px");
-//            vLayout.getStyle().setBorder("1px solid unset");
-//            vLayout.getStyle().setBoxSizing(Style.BoxSizing.CONTENT_BOX);
+
             HorizontalLayout hLayout = drawStructure(subStructure.getSubStructure().getSubStructures(), depth + 1);
             vLayout.add(container, hLayout);
+            if (i > 0) {
+                HorizontalLayout spacer = new HorizontalLayout();
+                spacer.getStyle().setWidth("10px").setFlexGrow("0");
+                layout.add(spacer);
+            }
             layout.add(vLayout);
         }
         layout.setPadding(false);
@@ -75,4 +83,59 @@ public class VisualTool {
         layout.getStyle().setGap("0px");
         return layout;
     }
+
+    public VerticalLayout drawPronunciation(List<PronunciationChange> pronunciationChanges) {
+        try {
+            return drawPronunciation(pronunciationChanges, 0);
+        } catch (StackOverflowError e) {
+            return new VerticalLayout(new H5("Vòng lặp vô hạn"));
+        } catch (Exception e) {
+            return new VerticalLayout(new H5("Lỗi"));
+        }
+    }
+
+    public VerticalLayout drawPronunciation(List<PronunciationChange> pronunciationChanges, int depth) throws StackOverflowError {
+        if (depth > MAX_DEPTH) {
+            throw new StackOverflowError();
+        }
+
+        if (pronunciationChanges == null || pronunciationChanges.isEmpty()) {
+            return new VerticalLayout();
+        }
+
+        VerticalLayout layout = new VerticalLayout();
+        for (PronunciationChange pronunciationChange : pronunciationChanges) {
+            PronunciationClassification pronunciationClassification = pronunciationChange.getPronunciationClassification();
+
+            HorizontalLayout hLayout = new HorizontalLayout();
+            H3 arrow = new H3("<-");
+            arrow.getStyle().setColor(
+                    pronunciationClassificationService.isChangingPronunciation(pronunciationClassification) ? "red" :
+                    pronunciationClassificationService.isBorrowingPronunciation(pronunciationClassification) ? "blue" : "black");
+
+            Paragraph content = new Paragraph(pronunciationChange.getPreviousPronunciation().getQuocNgu().getDescription());
+
+            HorizontalLayout container = new HorizontalLayout();
+            container.setPadding(false);
+            container.setMargin(false);
+            container.add(arrow, content);
+            container.getStyle().setWidth("100%")
+                    .setMargin("0px")
+                    .setPadding("5px 0px 5px")
+                    .setDisplay(Style.Display.FLEX)
+                    .setJustifyContent(Style.JustifyContent.CENTER)
+                    .setAlignItems(Style.AlignItems.CENTER);
+
+            VerticalLayout vLayout = drawPronunciation(pronunciationChange.getPreviousPronunciation().getPronunciationChanges(), depth + 1);
+            hLayout.add(container, vLayout);
+            layout.add(hLayout);
+
+        }
+        layout.setPadding(false);
+        layout.setMargin(false);
+        layout.getStyle().setWidth("100%");
+        layout.getStyle().setGap("0px");
+        return layout;
+    }
+
 }

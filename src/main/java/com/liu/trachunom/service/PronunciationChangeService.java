@@ -14,7 +14,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PronunciationChangeService {
     private final PronunciationChangeRepository pronunciationChangeRepository;
-    private final PronunciationService pronunciationService;
 
     public PronunciationChange findById(PronunciationChangeId id) {
         return pronunciationChangeRepository.findById(id).orElse(null);
@@ -44,6 +43,10 @@ public class PronunciationChangeService {
 
     public List<PronunciationChange> findAll() {
         return pronunciationChangeRepository.findAll();
+    }
+
+    public void deleteById(PronunciationChangeId id) {
+        pronunciationChangeRepository.deleteById(id);
     }
 }
 

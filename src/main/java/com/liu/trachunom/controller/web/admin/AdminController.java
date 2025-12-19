@@ -1,7 +1,5 @@
 package com.liu.trachunom.controller.web.admin;
 
-import java.util.List;
-
 import com.liu.trachunom.dto.*;
 import com.liu.trachunom.service.*;
 import org.springframework.stereotype.Controller;
@@ -12,10 +10,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.liu.trachunom.entity.CharacterX;
-import com.liu.trachunom.entity.Structure;
-import com.liu.trachunom.entity.SubStructure;
-
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
@@ -24,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/admin/dictionary_management")
 public class AdminController {
     private final RadicalService radicalService;
-    private final ClassificationService classificationService;
+    private final StructureClassificationService structureClassificationService;
     private final LanguageService languageService;
     private final CharacterService characterService;
     private final StructureService structureService;
@@ -41,7 +35,7 @@ public class AdminController {
             session.setAttribute("radicals", radicalService.findAll());
         }
         if (session.getAttribute("classifications") == null) {
-            session.setAttribute("classifications", classificationService.findAll());
+            session.setAttribute("classifications", structureClassificationService.findAll());
         }
         if (session.getAttribute("languages") == null) {
             session.setAttribute("languages", languageService.findAll());

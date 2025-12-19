@@ -12,4 +12,5 @@ import lombok.*;
 public class PronunciationChangeId {
     private Long pronunciationId;
     private Long previousPronunciationId;
+    private Long pronunciationClassificationId;
 }

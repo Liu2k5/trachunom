@@ -3,6 +3,9 @@ package com.liu.trachunom.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "Pronunciation")
 @Getter
@@ -12,9 +15,14 @@ import lombok.*;
 @Builder
 public class Pronunciation {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
     @JoinColumn(name = "quoc_ngu_id")
     private QuocNgu quocNgu;
+
+    @OneToMany(mappedBy = "pronunciation", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @Builder.Default
+    private List<PronunciationChange> pronunciationChanges = new ArrayList<>();
 }

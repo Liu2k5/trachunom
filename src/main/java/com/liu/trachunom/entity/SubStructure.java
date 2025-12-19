@@ -37,7 +37,7 @@ public class SubStructure {
     @ManyToOne
     @JoinColumn(name = "classification_id")
     @MapsId("classificationId")
-    private Classification classification;
+    private StructureClassification structureClassification;
     
     private Integer quantity;
 

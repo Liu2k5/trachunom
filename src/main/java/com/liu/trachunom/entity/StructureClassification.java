@@ -13,18 +13,18 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "Classification")
+@Table(name = "StructureClassification")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Classification {
+public class StructureClassification {
     
     @Id
     private Long id;
     
-    @Column(columnDefinition = "NTEXT")
+    @Column(columnDefinition = "NVARCHAR(MAX)")
     @Nationalized
     private String description;
 }

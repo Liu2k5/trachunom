@@ -5,12 +5,11 @@ import com.liu.trachunom.service.*;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H5;
+import com.vaadin.flow.component.html.H6;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.IntegerField;
@@ -26,7 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 @Route("dictionary-management")
@@ -37,7 +35,7 @@ import java.util.Objects;
 @NoArgsConstructor
 public class DictionaryManagementView extends VerticalLayout {
     @Autowired private RadicalService radicalService;
-    @Autowired private ClassificationService classificationService;
+    @Autowired private StructureClassificationService structureClassificationService;
     @Autowired private LanguageService languageService;
     @Autowired private CharacterService characterService;
     @Autowired private StructureService structureService;
@@ -53,6 +51,7 @@ public class DictionaryManagementView extends VerticalLayout {
     @Autowired private PronunciationChangeService pronunciationChangeService;
     @Autowired private EtymologyService etymologyService;
     @Autowired private VisualTool visualTool;
+    @Autowired private PronunciationClassificationService pronunciationClassificationService;
 
     @PostConstruct
     private void init() {
@@ -167,7 +166,8 @@ public class DictionaryManagementView extends VerticalLayout {
             Button cancelButton = new Button("Hủy");
             dialogButtons.add(saveButton, cancelButton);
             dialog.add(dialogButtons);
-            dialog.open();
+
+            binder1.validate();
 
             saveButton.addClickListener(ev -> {
                 if (binder1.validate().isOk()) {
@@ -185,6 +185,8 @@ public class DictionaryManagementView extends VerticalLayout {
             cancelButton.addClickListener(ev -> {
                 dialog.close();
             });
+
+            dialog.open();
         });
 
         deleteRadicalButton.addClickListener(e -> {
@@ -264,6 +266,9 @@ public class DictionaryManagementView extends VerticalLayout {
             HorizontalLayout dialogButtons = new HorizontalLayout();
             Button saveButton = new Button("Lưu");
             Button cancelButton = new Button("Hủy");
+
+            binder2.validate();
+
             saveButton.addClickListener(cl2 -> {
                 if (binder2.validate().isOk()) {
                     CharacterX editedCharacter = binder2.getBean();
@@ -313,7 +318,6 @@ public class DictionaryManagementView extends VerticalLayout {
         Button addQuocNguButton = new Button("Thêm");
         Button editQuocNguButton = new Button("Sửa");
         Button deleteQuocNguButton = new Button("Xóa");
-
         addQuocNguButton.addClickListener(cl -> {
             QuocNgu newQuocNgu = QuocNgu.builder()
                     .description("Âm đọc mới")
@@ -325,6 +329,7 @@ public class DictionaryManagementView extends VerticalLayout {
         editQuocNguButton.addClickListener(cl -> {
             QuocNgu quocNgu = quocNguGrid.getSelectedItems().stream().findFirst().orElse(null);
             if (quocNgu == null) {
+                System.out.println("null???");
                 return;
             }
             binder3.setBean(quocNgu);
@@ -341,6 +346,9 @@ public class DictionaryManagementView extends VerticalLayout {
             HorizontalLayout dialogButtons = new HorizontalLayout();
             Button saveButton = new Button("Lưu");
             Button cancelButton = new Button("Hủy");
+
+            binder3.validate();
+
             saveButton.addClickListener(cl2 -> {
                 if (binder3.validate().isOk()) {
                     QuocNgu editedQuocNgu = binder3.getBean();
@@ -408,6 +416,9 @@ public class DictionaryManagementView extends VerticalLayout {
             HorizontalLayout dialogButtons = new HorizontalLayout();
             Button saveButton = new Button("Lưu");
             Button cancelButton = new Button("Hủy");
+
+            binder4.validate();
+
             saveButton.addClickListener(cl2 -> {
                 if (binder4.validate().isOk()) {
                     Explanation editedExplanation = binder4.getBean();
@@ -442,6 +453,8 @@ public class DictionaryManagementView extends VerticalLayout {
 
         HorizontalLayout languageStyleForm = new HorizontalLayout();
         languageStyleForm.setWidthFull();
+        languageStyleForm.setPadding(false);
+        languageStyleForm.setMargin(false);
 
         // Binder cho Language
         Binder<Language> binder5 = new Binder<>();
@@ -484,6 +497,9 @@ public class DictionaryManagementView extends VerticalLayout {
             HorizontalLayout dialogButtons = new HorizontalLayout();
             Button saveButton = new Button("Lưu");
             Button cancelButton = new Button("Hủy");
+
+            binder5.validate();
+
             saveButton.addClickListener(cl2 -> {
                 if (binder5.validate().isOk()) {
                     Language editedLanguage = binder5.getBean();
@@ -554,6 +570,9 @@ public class DictionaryManagementView extends VerticalLayout {
             HorizontalLayout dialogButtons = new HorizontalLayout();
             Button saveButton = new Button("Lưu");
             Button cancelButton = new Button("Hủy");
+
+            binder6.validate();
+
             saveButton.addClickListener(cl2 -> {
                 if (binder6.validate().isOk()) {
                     Style editedStyle = binder6.getBean();
@@ -632,6 +651,9 @@ public class DictionaryManagementView extends VerticalLayout {
             HorizontalLayout dialogButtons = new HorizontalLayout();
             Button saveButton = new Button("Lưu");
             Button cancelButton = new Button("Hủy");
+
+            binder7.validate();
+
             saveButton.addClickListener(cl2 -> {
                 if (binder7.validate().isOk()) {
                     Source editedSource = binder7.getBean();
@@ -675,6 +697,10 @@ public class DictionaryManagementView extends VerticalLayout {
         tradSimpForm.add(tradSimpStandardGrid, tradSimpStandardButtons);
 
         sourceTradSimpForm.add(sourceForm, tradSimpForm);
+        sourceTradSimpForm.setWidthFull();
+        sourceTradSimpForm.setPadding(false);
+        sourceTradSimpForm.setMargin(false);
+
         sourceForm.setWidth("60%");
         tradSimpForm.setWidth("40%");
 
@@ -711,7 +737,7 @@ public class DictionaryManagementView extends VerticalLayout {
         // Grid hiển thị SubStructure (khai báo trước để có thể dùng trong events)
         Grid<SubStructure> subStructureGrid = new Grid<>();
         subStructureGrid.addColumn(sub -> sub.getSubStructure().getCharacter().getString(), "character").setWidth("50px").setFlexGrow(0);
-        subStructureGrid.addColumn(sub -> sub.getClassification().getDescription(), "classification").setHeader("Phân loại");
+        subStructureGrid.addColumn(sub -> sub.getStructureClassification().getDescription(), "classification").setHeader("Phân loại");
         subStructureGrid.addColumn(SubStructure::getQuantity).setHeader("Số lượng").setWidth("100px").setFlexGrow(0);
 
         // Nút thêm, sửa, xóa Structure
@@ -721,6 +747,8 @@ public class DictionaryManagementView extends VerticalLayout {
         Button deleteStructureButton = new Button("Xóa");
 
         addStructureButton.addClickListener(cl -> {
+            Binder<Structure> binder = new Binder();
+
             Dialog dialog = new Dialog();
             dialog.setHeaderTitle("Thêm cấu tạo mới");
 
@@ -729,6 +757,7 @@ public class DictionaryManagementView extends VerticalLayout {
             characterField.setItems(characterService.findAll());
             characterField.setItemLabelGenerator(CharacterX::getString);
             characterField.setWidth("300px");
+            binder.forField(characterField).asRequired("Vui lòng chọn ký tự").bind(Structure::getCharacter, Structure::setCharacter);
 
             dialogLayout.add(characterField);
             dialog.add(dialogLayout);
@@ -737,15 +766,19 @@ public class DictionaryManagementView extends VerticalLayout {
             Button saveButton = new Button("Lưu");
             Button cancelButton = new Button("Hủy");
 
+            binder.validate();
+
             saveButton.addClickListener(cl2 -> {
-                if (characterField.getValue() != null) {
-                    Structure newStructure = Structure.builder()
-                            .character(characterField.getValue())
-                            .subStructures(new ArrayList<>())
-                            .build();
-                    structureService.save(newStructure);
-                    structureGrid.setItems(structureService.findAll());
-                    dialog.close();
+                if (binder.validate().isOk()) {
+                    if (characterField.getValue() != null) {
+                        Structure newStructure = Structure.builder()
+                                .character(characterField.getValue())
+                                .subStructures(new ArrayList<>())
+                                .build();
+                        structureService.save(newStructure);
+                        structureGrid.setItems(structureService.findAll());
+                        dialog.close();
+                    }
                 }
             });
 
@@ -761,6 +794,8 @@ public class DictionaryManagementView extends VerticalLayout {
                 return;
             }
 
+            Binder<Structure> binder = new Binder();
+
             Dialog dialog = new Dialog();
             dialog.setHeaderTitle("Sửa cấu tạo");
 
@@ -770,6 +805,7 @@ public class DictionaryManagementView extends VerticalLayout {
             characterField.setItemLabelGenerator(CharacterX::getString);
             characterField.setValue(structure.getCharacter());
             characterField.setWidth("300px");
+            binder.forField(characterField).asRequired("Vui lòng chọn ký tự").bind(Structure::getCharacter, Structure::setCharacter);
 
             dialogLayout.add(characterField);
             dialog.add(dialogLayout);
@@ -778,12 +814,16 @@ public class DictionaryManagementView extends VerticalLayout {
             Button saveButton = new Button("Lưu");
             Button cancelButton = new Button("Hủy");
 
+            binder.validate();
+
             saveButton.addClickListener(cl2 -> {
-                if (characterField.getValue() != null) {
-                    structure.setCharacter(characterField.getValue());
-                    structureService.save(structure);
-                    structureGrid.setItems(structureService.findAll());
-                    dialog.close();
+                if (binder.validate().isOk()) {
+                    if (characterField.getValue() != null) {
+                        structure.setCharacter(characterField.getValue());
+                        structureService.save(structure);
+                        structureGrid.setItems(structureService.findAll());
+                        dialog.close();
+                    }
                 }
             });
 
@@ -817,6 +857,8 @@ public class DictionaryManagementView extends VerticalLayout {
                 return;
             }
 
+            Binder<SubStructure> binder = new Binder();
+
             Dialog dialog = new Dialog();
             dialog.setHeaderTitle("Thêm cấu tạo con");
 
@@ -826,15 +868,20 @@ public class DictionaryManagementView extends VerticalLayout {
             subStructureField.setItems(structureService.findAll());
             subStructureField.setItemLabelGenerator(s -> s.getId() + " - " + s.getCharacter().getString());
             subStructureField.setWidth("300px");
+            binder.forField(subStructureField).asRequired("Vui lòng chọn cấu tạo con").bind(SubStructure::getSubStructure, SubStructure::setSubStructure);
 
-            ComboBox<Classification> classificationField = new ComboBox<>("Phân loại");
-            classificationField.setItems(classificationService.findAll());
-            classificationField.setItemLabelGenerator(Classification::getDescription);
+            ComboBox<StructureClassification> classificationField = new ComboBox<>("Phân loại");
+            classificationField.setItems(structureClassificationService.findAll());
+            classificationField.setItemLabelGenerator(StructureClassification::getDescription);
             classificationField.setWidth("300px");
+            binder.forField(classificationField).asRequired("Vui lòng chọn phân loại").bind(SubStructure::getStructureClassification, SubStructure::setStructureClassification);
 
             IntegerField quantityField = new IntegerField("Số lượng");
             quantityField.setValue(1);
             quantityField.setWidth("300px");
+            binder.forField(quantityField).asRequired("Vui lòng nhập số lượng")
+                    .withValidator(integer -> integer != null && integer > 0, "Số lượng phải là số nguyên dương")
+                    .bind(SubStructure::getQuantity, SubStructure::setQuantity);
 
             dialogLayout.add(subStructureField, classificationField, quantityField);
             dialog.add(dialogLayout);
@@ -843,37 +890,58 @@ public class DictionaryManagementView extends VerticalLayout {
             Button saveButton = new Button("Lưu");
             Button cancelButton = new Button("Hủy");
 
+            binder.validate();
+
             saveButton.addClickListener(cl2 -> {
-                if (subStructureField.getValue() != null && classificationField.getValue() != null) {
-                    SubStructureId subStructureId = SubStructureId.builder()
-                            .structureId(structure.getId())
-                            .subStructureId(subStructureField.getValue().getId())
-                            .classificationId(classificationField.getValue().getId())
-                            .build();
+                if (binder.validate().isOk()) {
+                    if (subStructureField.getValue() != null && classificationField.getValue() != null) {
+                        SubStructureId subStructureId = SubStructureId.builder()
+                                .structureId(structure.getId())
+                                .subStructureId(subStructureField.getValue().getId())
+                                .classificationId(classificationField.getValue().getId())
+                                .build();
 
-                    SubStructure newSubStructure = SubStructure.builder()
-                            .id(subStructureId)
-                            .structure(structure)
-                            .subStructure(subStructureField.getValue())
-                            .classification(classificationField.getValue())
-                            .quantity(quantityField.getValue())
-                            .build();
+                        SubStructure newSubStructure = SubStructure.builder()
+                                .id(subStructureId)
+                                .structure(structure)
+                                .subStructure(subStructureField.getValue())
+                                .structureClassification(classificationField.getValue())
+                                .quantity(quantityField.getValue())
+                                .build();
 
-                    subStructureService.save(newSubStructure);
+                        subStructureService.save(newSubStructure);
 
-                    // Refresh structure để lấy subStructures mới
-                    Structure refreshedStructure = structureService.findById(structure.getId());
-                    if (refreshedStructure != null) {
-                        subStructureGrid.setItems(refreshedStructure.getSubStructures());
+                        // Refresh structure để lấy subStructures mới
+                        Structure refreshedStructure = structureService.findById(structure.getId());
+                        if (refreshedStructure != null) {
+                            subStructureGrid.setItems(refreshedStructure.getSubStructures());
+                        }
+                        structureGrid.setItems(structureService.findAll());
+                        dialog.close();
                     }
-                    structureGrid.setItems(structureService.findAll());
-                    dialog.close();
                 }
             });
 
             cancelButton.addClickListener(cl2 -> dialog.close());
             dialogButtons.add(saveButton, cancelButton);
-            dialog.add(dialogButtons);
+
+            HorizontalLayout preview = new HorizontalLayout();
+            H6 previewHeader = new H6("Xem trước cấu tạo con");
+            preview.add(previewHeader);
+            dialog.add(dialogButtons, preview);
+
+            subStructureField.addValueChangeListener(vcl -> {
+                Structure selectedSubStructure = vcl.getValue();
+                preview.removeAll();
+                preview.add(previewHeader);
+                if (selectedSubStructure != null) {
+                    HorizontalLayout structurePreview = structureService.drawStructure(selectedSubStructure.getSubStructures());
+                    structurePreview.setSpacing(true);
+                    structurePreview.setWidthFull();
+                    preview.add(structurePreview);
+                }
+            });
+
             dialog.open();
         });
 
@@ -883,6 +951,8 @@ public class DictionaryManagementView extends VerticalLayout {
             if (structure == null || subStructure == null) {
                 return;
             }
+
+            Binder<SubStructure> binder = new Binder<>();
 
             Dialog dialog = new Dialog();
             dialog.setHeaderTitle("Sửa cấu tạo con");
@@ -896,16 +966,19 @@ public class DictionaryManagementView extends VerticalLayout {
             subStructureField.setEnabled(false); // Không cho sửa khóa chính
             subStructureField.setWidth("300px");
 
-            ComboBox<Classification> classificationField = new ComboBox<>("Phân loại");
-            classificationField.setItems(classificationService.findAll());
-            classificationField.setItemLabelGenerator(Classification::getDescription);
-            classificationField.setValue(subStructure.getClassification());
+            ComboBox<StructureClassification> classificationField = new ComboBox<>("Phân loại");
+            classificationField.setItems(structureClassificationService.findAll());
+            classificationField.setItemLabelGenerator(StructureClassification::getDescription);
+            classificationField.setValue(subStructure.getStructureClassification());
             classificationField.setEnabled(false); // Không cho sửa khóa chính
             classificationField.setWidth("300px");
 
             IntegerField quantityField = new IntegerField("Số lượng");
             quantityField.setValue(subStructure.getQuantity());
             quantityField.setWidth("300px");
+            binder.forField(quantityField).asRequired("Vui lòng nhập số lượng")
+                    .withValidator(integer -> integer != null && integer > 0, "Số lượng phải là số nguyên dương")
+                    .bind(SubStructure::getQuantity, SubStructure::setQuantity);
 
             dialogLayout.add(subStructureField, classificationField, quantityField);
             dialog.add(dialogLayout);
@@ -914,16 +987,20 @@ public class DictionaryManagementView extends VerticalLayout {
             Button saveButton = new Button("Lưu");
             Button cancelButton = new Button("Hủy");
 
-            saveButton.addClickListener(cl2 -> {
-                subStructure.setQuantity(quantityField.getValue());
-                subStructureService.save(subStructure);
+            binder.validate();
 
-                // Refresh structure để lấy subStructures mới
-                Structure refreshedStructure = structureService.findById(structure.getId());
-                if (refreshedStructure != null) {
-                    subStructureGrid.setItems(refreshedStructure.getSubStructures());
+            saveButton.addClickListener(cl2 -> {
+                if (binder.validate().isOk()) {
+                    subStructure.setQuantity(quantityField.getValue());
+                    subStructureService.save(subStructure);
+
+                    // Refresh structure để lấy subStructures mới
+                    Structure refreshedStructure = structureService.findById(structure.getId());
+                    if (refreshedStructure != null) {
+                        subStructureGrid.setItems(refreshedStructure.getSubStructures());
+                    }
+                    dialog.close();
                 }
-                dialog.close();
             });
 
             cancelButton.addClickListener(cl2 -> dialog.close());
@@ -965,6 +1042,8 @@ public class DictionaryManagementView extends VerticalLayout {
         subStructureLayout.setWidth("60%");
 
         HorizontalLayout structurePreviewLayout = new HorizontalLayout();
+        H5 structurePreviewHeader = new H5("Xem trước cấu tạo");
+        structurePreviewLayout.add(structurePreviewHeader);
         structureLayout.add(structureAndSubStructureLayout, structurePreviewLayout);
 
         // Khi chọn Structure, hiển thị các SubStructure của nó
@@ -980,31 +1059,236 @@ public class DictionaryManagementView extends VerticalLayout {
             } else {
                 subStructureGrid.setItems(new ArrayList<>());
                 newStructurePreview = new HorizontalLayout();
+                newStructurePreview.add(structurePreviewHeader);
             }
             newStructurePreview.setSpacing(true);
             newStructurePreview.setWidthFull();
             structureLayout.add(structureAndSubStructureLayout, newStructurePreview);
-//            structurePreviewLayout = newStructurePreview;
         });
 
         // ===== PHẦN ÂM ĐỌC =====
         VerticalLayout pronunciationLayout = new VerticalLayout();
         pronunciationLayout.setSizeFull();
-        H5 pronunciationHeader = new H5("Âm đọc");
 
+        VerticalLayout pronunciationSubLayout = new VerticalLayout();
+        H5 pronunciationHeader = new H5("Âm đọc");
         Grid<Pronunciation> pronunciationGrid = new Grid<>();
         pronunciationGrid.setHeight("400px");
-        pronunciationGrid.addColumn(Pronunciation::getId).setHeader("Mã").setWidth("75px").setFlexGrow(0);
-        pronunciationGrid.addColumn(pronunciation -> pronunciation.getQuocNgu().getDescription()).setHeader("Quốc ngữ");
+        pronunciationGrid.addColumn(Pronunciation::getId, "id").setHeader("Mã").setWidth("75px").setFlexGrow(0);
+        pronunciationGrid.addColumn(pronunciation -> pronunciation.getQuocNgu().getDescription(), "quocNgu").setHeader("Âm");
         pronunciationGrid.setItems(pronunciationService.findAll());
 
         HorizontalLayout pronunciationButtons = new HorizontalLayout();
         Button addPronunciationButton = new Button("Thêm");
         Button editPronunciationButton = new Button("Sửa");
         Button deletePronunciationButton = new Button("Xóa");
+
+        addPronunciationButton.addClickListener(cl -> {
+            Pronunciation newPronunciation = Pronunciation.builder()
+                    .quocNgu(quocNguService.findAll().get(0))
+                    .build();
+            pronunciationService.save(newPronunciation);
+            pronunciationGrid.setItems(pronunciationService.findAll());
+        });
+
+        editPronunciationButton.addClickListener(cl -> {
+            Pronunciation pronunciation = pronunciationGrid.getSelectedItems().stream().findFirst().orElse(null);
+            if (pronunciation == null) {
+                return;
+            }
+            Binder<Pronunciation> binder = new Binder<>();
+            binder.setBean(pronunciation);
+            Dialog dialog = new Dialog();
+            HorizontalLayout dialogLayout = new HorizontalLayout();
+            ComboBox<QuocNgu> quocNguField = new ComboBox<>("Âm đọc");
+            quocNguField.setItems(quocNguService.findAll());
+            quocNguField.setItemLabelGenerator(QuocNgu::getDescription);
+            quocNguField.setValue(pronunciation.getQuocNgu());
+            quocNguField.setWidth("400px");
+            binder.forField(quocNguField)
+                    .asRequired("Vui lòng chọn âm đọc")
+                    .bind(Pronunciation::getQuocNgu, Pronunciation::setQuocNgu);
+            dialogLayout.add(quocNguField);
+            dialog.add(dialogLayout);
+            HorizontalLayout dialogButtons = new HorizontalLayout();
+            Button saveButton = new Button("Lưu");
+            Button cancelButton = new Button("Hủy");
+
+            binder.validate();
+
+            saveButton.addClickListener(cl2 -> {
+                if (binder.validate().isOk()) {
+                    Pronunciation editedPronunciation = binder.getBean();
+                    pronunciationService.save(editedPronunciation);
+                    pronunciationGrid.setItems(pronunciationService.findAll());
+                    dialog.close();
+                }
+            });
+            cancelButton.addClickListener(cl2 -> {
+                dialog.close();
+            });
+            dialogButtons.add(saveButton, cancelButton);
+            dialog.add(dialogButtons);
+            dialog.open();
+        });
+
+        deletePronunciationButton.addClickListener(cl -> {
+            Pronunciation pronunciation = pronunciationGrid.getSelectedItems().stream().findFirst().orElse(null);
+            if (pronunciation == null) {
+                return;
+            }
+            pronunciationService.deleteById(pronunciation.getId());
+            pronunciationGrid.setItems(pronunciationService.findAll());
+        });
+
         pronunciationButtons.add(addPronunciationButton, editPronunciationButton, deletePronunciationButton);
 
-        pronunciationLayout.add(pronunciationHeader, pronunciationGrid, pronunciationButtons);
+        pronunciationSubLayout.add(pronunciationHeader, pronunciationGrid, pronunciationButtons);
+
+        VerticalLayout pronunciationChangeSubLayout = new VerticalLayout();
+        H5 pronunciationChangeHeader = new H5("Biến đổi âm đọc");
+        Grid<PronunciationChange> pronunciationChangeGrid = new Grid<>();
+        pronunciationChangeGrid.setHeight("400px");
+        pronunciationChangeGrid.addColumn((PronunciationChange pronunciationChange) ->
+                (pronunciationChange.getId().getPreviousPronunciationId() + " - " +
+                pronunciationChange.getPreviousPronunciation().getQuocNgu().getDescription()), "previousPronunciation").setHeader("Âm trước");
+        pronunciationChangeGrid.addColumn((PronunciationChange pronunciationChange) ->
+                pronunciationChange.getPronunciationClassification().getDescription(), "pronunciationClassifcation").setHeader("Phân loại");
+        pronunciationChangeGrid.setItems(new ArrayList<>());
+
+        HorizontalLayout pronunciationChangeButtons = new HorizontalLayout();
+        Button addPronunciationChangeButton = new Button("Thêm");
+        Button deletePronunciationChangeButton = new Button("Xóa");
+
+        addPronunciationChangeButton.addClickListener(cl2 -> {
+            Dialog dialog = new Dialog();
+
+            Pronunciation pronunciation = pronunciationGrid.getSelectedItems().stream().findFirst().orElse(null);
+            if (pronunciation == null) {
+                return;
+            }
+
+            Binder<PronunciationChange> binder = new Binder<>();
+            binder.setBean(new PronunciationChange());
+
+            HorizontalLayout pronunciationChangeForm = new HorizontalLayout();
+
+            ComboBox<Pronunciation> previousPronunciationField = new ComboBox("Âm trước");
+            previousPronunciationField.setItems(pronunciationService.findAll());
+            previousPronunciationField.setItemLabelGenerator((Pronunciation p) -> p.getQuocNgu().getDescription());
+            previousPronunciationField.setValue(binder.getBean().getPreviousPronunciation());
+            previousPronunciationField.setValue(binder.getBean().getPreviousPronunciation());
+            binder.forField(previousPronunciationField).asRequired("Vui lòng chọn âm trước")
+                    .withValidator((p) -> pronunciationChangeService.findById(new PronunciationChangeId().builder()
+                            .pronunciationId(pronunciation.getId())
+                            .previousPronunciationId(previousPronunciationField.getValue() != null ? previousPronunciationField.getValue().getId() : null)
+                            .pronunciationClassificationId(binder.getBean().getPronunciationClassification() != null ? binder.getBean().getPronunciationClassification().getId() : null)
+                            .build()) == null, "Biến đổi âm đọc này đã tồn tại")
+                    .bind(PronunciationChange::getPreviousPronunciation, PronunciationChange::setPreviousPronunciation);
+
+            ComboBox<PronunciationClassification> classificationField = new ComboBox<>("Phân loại");
+            classificationField.setItems(pronunciationClassificationService.findAll());
+            classificationField.setItemLabelGenerator(PronunciationClassification::getDescription);
+            classificationField.setValue(binder.getBean().getPronunciationClassification());
+            binder.forField(classificationField).asRequired("Vui lòng chọn phân loại")
+                    .withValidator((p) -> pronunciationChangeService.findById(new PronunciationChangeId().builder()
+                            .pronunciationId(pronunciation.getId())
+                            .previousPronunciationId(binder.getBean().getPreviousPronunciation() != null ? binder.getBean().getPreviousPronunciation().getId() : null)
+                            .pronunciationClassificationId(classificationField.getValue() != null ? classificationField.getValue().getId() : null)
+                            .build()) == null, "Biến đổi âm đọc này đã tồn tại")
+                    .bind(PronunciationChange::getPronunciationClassification, PronunciationChange::setPronunciationClassification);
+
+            pronunciationChangeForm.add(previousPronunciationField, classificationField);
+
+            HorizontalLayout pronunciationChangeFormButton = new HorizontalLayout();
+            Button saveButton = new Button("Lưu");
+            Button cancelButton = new Button("Hủy");
+
+            binder.validate();
+
+            saveButton.addClickListener(cl3 -> {
+                if (binder.validate().isOk()) {
+                    PronunciationChange editedPronunciationChange  = PronunciationChange.builder()
+                            .id(new PronunciationChangeId().builder()
+                                    .pronunciationId(pronunciation.getId())
+                                    .previousPronunciationId(previousPronunciationField.getValue().getId())
+                                    .pronunciationClassificationId(classificationField.getValue().getId())
+                                    .build())
+                            .pronunciation(pronunciation)
+                            .previousPronunciation(previousPronunciationField.getValue())
+                            .pronunciationClassification(classificationField.getValue())
+                            .build();
+
+                pronunciationChangeService.save(editedPronunciationChange);
+                pronunciation.getPronunciationChanges().add(editedPronunciationChange);
+                pronunciationService.save(pronunciation);
+                pronunciationChangeGrid.setItems(new ArrayList<>());
+                dialog.close();
+                }
+            });
+
+            cancelButton.addClickListener(cl3 -> {
+                dialog.close();
+            });
+
+            pronunciationChangeFormButton.add(saveButton, cancelButton);
+
+            VerticalLayout pronunciationChangePreview = new VerticalLayout();
+            H5 pronunciationChangePreviewHeader = new H5("Xem trước biến đổi âm đọc");
+            pronunciationChangePreview.add(pronunciationChangePreviewHeader);
+
+            previousPronunciationField.addValueChangeListener(vcl -> {
+                pronunciationChangePreview.removeAll();
+                pronunciationChangePreview.add(pronunciationChangePreviewHeader);
+                Pronunciation selectedPreviousPronunciation = vcl.getValue();
+                if (selectedPreviousPronunciation != null) {
+                    pronunciationChangePreview.add(pronunciationService.drawPronunciation(selectedPreviousPronunciation));
+                }
+            });
+
+            dialog.add(pronunciationChangeForm, pronunciationChangeFormButton, pronunciationChangePreview);
+            dialog.open();
+        });
+
+        deletePronunciationChangeButton.addClickListener(cl2 -> {
+            PronunciationChange pronunciationChange = pronunciationChangeGrid.getSelectedItems().stream().findFirst().orElse(null);
+            if (pronunciationChange == null) {
+                return;
+            }
+            Pronunciation pronunciation = pronunciationChange.getPronunciation();
+            pronunciation.getPronunciationChanges().remove(pronunciationChange);
+            pronunciationChangeService.delete(pronunciationChange.getId());
+            pronunciationService.save(pronunciation);
+            pronunciationChangeGrid.setItems(new ArrayList<>());
+        });
+        pronunciationChangeButtons.add(addPronunciationChangeButton, deletePronunciationChangeButton);
+
+        pronunciationChangeSubLayout.add(pronunciationChangeHeader, pronunciationChangeGrid, pronunciationChangeButtons);
+
+        HorizontalLayout pronunciationAndChangeLayout = new HorizontalLayout();
+        pronunciationAndChangeLayout.add(pronunciationSubLayout, pronunciationChangeSubLayout);
+        pronunciationSubLayout.getStyle().setWidth("40%");
+        pronunciationChangeSubLayout.getStyle().setWidth("60%");
+
+
+        VerticalLayout pronunciationChangePreview = new VerticalLayout();
+        H5 pronunciationChangePreviewHeader = new H5("Xem trước biến đổi âm đọc");
+        pronunciationChangePreview.add(pronunciationChangePreviewHeader);
+
+        pronunciationLayout.add(pronunciationAndChangeLayout, pronunciationChangePreview);
+
+        pronunciationGrid.addSelectionListener(selectionEvent -> {
+            pronunciationChangePreview.removeAll();
+            Pronunciation selectedPronunciation = pronunciationGrid.getSelectedItems().stream().findFirst().orElse(null);
+            if (selectedPronunciation == null) {
+                pronunciationChangePreview.add(pronunciationChangePreviewHeader);
+                pronunciationChangeGrid.setItems(new ArrayList<>());
+                return;
+            }
+            pronunciationChangeGrid.setItems(selectedPronunciation.getPronunciationChanges());
+            pronunciationChangePreview.add(pronunciationService.drawPronunciation(selectedPronunciation.getPronunciationChanges()));
+        });
+
 
         VerticalLayout meaningLayout = new VerticalLayout();
         meaningLayout.setSizeFull();

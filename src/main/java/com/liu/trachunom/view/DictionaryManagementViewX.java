@@ -27,7 +27,7 @@ import java.util.List;
 public class DictionaryManagementViewX extends VerticalLayout {
 
     private final RadicalService radicalService;
-    private final ClassificationService classificationService;
+    private final StructureClassificationService structureClassificationService;
     private final LanguageService languageService;
     private final CharacterService characterService;
     private final StructureService structureService;
@@ -35,12 +35,12 @@ public class DictionaryManagementViewX extends VerticalLayout {
     private final EntityService entityService;
 
     private List<Radical> radicals;
-    private List<Classification> classifications;
+    private List<StructureClassification> structureClassifications;
     private List<Language> languages;
 
     public DictionaryManagementViewX(
             RadicalService radicalService,
-            ClassificationService classificationService,
+            StructureClassificationService structureClassificationService,
             LanguageService languageService,
             CharacterService characterService,
             StructureService structureService,
@@ -48,7 +48,7 @@ public class DictionaryManagementViewX extends VerticalLayout {
             EntityService entityService) {
 
         this.radicalService = radicalService;
-        this.classificationService = classificationService;
+        this.structureClassificationService = structureClassificationService;
         this.languageService = languageService;
         this.characterService = characterService;
         this.structureService = structureService;
@@ -126,17 +126,17 @@ public class DictionaryManagementViewX extends VerticalLayout {
     private void loadReferenceData() {
         try {
             radicals = radicalService.findAll();
-            classifications = classificationService.findAll();
+            structureClassifications = structureClassificationService.findAll();
             languages = languageService.findAll();
 
             // Ensure lists are never null
             if (radicals == null) radicals = new ArrayList<>();
-            if (classifications == null) classifications = new ArrayList<>();
+            if (structureClassifications == null) structureClassifications = new ArrayList<>();
             if (languages == null) languages = new ArrayList<>();
         } catch (Exception e) {
             // Initialize empty lists if loading fails
             radicals = new ArrayList<>();
-            classifications = new ArrayList<>();
+            structureClassifications = new ArrayList<>();
             languages = new ArrayList<>();
             showError("Không thể tải dữ liệu tham chiếu: " + e.getMessage());
             e.printStackTrace();
@@ -277,7 +277,7 @@ public class DictionaryManagementViewX extends VerticalLayout {
         List<SubStructureFormRow> subStructureRows = new ArrayList<>();
 
         for (int i = 0; i < 10; i++) {
-            SubStructureFormRow row = new SubStructureFormRow(i + 1, classifications);
+            SubStructureFormRow row = new SubStructureFormRow(i + 1, structureClassifications);
             subStructuresLayout.add(row.getLayout());
             subStructureRows.add(row);
         }
@@ -480,9 +480,9 @@ public class DictionaryManagementViewX extends VerticalLayout {
         private final HorizontalLayout layout;
         private final IntegerField subStructureIdField;
         private final IntegerField quantityField;
-        private final ComboBox<Classification> classificationCombo;
+        private final ComboBox<StructureClassification> classificationCombo;
 
-        public SubStructureFormRow(int index, List<Classification> classifications) {
+        public SubStructureFormRow(int index, List<StructureClassification> structureClassifications) {
             layout = new HorizontalLayout();
             layout.setAlignItems(Alignment.CENTER);
             layout.setWidth("100%");
@@ -499,8 +499,8 @@ public class DictionaryManagementViewX extends VerticalLayout {
             quantityField.setValue(1);
 
             classificationCombo = new ComboBox<>();
-            classificationCombo.setItems(classifications);
-            classificationCombo.setItemLabelGenerator(Classification::getDescription);
+            classificationCombo.setItems(structureClassifications);
+            classificationCombo.setItemLabelGenerator(StructureClassification::getDescription);
             classificationCombo.setWidth("200px");
 
             layout.add(subStructureIdField, multiplyLabel, quantityField, classificationCombo);

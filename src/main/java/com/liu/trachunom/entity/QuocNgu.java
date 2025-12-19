@@ -1,12 +1,8 @@
 package com.liu.trachunom.entity;
 
+import jakarta.persistence.*;
 import org.hibernate.annotations.Nationalized;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -26,6 +22,7 @@ public class QuocNgu {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(columnDefinition = "NVARCHAR(MAX)")
     @Nationalized
     private String description;
 

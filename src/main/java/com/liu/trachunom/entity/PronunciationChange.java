@@ -24,4 +24,9 @@ public class PronunciationChange {
     @JoinColumn(name = "previous_pronunciation_id")
     private Pronunciation previousPronunciation;
 
+    @MapsId("pronunciationClassificationId")
+    @ManyToOne
+    @JoinColumn(name = "pronunciation_classification_id")
+    private PronunciationClassification pronunciationClassification;
+
 }
