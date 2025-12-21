@@ -1,10 +1,7 @@
 package com.liu.trachunom.service;
 
-import com.liu.trachunom.entity.Pronunciation;
-import com.liu.trachunom.entity.PronunciationChange;
 import com.liu.trachunom.entity.PronunciationClassification;
 import com.liu.trachunom.repository.PronunciationClassificationRepository;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

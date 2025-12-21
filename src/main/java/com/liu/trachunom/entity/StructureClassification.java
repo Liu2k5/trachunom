@@ -20,11 +20,9 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class StructureClassification {
-    
     @Id
     private Long id;
-    
-    @Column(columnDefinition = "NVARCHAR(MAX)")
+
     @Nationalized
     private String description;
 }

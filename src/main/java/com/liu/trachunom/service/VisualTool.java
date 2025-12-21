@@ -17,12 +17,13 @@ import java.util.List;
 public class VisualTool {
     private final StructureClassificationService structureClassificationService;
     private final PronunciationClassificationService pronunciationClassificationService;
+    private final PronunciationEvolutionService pronunciationEvolutionService;
 
     private final int MAX_DEPTH = 50;
 
-    public HorizontalLayout drawStructure(List<SubStructure> subStructures) {
+    public HorizontalLayout drawStructure(List<StructureComponent> structureComponents) {
         try {
-            return drawStructure(subStructures, 0);
+            return drawStructure(structureComponents, 0);
         } catch (StackOverflowError e) {
             return new HorizontalLayout(new H5("Vòng lặp vô hạn"));
         } catch (Exception e) {
@@ -30,21 +31,21 @@ public class VisualTool {
         }
     }
 
-    public HorizontalLayout drawStructure(List<SubStructure> subStructures, int depth) throws StackOverflowError {
+    public HorizontalLayout drawStructure(List<StructureComponent> structureComponents, int depth) throws StackOverflowError {
         if (depth > MAX_DEPTH) {
             throw new StackOverflowError();
         }
 
-        if (subStructures == null || subStructures.isEmpty()) {
+        if (structureComponents == null || structureComponents.isEmpty()) {
             return new HorizontalLayout();
         }
 
         HorizontalLayout layout = new HorizontalLayout();
-        for (int i = 0; i < subStructures.size(); i++) {
+        for (int i = 0; i < structureComponents.size(); i++) {
             VerticalLayout vLayout = new VerticalLayout();
-            SubStructure subStructure = subStructures.get(i);
-            Integer quantity = subStructure.getQuantity();
-            H5 content = new H5(subStructure.getSubStructure().getCharacter().getString() + (quantity > 1 ? " x" + quantity : ""));
+            StructureComponent structureComponent = structureComponents.get(i);
+            Integer quantity = structureComponent.getQuantity();
+            H5 content = new H5(structureComponent.getStructure().getCharacter().getString() + (quantity > 1 ? " x" + quantity : ""));
             content.getStyle().setColor("white");
 
             VerticalLayout container = new VerticalLayout();
@@ -52,7 +53,7 @@ public class VisualTool {
             container.setMargin(false);
             container.add(content);
 
-            StructureClassification structureClassification = subStructure.getStructureClassification();
+            StructureClassification structureClassification = structureComponent.getStructureClassification();
             container.getStyle().setBackgroundColor(
                 structureClassificationService.isPhoneticClassification(structureClassification) ? "blue" :
                 structureClassificationService.isNoneClassification(structureClassification) ? "grey" :
@@ -68,7 +69,7 @@ public class VisualTool {
             vLayout.getStyle().setWidth("100%");
             vLayout.getStyle().setGap("0px");
 
-            HorizontalLayout hLayout = drawStructure(subStructure.getSubStructure().getSubStructures(), depth + 1);
+            HorizontalLayout hLayout = drawStructure(structureComponent.getStructureComponent().getStructureComponents(), depth + 1);
             vLayout.add(container, hLayout);
             if (i > 0) {
                 HorizontalLayout spacer = new HorizontalLayout();
@@ -84,9 +85,9 @@ public class VisualTool {
         return layout;
     }
 
-    public VerticalLayout drawPronunciation(List<PronunciationChange> pronunciationChanges) {
+    public VerticalLayout drawPronunciation(List<PronunciationEvolution> pronunciationEvolutions) {
         try {
-            return drawPronunciation(pronunciationChanges, 0);
+            return drawPronunciation(pronunciationEvolutions, 0);
         } catch (StackOverflowError e) {
             return new VerticalLayout(new H5("Vòng lặp vô hạn"));
         } catch (Exception e) {
@@ -94,26 +95,27 @@ public class VisualTool {
         }
     }
 
-    public VerticalLayout drawPronunciation(List<PronunciationChange> pronunciationChanges, int depth) throws StackOverflowError {
+    public VerticalLayout drawPronunciation(List<PronunciationEvolution> pronunciationEvolutions, int depth) throws StackOverflowError {
         if (depth > MAX_DEPTH) {
             throw new StackOverflowError();
         }
 
-        if (pronunciationChanges == null || pronunciationChanges.isEmpty()) {
+        if (pronunciationEvolutions == null || pronunciationEvolutions.isEmpty()) {
             return new VerticalLayout();
         }
 
         VerticalLayout layout = new VerticalLayout();
-        for (PronunciationChange pronunciationChange : pronunciationChanges) {
-            PronunciationClassification pronunciationClassification = pronunciationChange.getPronunciationClassification();
+        for (PronunciationEvolution pronunciationEvolution : pronunciationEvolutions) {
+            PronunciationClassification pronunciationClassification = pronunciationEvolution.getPronunciationClassification();
 
             HorizontalLayout hLayout = new HorizontalLayout();
-            H3 arrow = new H3("<-");
+            H3 arrow = new H3("→");
+            arrow.getStyle().setWidth("10px");
             arrow.getStyle().setColor(
                     pronunciationClassificationService.isChangingPronunciation(pronunciationClassification) ? "red" :
                     pronunciationClassificationService.isBorrowingPronunciation(pronunciationClassification) ? "blue" : "black");
 
-            Paragraph content = new Paragraph(pronunciationChange.getPreviousPronunciation().getQuocNgu().getDescription());
+            Paragraph content = new Paragraph(pronunciationEvolution.getToPronunciation().getQuocNgu().getDescription());
 
             HorizontalLayout container = new HorizontalLayout();
             container.setPadding(false);
@@ -124,9 +126,10 @@ public class VisualTool {
                     .setPadding("5px 0px 5px")
                     .setDisplay(Style.Display.FLEX)
                     .setJustifyContent(Style.JustifyContent.CENTER)
-                    .setAlignItems(Style.AlignItems.CENTER);
+                    .setAlignItems(Style.AlignItems.CENTER)
+                    .setHeight("20px");
 
-            VerticalLayout vLayout = drawPronunciation(pronunciationChange.getPreviousPronunciation().getPronunciationChanges(), depth + 1);
+            VerticalLayout vLayout = drawPronunciation(pronunciationEvolutionService.findByFromPronunciation(pronunciationEvolution.getToPronunciation()), depth + 1);
             hLayout.add(container, vLayout);
             layout.add(hLayout);
 

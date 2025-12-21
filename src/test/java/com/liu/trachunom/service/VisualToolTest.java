@@ -1,6 +1,6 @@
 package com.liu.trachunom.service;
 
-import com.liu.trachunom.entity.SubStructure;
+import com.liu.trachunom.entity.StructureComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +18,7 @@ public class VisualToolTest {
 
     @Test
     public void test() {
-        List<SubStructure> structure = structureService.findById(29L).getSubStructures();
+        List<StructureComponent> structure = structureService.findById(29L).getStructureComponents();
         System.out.println(structure.size());
         HorizontalLayout layout = visualTool.drawStructure(structure);
         layout.getChildren().forEach(component -> {

@@ -69,10 +69,10 @@
                     </table>
                     <p>Cấu tạo thuộc kiểu: <span id="structure_check"></span></p>
                     <div th:each="i : ${#numbers.sequence(0,9)}">
-                        <input type="number" th:field="*{subStructures[__${i}__].subStructureId}" th:id="'subStructure' + ${i}" value="" th:placeholder="${i + 1}" th:onchange="|classificationHighlight(${i}); checkStructure(); updateStructurePreview()|">
+                        <input type="number" th:field="*{structureComponents[__${i}__].subStructureId}" th:id="'structureComponent' + ${i}" value="" th:placeholder="${i + 1}" th:onchange="|classificationHighlight(${i}); checkStructure(); updateStructurePreview()|">
                         <span> x </span>
-                        <input type="number" th:field="*{subStructures[__${i}__].quantity}" th:id="'quantity' + ${i}" onchange="checkStructure(); updateStructurePreview()">
-                        <select th:field="*{subStructures[__${i}__].classificationId}" th:id="'structureClassification' + ${i}" th:onchange="|classificationHighlight(${i}); checkStructure(); updateStructurePreview()|">
+                        <input type="number" th:field="*{structureComponents[__${i}__].quantity}" th:id="'quantity' + ${i}" onchange="checkStructure(); updateStructurePreview()">
+                        <select th:field="*{structureComponents[__${i}__].classificationId}" th:id="'structureClassification' + ${i}" th:onchange="|classificationHighlight(${i}); checkStructure(); updateStructurePreview()|">
                             <option th:each="structureClassification : ${session.structureClassifications}"
                                     th:value="${structureClassification.id}"
                                     th:selected="${structureClassification.id == 0}"
@@ -186,7 +186,7 @@
 
         function classificationHighlight(idx) {
             let cIdObject = document.getElementById("structureClassification" + idx);
-            let ssIdObject = document.getElementById("subStructure" + idx);
+            let ssIdObject = document.getElementById("structureComponent" + idx);
             ssIdObject.style.backgroundColor = undefined;
             ssIdObject.style.color = undefined;
             if (ssIdObject.value === "" || parseInt(ssIdObject.value) < 0) {
@@ -220,7 +220,7 @@
             for (let i = 0; i < 10; i++) {
                 let cIdObject = document.getElementById("structureClassification" + i);
                 let ssQuantityObject = document.getElementById("quantity" + i);
-                let ssIdObject = document.getElementById("subStructure" + i);
+                let ssIdObject = document.getElementById("structureComponent" + i);
                 if (!(ssIdObject.value === "" || parseInt(ssIdObject.value) < 0)) {
                     if (parseInt(cIdObject.value) === -1) {
                         cm1 += parseInt(ssQuantityObject.value);
@@ -294,9 +294,9 @@
             let response = await fetch('/api/admin/dictionary_management/structureFormDto?id=' + id);
             let structureFormDto = await response.json();
             document.getElementById("structure_character").value = structureFormDto.structureDto.string;
-            let subStructureDtos = structureFormDto.subStructures;
+            let subStructureDtos = structureFormDto.structureComponents;
             for (let index = 0; index < 10; index++) {
-                document.getElementById("subStructure" + index).value = undefined;
+                document.getElementById("structureComponent" + index).value = undefined;
                 document.getElementById("structureClassification" + index).value = 0;
                 document.getElementById("quantity" + index).value = 1;
                 classificationHighlight(index);
@@ -308,7 +308,7 @@
             }
             let index = 0;
             for (let i of subStructureDtos) {
-                document.getElementById("subStructure" + index).value = i.subStructureId;
+                document.getElementById("structureComponent" + index).value = i.subStructureId;
                 document.getElementById("structureClassification" + index).value = i.classificationId;
                 document.getElementById("quantity" + index).value = i.quantity;
                 classificationHighlight(index);
@@ -352,7 +352,7 @@
         async function drawStructure(id) {
             let response = await fetch('/api/admin/dictionary_management/structureFormDto?id=' + id);
             let structureFormDto = await response.json();
-            let subStructureDtos = structureFormDto.subStructures;
+            let subStructureDtos = structureFormDto.structureComponents;
             if (subStructureDtos == null || subStructureDtos.length === 0) {
                 return '';
             }
@@ -379,7 +379,7 @@
             body += '<tr>';
             for (let i = 0; i < 10; i++) {
                 body += '<td>';
-                let ssIdObject = document.getElementById("subStructure" + i);
+                let ssIdObject = document.getElementById("structureComponent" + i);
                 let quantityObject = document.getElementById("quantity" + i);
                 let classificationObject = document.getElementById("structureClassification" + i);
 

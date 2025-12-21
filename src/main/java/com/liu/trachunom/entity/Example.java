@@ -13,6 +13,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Nationalized;
 
 @Entity
 @Table(name = "Example")
@@ -30,9 +31,11 @@ public class Example {
     @ManyToOne
     @JoinColumn(name = "source_id")
     private Source source;
-    
+
+    @Nationalized
     private String hanExample;
-    
+
+    @Nationalized
     private String quExample;
     
 }

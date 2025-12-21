@@ -22,7 +22,4 @@ public class Pronunciation {
     @JoinColumn(name = "quoc_ngu_id")
     private QuocNgu quocNgu;
 
-    @OneToMany(mappedBy = "pronunciation", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    @Builder.Default
-    private List<PronunciationChange> pronunciationChanges = new ArrayList<>();
 }

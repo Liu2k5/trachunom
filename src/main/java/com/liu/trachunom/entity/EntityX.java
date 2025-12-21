@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Nationalized;
 
+import java.util.List;
+
 @jakarta.persistence.Entity
 @Table(name = "Entity")
 @Getter
@@ -21,11 +23,11 @@ public class EntityX {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "structure_id")
     private Structure structure;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pronunciation_id")
     private Pronunciation pronunciation;
 
@@ -39,5 +41,9 @@ public class EntityX {
 
     @Nationalized
     private String description;
+
+    @ManyToOne
+    @JoinColumn(name = "entity_type_id")
+    private EntityType entityType;
 
 }

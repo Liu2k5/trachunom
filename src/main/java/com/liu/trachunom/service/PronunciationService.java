@@ -1,9 +1,8 @@
 package com.liu.trachunom.service;
 
 import com.liu.trachunom.entity.Pronunciation;
-import com.liu.trachunom.entity.PronunciationChange;
+import com.liu.trachunom.entity.PronunciationEvolution;
 import com.liu.trachunom.repository.PronunciationRepository;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,6 +16,7 @@ public class PronunciationService {
     private final PronunciationRepository pronunciationRepository;
     private final QuocNguService quocNguService;
     private final VisualTool visualTool;
+    private final PronunciationEvolutionService pronunciationEvolutionService;
 
     public Pronunciation findById(Long pronunciationId) {
         return pronunciationRepository.findById(pronunciationId).orElse(null);
@@ -45,11 +45,11 @@ public class PronunciationService {
     }
 
     public VerticalLayout drawPronunciation(Pronunciation pronunciation) {
-        List<PronunciationChange> pronunciationChanges = pronunciation.getPronunciationChanges();
-        return visualTool.drawPronunciation(pronunciationChanges);
+        List<PronunciationEvolution> pronunciationEvolutions = pronunciationEvolutionService.findByFromPronunciation(pronunciation);
+        return visualTool.drawPronunciation(pronunciationEvolutions);
     }
 
-    public VerticalLayout drawPronunciation(List<PronunciationChange> pronunciationChanges) {
-        return visualTool.drawPronunciation(pronunciationChanges);
+    public VerticalLayout drawPronunciation(List<PronunciationEvolution> pronunciationEvolutions) {
+        return visualTool.drawPronunciation(pronunciationEvolutions);
     }
 }

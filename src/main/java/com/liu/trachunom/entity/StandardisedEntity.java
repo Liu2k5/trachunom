@@ -29,4 +29,11 @@ public class StandardisedEntity {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "entity_id")
     private EntityX entity;
+
+//    public String getQuocNguDescription() {
+//        if (entity != null && entity.getPronunciation() != null && entity.getPronunciation().getQuocNgu() != null) {
+//            return entity.getPronunciation().getQuocNgu().getDescription();
+//        }
+//        return null;
+//    }
 }

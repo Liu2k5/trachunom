@@ -13,7 +13,7 @@ import org.hibernate.annotations.Nationalized;
 @Builder
 public class Explanation {
     @Id
-    @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(columnDefinition = "NVARCHAR(MAX)")

@@ -2,8 +2,10 @@ package com.liu.trachunom.view;
 
 import com.liu.trachunom.entity.CharacterX;
 import com.liu.trachunom.entity.EntityX;
+import com.liu.trachunom.entity.Explanation;
 import com.liu.trachunom.service.CharacterService;
 import com.liu.trachunom.service.EntityService;
+import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -234,13 +236,15 @@ public class SearchView extends VerticalLayout implements BeforeEnterObserver {
                 }
 
                 if (entity.getMeaning() != null) {
-                    if (entity.getMeaning().getExplanations() != null) {
-                        Paragraph description = new Paragraph(entity.getMeaning().getExplanations().getFirst().getDescription());
-                        description.getStyle()
+                    Paragraph description = new Paragraph();
+                    description.getStyle()
                             .set("margin", "0")
                             .set("color", "#555");
-                        entityContent.add(description);
+                    for (Explanation explanation: entity.getMeaning().getExplanations()) {
+                        description.add(explanation.getDescription());
+                        description.add(new Html("<br/>"));
                     }
+                    entityContent.add(description);
                 }
 
                 entityDiv.add(entityContent);

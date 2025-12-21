@@ -5,13 +5,13 @@ import lombok.*;
 import org.hibernate.annotations.Nationalized;
 
 @Entity
-@Table(name = "PronunciationClassification")
+@Table(name = "SemanticRelationType")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PronunciationClassification {
+public class SemanticRelationType {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

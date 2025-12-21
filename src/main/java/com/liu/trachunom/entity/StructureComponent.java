@@ -13,26 +13,26 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "SubStructure")
+@Table(name = "StructureComponent")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SubStructure {
+public class StructureComponent {
 
     @EmbeddedId
-    private SubStructureId id;
+    private StructureComponentId id;
 
     @MapsId("structureId")
     @ManyToOne
     @JoinColumn(name = "structure_id")
     private Structure structure;
 
-    @MapsId("subStructureId")
+    @MapsId("structureComponentId")
     @ManyToOne
-    @JoinColumn(name = "sub_structure_id")
-    private Structure subStructure;
+    @JoinColumn(name = "structure_component_id")
+    private Structure structureComponent;
 
     @ManyToOne
     @JoinColumn(name = "classification_id")

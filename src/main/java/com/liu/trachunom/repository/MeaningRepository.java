@@ -7,4 +7,5 @@ import com.liu.trachunom.entity.Meaning;
 
 @Repository
 public interface MeaningRepository extends JpaRepository<Meaning, Long> {
+
 }

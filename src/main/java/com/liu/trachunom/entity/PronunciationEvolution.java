@@ -4,25 +4,25 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "PronunciationChange")
+@Table(name = "PronunciationEvolution")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PronunciationChange {
+public class PronunciationEvolution {
     @EmbeddedId
-    private PronunciationChangeId id;
+    private PronunciationEvolutionId id;
 
-    @MapsId("pronunciationId")
+    @MapsId("fromPronunciationId")
     @ManyToOne
-    @JoinColumn(name = "pronunciation_id")
-    private Pronunciation pronunciation;
+    @JoinColumn(name = "from_pronunciation_id")
+    private Pronunciation fromPronunciation;
 
-    @MapsId("previousPronunciationId")
+    @MapsId("toPronunciationId")
     @ManyToOne
-    @JoinColumn(name = "previous_pronunciation_id")
-    private Pronunciation previousPronunciation;
+    @JoinColumn(name = "to_pronunciation_id")
+    private Pronunciation toPronunciation;
 
     @MapsId("pronunciationClassificationId")
     @ManyToOne

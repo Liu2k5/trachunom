@@ -27,9 +27,8 @@ public class Structure {
     @JoinColumn(name = "unicode")
     private CharacterX character;
 
-
     @OneToMany(mappedBy = "structure", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Builder.Default
-    private List<SubStructure> subStructures = new ArrayList<>();
+    private List<StructureComponent> structureComponents = new ArrayList<>();
 
 }

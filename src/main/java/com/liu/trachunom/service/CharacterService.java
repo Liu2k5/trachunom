@@ -4,7 +4,6 @@ import com.liu.trachunom.entity.EntityX;
 import com.liu.trachunom.repository.EntityRepository;
 import org.springframework.stereotype.Service;
 
-import com.liu.trachunom.dto.CharacterDto;
 import com.liu.trachunom.entity.CharacterX;
 import com.liu.trachunom.repository.CharacterRepository;
 
@@ -26,40 +25,6 @@ public class CharacterService {
 
     public List<CharacterX> findAll() {
         return characterRepository.findAll();
-    }
-
-    public CharacterDto toDto(CharacterX character) {
-        if (character == null) {
-            return null;
-        }
-        return CharacterDto.builder()
-                .character(Character.toString(character.getUnicode()))
-                .radicalId(character.getRadical() != null ? character.getRadical().getId() : null)
-                .additionalStrokeNumber(character.getAdditionalStrokeNumber())
-                .totalStrokeNumber(character.getTotalStrokeNumber())
-                .build();
-    }
-
-    public CharacterX parse(CharacterDto characterDto) {
-        if (characterDto == null || characterDto.getCharacter() == null) {
-            return null;
-        }
-        CharacterX character = findByUnicode(characterDto.getCharacter().codePointAt(0));
-        if (character == null) {
-            throw new RuntimeException("Kí tự không tồn tại trong cơ sở dữ liệu");
-        }
-        return CharacterX.builder()
-                .unicode(characterDto.getCharacter().codePointAt(0))
-                .radical(characterDto.getRadicalId() != null ? radicalService.findById(characterDto.getRadicalId()) : null)
-                .additionalStrokeNumber(characterDto.getAdditionalStrokeNumber())
-                .totalStrokeNumber(characterDto.getTotalStrokeNumber())
-                .build();
-    }
-
-    @Transactional
-    public void save(CharacterDto characterDto) {
-        CharacterX character = parse(characterDto);
-        save(character);
     }
 
     public void save(CharacterX character) {
