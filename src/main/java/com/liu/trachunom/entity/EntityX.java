@@ -42,8 +42,8 @@ public class EntityX {
     @Nationalized
     private String description;
 
-    @ManyToOne
-    @JoinColumn(name = "entity_type_id")
-    private EntityType entityType;
+    private boolean compound;
+
+    private boolean attested;
 
 }

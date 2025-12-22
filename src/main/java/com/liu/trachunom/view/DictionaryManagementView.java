@@ -1290,7 +1290,7 @@ public class DictionaryManagementView extends VerticalLayout {
         // Bảng Meaning
         VerticalLayout meaningSubLayout = new VerticalLayout();
         Grid<Meaning> meaningGrid = new Grid<>();
-        meaningGrid.setHeight("300px");
+//        meaningGrid.setHeight("300px");
         meaningGrid.addColumn(Meaning::getId).setHeader("Mã").setWidth("75px").setFlexGrow(0);
         meaningGrid.setItems(meaningService.findAll());
 
@@ -1303,7 +1303,7 @@ public class DictionaryManagementView extends VerticalLayout {
         H5 explanationHeader = new H5("Giải nghĩa");
 
         Grid<Explanation> explanationGrid = new Grid<>();
-        explanationGrid.setHeight("300px");
+//        explanationGrid.setHeight("300px");
         explanationGrid.addColumn(Explanation::getId, "id").setHeader("Mã").setWidth("75px").setFlexGrow(0);
         explanationGrid.addColumn(Explanation::getDescription).setHeader("Mô tả");
         explanationGrid.setItems(new ArrayList<>());
@@ -1496,8 +1496,21 @@ public class DictionaryManagementView extends VerticalLayout {
 
         Grid<EntityX> entityGrid = new Grid<>();
         entityGrid.setHeight("600px");
-        entityGrid.addColumn(EntityX::getId).setHeader("Mã").setWidth("75px").setFlexGrow(0);
+        entityGrid.addColumn(EntityX::getId, "id").setHeader("Mã").setWidth("75px").setFlexGrow(0);
         entityGrid.addColumn(entity -> entity.getStructure().getCharacter().getString()).setHeader("Ký tự").setWidth("60px");
+        entityGrid.addColumn(entity -> entity.getStructure().getId()).setHeader("Cấu tạo").setWidth("100px");
+        entityGrid.addColumn(entity -> entity.getPronunciation().getQuocNgu().getDescription(), "pronunciation").setHeader("Âm đọc").setWidth("120px");
+        entityGrid.addColumn(entity -> {
+            StringBuilder meanings = new StringBuilder();
+            for (Explanation explanation : entity.getMeaning().getExplanations()) {
+                meanings.append(explanation.getDescription()).append("; ");
+            }
+            return meanings.toString();
+        }).setHeader("Nghĩa");
+        entityGrid.addColumn(entity -> entity.getLanguage().getAbbreviation(), "language").setHeader("Ngôn ngữ").setWidth("100px");
+        entityGrid.addColumn(EntityX::isCompound).setHeader("Phức hợp").setWidth("100px");
+        entityGrid.addColumn(EntityX::isAttested).setHeader("Có chứng thực").setWidth("100px");
+        entityGrid.addColumn(EntityX::getDescription).setHeader("Mô tả");
         entityGrid.setItems(entityService.findAll());
 
         HorizontalLayout entityButtons = new HorizontalLayout();

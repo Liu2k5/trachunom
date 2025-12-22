@@ -16,7 +16,6 @@ public class EntityCompositionId implements Serializable {
     private Long parentEntityId;
     private Long childEntityId;
     private Long position;
-    private Long entityCompositionRoleId;
 
     @Override
     public boolean equals(Object o) {
@@ -25,12 +24,11 @@ public class EntityCompositionId implements Serializable {
         EntityCompositionId that = (EntityCompositionId) o;
         return Objects.equals(parentEntityId, that.parentEntityId) &&
                Objects.equals(childEntityId, that.childEntityId) &&
-               Objects.equals(position, that.position) &&
-               Objects.equals(entityCompositionRoleId, that.entityCompositionRoleId);
+               Objects.equals(position, that.position);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(parentEntityId, childEntityId, position, entityCompositionRoleId);
+        return Objects.hash(parentEntityId, childEntityId, position);
     }
 }

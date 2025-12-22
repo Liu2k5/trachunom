@@ -24,8 +24,4 @@ public class EntityComposition {
     @JoinColumn(name = "child_entity_id")
     private EntityX childEntity;
 
-    @MapsId("entityCompositionRoleId")
-    @ManyToOne
-    @JoinColumn(name = "entity_composition_role_id")
-    private EntityCompositionRole entityCompositionRole;
 }
