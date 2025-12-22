@@ -208,6 +208,10 @@ public class SearchView extends VerticalLayout implements BeforeEnterObserver {
 
         if (entities != null && !entities.isEmpty()) {
             for (EntityX entity : entities) {
+                if (!entity.isAttested()) {
+                    continue;
+                }
+
                 Div entityDiv = new Div();
                 entityDiv.getStyle()
                     .set("padding", "15px")
@@ -228,7 +232,7 @@ public class SearchView extends VerticalLayout implements BeforeEnterObserver {
                         quocNgu = entity.getPronunciation().getQuocNgu().getDescription();
                     }
 
-                    H5 header = new H5(charString + " " + quocNgu);
+                    RouterLink header = new RouterLink(charString + " " + quocNgu, EntityDetailView.class, entity.getId());
                     header.getStyle()
                         .set("margin", "0 0 10px 0")
                         .set("color", "#667eea");

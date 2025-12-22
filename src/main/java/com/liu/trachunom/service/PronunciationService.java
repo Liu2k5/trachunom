@@ -44,12 +44,4 @@ public class PronunciationService {
         pronunciationRepository.deleteById(id);
     }
 
-    public VerticalLayout drawPronunciation(Pronunciation pronunciation) {
-        List<PronunciationEvolution> pronunciationEvolutions = pronunciationEvolutionService.findByToPronunciation(pronunciation);
-        return drawPronunciation(pronunciationEvolutions);
-    }
-
-    public VerticalLayout drawPronunciation(List<PronunciationEvolution> pronunciationEvolutions) {
-        return visualTool.drawPronunciation(pronunciationEvolutions);
-    }
 }

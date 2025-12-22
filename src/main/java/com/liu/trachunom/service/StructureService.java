@@ -50,15 +50,4 @@ public class StructureService {
         structureRepository.deleteById(id);
     }
 
-    public HorizontalLayout drawStructure(Structure structure) {
-        if (structure == null) {
-            return new HorizontalLayout();
-        }
-        return drawStructure(structure.getStructureComponents());
-    }
-
-    public HorizontalLayout drawStructure(List<StructureComponent> structures) {
-        return visualTool.drawStructure(structures);
-    }
-
 }

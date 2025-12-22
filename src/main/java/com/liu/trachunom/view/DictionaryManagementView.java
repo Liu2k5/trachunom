@@ -54,6 +54,8 @@ public class DictionaryManagementView extends VerticalLayout {
     @Autowired private PronunciationEvolutionService pronunciationEvolutionService;
     @Autowired private PronunciationClassificationService pronunciationClassificationService;
     @Autowired private EntityCompositionService entityCompositionService;
+    @Autowired private EntityEvolutionService entityEvolutionService;
+    @Autowired private VisualTool visualTool;
 
     @PostConstruct
     private void init() {
@@ -933,7 +935,7 @@ public class DictionaryManagementView extends VerticalLayout {
                 preview.removeAll();
                 preview.add(previewHeader);
                 if (selectedStructureComponent != null) {
-                    HorizontalLayout structurePreview = structureService.drawStructure(selectedStructureComponent.getStructureComponents());
+                    HorizontalLayout structurePreview = visualTool.drawStructure(selectedStructureComponent.getStructureComponents());
                     structurePreview.setSpacing(true);
                     structurePreview.setWidthFull();
                     preview.add(structurePreview);
@@ -1053,7 +1055,7 @@ public class DictionaryManagementView extends VerticalLayout {
             HorizontalLayout newStructurePreview = new HorizontalLayout();
             if (selectedStructure != null) {
                 structureComponentGrid.setItems(selectedStructure.getStructureComponents());
-                newStructurePreview = structureService.drawStructure(selectedStructure.getStructureComponents());
+                newStructurePreview = visualTool.drawStructure(selectedStructure.getStructureComponents());
             } else {
                 structureComponentGrid.setItems(new ArrayList<>());
                 newStructurePreview = new HorizontalLayout();
@@ -1240,7 +1242,7 @@ public class DictionaryManagementView extends VerticalLayout {
                 pronunciationChangePreview.add(pronunciationChangePreviewHeader);
                 Pronunciation selectedPreviousPronunciation = vcl.getValue();
                 if (selectedPreviousPronunciation != null) {
-                    pronunciationChangePreview.add(pronunciationService.drawPronunciation(selectedPreviousPronunciation));
+                    pronunciationChangePreview.add(visualTool.drawPronunciation(selectedPreviousPronunciation));
                 }
             });
 
@@ -1280,9 +1282,9 @@ public class DictionaryManagementView extends VerticalLayout {
                 pronunciationChangeGrid.setItems(new ArrayList<>());
                 return;
             }
-            List<PronunciationEvolution> pronunciationEvolutions = pronunciationEvolutionService.findByToPronunciation(selectedPronunciation);
+            List<PronunciationEvolution> pronunciationEvolutions = pronunciationEvolutionService.findByFromPronunciation(selectedPronunciation);
             pronunciationChangeGrid.setItems(pronunciationEvolutions);
-            pronunciationChangePreview.add(pronunciationService.drawPronunciation(pronunciationEvolutions));
+            pronunciationChangePreview.add(visualTool.drawPronunciation(selectedPronunciation));
         });
 
 
@@ -1550,7 +1552,7 @@ public class DictionaryManagementView extends VerticalLayout {
 
         Grid<EntityComposition> compositionGrid = new Grid<>();
         compositionGrid.setHeight("300px");
-        compositionGrid.addColumn(ec -> ec.getChildEntity().getId()).setHeader("Mã thực thể con").setWidth("100px");
+        compositionGrid.addColumn(ec -> ec.getChildEntity().getId()).setHeader("Mã").setWidth("100px");
         compositionGrid.addColumn(ec -> ec.getChildEntity().getStructure().getCharacter().getString()).setHeader("Ký tự").setWidth("60px");
         compositionGrid.addColumn(ec -> ec.getId().getPosition()).setHeader("Vị trí").setWidth("75px");
         compositionGrid.setItems(new ArrayList<>());
@@ -1694,10 +1696,6 @@ public class DictionaryManagementView extends VerticalLayout {
         childEntityLayout.add(childEntityHeader, compositionGrid, compositionButtons);
 
         rightLayout.add(compositionHeader, parentEntityLayout, childEntityLayout);
-
-        layout.add(leftLayout, rightLayout);
-        leftLayout.setWidth("50%");
-        rightLayout.setWidth("50%");
 
         // Sự kiện khi chọn parent entity, hiển thị các thành phần con
         parentEntityGrid.addSelectionListener(selection -> {
@@ -1899,20 +1897,149 @@ public class DictionaryManagementView extends VerticalLayout {
             parentEntityGrid.setItems(entityService.findByCompound(true));
         });
 
+        // ===== PHẦN PHÁT TRIỂN THỰC THỂ (ENTITY EVOLUTION) =====
+        VerticalLayout entityEvolutionLayout = new VerticalLayout();
+        entityEvolutionLayout.setWidthFull();
 
+        H5 entityEvolutionHeader = new H5("Phát triển thực thể");
+
+        Grid<EntityEvolution> entityEvolutionGrid = new Grid<>();
+        entityEvolutionGrid.setHeight("300px");
+        entityEvolutionGrid.addColumn(ee -> ee.getFromEntity().getId()).setHeader("Thực thể nguồn").setWidth("120px");
+        entityEvolutionGrid.addColumn(ee -> ee.getToEntity().getId()).setHeader("Thực thể đích").setWidth("120px");
+        entityEvolutionGrid.addColumn(EntityEvolution::getDescription).setHeader("Mô tả");
+        entityEvolutionGrid.setItems(entityEvolutionService.findAll());
+
+        HorizontalLayout entityEvolutionButtons = new HorizontalLayout();
+        Button addEntityEvolutionButton = new Button("Thêm");
+        Button editEntityEvolutionButton = new Button("Sửa");
+        Button deleteEntityEvolutionButton = new Button("Xóa");
+
+        // Thêm quan hệ phát triển thực thể
+        addEntityEvolutionButton.addClickListener(cl -> {
+            Dialog dialog = new Dialog();
+            dialog.setHeaderTitle("Thêm quan hệ phát triển thực thể");
+            dialog.setWidth("600px");
+
+            VerticalLayout dialogLayout = new VerticalLayout();
+
+            ComboBox<EntityX> fromEntityField = new ComboBox<>("Thực thể nguồn");
+            fromEntityField.setItems(entityService.findAll());
+            fromEntityField.setItemLabelGenerator(e -> e.getId() + " - " + e.getStructure().getCharacter().getString());
+            fromEntityField.setWidth("100%");
+
+            ComboBox<EntityX> toEntityField = new ComboBox<>("Thực thể đích");
+            toEntityField.setItems(entityService.findAll());
+            toEntityField.setItemLabelGenerator(e -> e.getId() + " - " + e.getStructure().getCharacter().getString());
+            toEntityField.setWidth("100%");
+
+            TextField descriptionField = new TextField("Mô tả");
+            descriptionField.setWidth("100%");
+
+            dialogLayout.add(fromEntityField, toEntityField, descriptionField);
+            dialog.add(dialogLayout);
+
+            HorizontalLayout dialogButtons = new HorizontalLayout();
+            Button saveButton = new Button("Lưu");
+            Button cancelButton = new Button("Hủy");
+
+            saveButton.addClickListener(e -> {
+                if (fromEntityField.getValue() != null && toEntityField.getValue() != null) {
+                    EntityEvolutionId id = new EntityEvolutionId(
+                        fromEntityField.getValue().getId(),
+                        toEntityField.getValue().getId()
+                    );
+
+                    EntityEvolution evolution = EntityEvolution.builder()
+                        .id(id)
+                        .fromEntity(fromEntityField.getValue())
+                        .toEntity(toEntityField.getValue())
+                        .description(descriptionField.getValue())
+                        .build();
+
+                    entityEvolutionService.save(evolution);
+                    entityEvolutionGrid.setItems(entityEvolutionService.findAll());
+                    dialog.close();
+                }
+            });
+
+            cancelButton.addClickListener(e -> dialog.close());
+            dialogButtons.add(saveButton, cancelButton);
+            dialog.add(dialogButtons);
+            dialog.open();
+        });
+
+        // Sửa quan hệ phát triển thực thể (chỉ có thể sửa mô tả)
+        editEntityEvolutionButton.addClickListener(cl -> {
+            EntityEvolution evolution = entityEvolutionGrid.getSelectedItems().stream().findFirst().orElse(null);
+            if (evolution == null) {
+                return;
+            }
+
+            Dialog dialog = new Dialog();
+            dialog.setHeaderTitle("Sửa mô tả quan hệ phát triển");
+            dialog.setWidth("600px");
+
+            VerticalLayout dialogLayout = new VerticalLayout();
+
+            TextField fromEntityField = new TextField("Thực thể nguồn");
+            fromEntityField.setValue(evolution.getFromEntity().getId() + " - " +
+                evolution.getFromEntity().getStructure().getCharacter().getString());
+            fromEntityField.setEnabled(false);
+            fromEntityField.setWidth("100%");
+
+            TextField toEntityField = new TextField("Thực thể đích");
+            toEntityField.setValue(evolution.getToEntity().getId() + " - " +
+                evolution.getToEntity().getStructure().getCharacter().getString());
+            toEntityField.setEnabled(false);
+            toEntityField.setWidth("100%");
+
+            TextField descriptionField = new TextField("Mô tả");
+            descriptionField.setValue(evolution.getDescription() != null ? evolution.getDescription() : "");
+            descriptionField.setWidth("100%");
+
+            dialogLayout.add(fromEntityField, toEntityField, descriptionField);
+            dialog.add(dialogLayout);
+
+            HorizontalLayout dialogButtons = new HorizontalLayout();
+            Button saveButton = new Button("Lưu");
+            Button cancelButton = new Button("Hủy");
+
+            saveButton.addClickListener(e -> {
+                evolution.setDescription(descriptionField.getValue());
+                entityEvolutionService.save(evolution);
+                entityEvolutionGrid.setItems(entityEvolutionService.findAll());
+                dialog.close();
+            });
+
+            cancelButton.addClickListener(e -> dialog.close());
+            dialogButtons.add(saveButton, cancelButton);
+            dialog.add(dialogButtons);
+            dialog.open();
+        });
+
+        // Xóa quan hệ phát triển thực thể
+        deleteEntityEvolutionButton.addClickListener(cl -> {
+            EntityEvolution evolution = entityEvolutionGrid.getSelectedItems().stream().findFirst().orElse(null);
+            if (evolution == null) {
+                return;
+            }
+            entityEvolutionService.deleteById(evolution.getId());
+            entityEvolutionGrid.setItems(entityEvolutionService.findAll());
+        });
+
+        entityEvolutionButtons.add(addEntityEvolutionButton, editEntityEvolutionButton, deleteEntityEvolutionButton);
+        entityEvolutionLayout.add(entityEvolutionHeader, entityEvolutionGrid, entityEvolutionButtons);
+
+        layout.add(leftLayout, rightLayout, entityEvolutionLayout);
+        leftLayout.setWidth("50%");
+        rightLayout.setWidth("20%");
+        entityEvolutionLayout.setWidth("30%");
 
         return layout;
     }
 
     private HorizontalLayout complementaryLayout() {
-        HorizontalLayout layout = new HorizontalLayout();
-        layout.setSizeFull();
-        H5 header = new H5("Quản lý bổ sung");
-
-        // Nội dung quản lý bổ sung sẽ được thêm vào đây trong tương lai
-
-        layout.add(header);
-        return layout;
+        return new HorizontalLayout();
     }
 }
-
