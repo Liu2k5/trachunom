@@ -45,8 +45,8 @@ public class PronunciationService {
     }
 
     public VerticalLayout drawPronunciation(Pronunciation pronunciation) {
-        List<PronunciationEvolution> pronunciationEvolutions = pronunciationEvolutionService.findByFromPronunciation(pronunciation);
-        return visualTool.drawPronunciation(pronunciationEvolutions);
+        List<PronunciationEvolution> pronunciationEvolutions = pronunciationEvolutionService.findByToPronunciation(pronunciation);
+        return drawPronunciation(pronunciationEvolutions);
     }
 
     public VerticalLayout drawPronunciation(List<PronunciationEvolution> pronunciationEvolutions) {

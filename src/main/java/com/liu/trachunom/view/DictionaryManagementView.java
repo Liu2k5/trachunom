@@ -3,11 +3,13 @@ package com.liu.trachunom.view;
 import com.liu.trachunom.entity.*;
 import com.liu.trachunom.service.*;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.html.H6;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
@@ -51,6 +53,7 @@ public class DictionaryManagementView extends VerticalLayout {
     @Autowired private PronunciationService pronunciationService;
     @Autowired private PronunciationEvolutionService pronunciationEvolutionService;
     @Autowired private PronunciationClassificationService pronunciationClassificationService;
+    @Autowired private EntityCompositionService entityCompositionService;
 
     @PostConstruct
     private void init() {
@@ -1277,7 +1280,7 @@ public class DictionaryManagementView extends VerticalLayout {
                 pronunciationChangeGrid.setItems(new ArrayList<>());
                 return;
             }
-            List<PronunciationEvolution> pronunciationEvolutions = pronunciationEvolutionService.findByFromPronunciation(selectedPronunciation);
+            List<PronunciationEvolution> pronunciationEvolutions = pronunciationEvolutionService.findByToPronunciation(selectedPronunciation);
             pronunciationChangeGrid.setItems(pronunciationEvolutions);
             pronunciationChangePreview.add(pronunciationService.drawPronunciation(pronunciationEvolutions));
         });
@@ -1366,7 +1369,7 @@ public class DictionaryManagementView extends VerticalLayout {
                         // Thông báo lỗi
                         dialog.close();
                         Dialog errorDialog = new Dialog();
-                        errorDialog.add(new com.vaadin.flow.component.html.Span("Giải nghĩa này đã thuộc về ý nghĩa hiện tại!"));
+                        errorDialog.add(new Span("Giải nghĩa này đã thuộc về ý nghĩa hiện tại!"));
                         Button okButton = new Button("OK", e -> errorDialog.close());
                         errorDialog.add(okButton);
                         errorDialog.open();
@@ -1420,7 +1423,7 @@ public class DictionaryManagementView extends VerticalLayout {
                         if (meaning.getExplanations().contains(newExplanation)) {
                             dialog.close();
                             Dialog errorDialog = new Dialog();
-                            errorDialog.add(new com.vaadin.flow.component.html.Span("Giải nghĩa này đã thuộc về ý nghĩa hiện tại!"));
+                            errorDialog.add(new Span("Giải nghĩa này đã thuộc về ý nghĩa hiện tại!"));
                             Button okButton = new Button("OK", e -> errorDialog.close());
                             errorDialog.add(okButton);
                             errorDialog.open();
@@ -1495,7 +1498,7 @@ public class DictionaryManagementView extends VerticalLayout {
         H5 entityHeader = new H5("Thực thể");
 
         Grid<EntityX> entityGrid = new Grid<>();
-        entityGrid.setHeight("600px");
+        entityGrid.setHeight("400px");
         entityGrid.addColumn(EntityX::getId, "id").setHeader("Mã").setWidth("75px").setFlexGrow(0);
         entityGrid.addColumn(entity -> entity.getStructure().getCharacter().getString()).setHeader("Ký tự").setWidth("60px");
         entityGrid.addColumn(entity -> entity.getStructure().getId()).setHeader("Cấu tạo").setWidth("100px");
@@ -1517,16 +1520,386 @@ public class DictionaryManagementView extends VerticalLayout {
         Button addEntityButton = new Button("Thêm");
         Button editEntityButton = new Button("Sửa");
         Button deleteEntityButton = new Button("Xóa");
+
         entityButtons.add(addEntityButton, editEntityButton, deleteEntityButton);
 
         leftLayout.add(entityHeader, entityGrid, entityButtons);
 
+        // ===== PHẦN THỰC THỂ PHỨ HỢP =====
         VerticalLayout rightLayout = new VerticalLayout();
         rightLayout.setSizeFull();
+
+        H5 compositionHeader = new H5("Thực thể phức hợp");
+
+        // Bảng hiển thị parent entity
+        VerticalLayout parentEntityLayout = new VerticalLayout();
+        H6 parentEntityHeader = new H6("Thực thể cha");
+
+        Grid<EntityX> parentEntityGrid = new Grid<>();
+        parentEntityGrid.setHeight("150px");
+        parentEntityGrid.addColumn(EntityX::getId).setHeader("Mã").setWidth("75px").setFlexGrow(0);
+        parentEntityGrid.addColumn(e -> e.getStructure().getCharacter().getString()).setHeader("Ký tự");
+        parentEntityGrid.addColumn(e -> e.getPronunciation().getQuocNgu().getDescription()).setHeader("Âm đọc");
+        parentEntityGrid.setItems(entityService.findByCompound(true));
+
+        parentEntityLayout.add(parentEntityHeader, parentEntityGrid);
+
+        // Bảng hiển thị child entity và position
+        VerticalLayout childEntityLayout = new VerticalLayout();
+        H6 childEntityHeader = new H6("Thành phần thực thể con");
+
+        Grid<EntityComposition> compositionGrid = new Grid<>();
+        compositionGrid.setHeight("300px");
+        compositionGrid.addColumn(ec -> ec.getChildEntity().getId()).setHeader("Mã thực thể con").setWidth("100px");
+        compositionGrid.addColumn(ec -> ec.getChildEntity().getStructure().getCharacter().getString()).setHeader("Ký tự").setWidth("60px");
+        compositionGrid.addColumn(ec -> ec.getId().getPosition()).setHeader("Vị trí").setWidth("75px");
+        compositionGrid.setItems(new ArrayList<>());
+
+        HorizontalLayout compositionButtons = new HorizontalLayout();
+        Button addCompositionButton = new Button("Thêm");
+        Button editCompositionButton = new Button("Sửa");
+        Button deleteCompositionButton = new Button("Xóa");
+
+        // Thêm thành phần thực thể con
+        addCompositionButton.addClickListener(cl -> {
+            EntityX parentEntity = parentEntityGrid.getSelectedItems().stream().findFirst().orElse(null);
+            if (parentEntity == null) {
+                return;
+            }
+
+            Dialog dialog = new Dialog();
+            dialog.setHeaderTitle("Thêm thành phần thực thể con");
+            dialog.setWidth("500px");
+
+            VerticalLayout dialogLayout = new VerticalLayout();
+
+            ComboBox<EntityX> childEntityField = new ComboBox<>("Thực thể con");
+            childEntityField.setItems(entityService.findAll());
+            childEntityField.setItemLabelGenerator(e -> e.getId() + " - " + e.getStructure().getCharacter().getString());
+            childEntityField.setWidth("100%");
+
+            IntegerField positionField = new IntegerField("Vị trí");
+            positionField.setValue(1);
+            positionField.setWidth("100%");
+
+            dialogLayout.add(childEntityField, positionField);
+            dialog.add(dialogLayout);
+
+            HorizontalLayout dialogButtons = new HorizontalLayout();
+            Button saveButton = new Button("Lưu");
+            Button cancelButton = new Button("Hủy");
+
+            saveButton.addClickListener(e -> {
+                if (childEntityField.getValue() != null && positionField.getValue() != null) {
+                    EntityCompositionId compositionId = EntityCompositionId.builder()
+                            .parentEntityId(parentEntity.getId())
+                            .childEntityId(childEntityField.getValue().getId())
+                            .position(positionField.getValue().longValue())
+                            .build();
+
+                    EntityComposition composition = EntityComposition.builder()
+                            .id(compositionId)
+                            .parentEntity(parentEntity)
+                            .childEntity(childEntityField.getValue())
+                            .build();
+
+                    entityCompositionService.save(composition);
+                    compositionGrid.setItems(entityCompositionService.findByParentEntityId(parentEntity.getId()));
+                    dialog.close();
+                }
+            });
+
+            cancelButton.addClickListener(e -> dialog.close());
+            dialogButtons.add(saveButton, cancelButton);
+            dialog.add(dialogButtons);
+            dialog.open();
+        });
+
+        // Sửa thành phần thực thể con (chỉ có thể sửa position)
+        editCompositionButton.addClickListener(cl -> {
+            EntityX parentEntity = parentEntityGrid.getSelectedItems().stream().findFirst().orElse(null);
+            EntityComposition composition = compositionGrid.getSelectedItems().stream().findFirst().orElse(null);
+            if (parentEntity == null || composition == null) {
+                return;
+            }
+
+            Dialog dialog = new Dialog();
+            dialog.setHeaderTitle("Sửa vị trí thực thể con");
+            dialog.setWidth("500px");
+
+            VerticalLayout dialogLayout = new VerticalLayout();
+
+            TextField childEntityField = new TextField("Thực thể con");
+            childEntityField.setValue(composition.getChildEntity().getId() + " - " +
+                    composition.getChildEntity().getStructure().getCharacter().getString());
+            childEntityField.setEnabled(false);
+            childEntityField.setWidth("100%");
+
+            IntegerField positionField = new IntegerField("Vị trí");
+            positionField.setValue(composition.getId().getPosition().intValue());
+            positionField.setWidth("100%");
+
+            dialogLayout.add(childEntityField, positionField);
+            dialog.add(dialogLayout);
+
+            HorizontalLayout dialogButtons = new HorizontalLayout();
+            Button saveButton = new Button("Lưu");
+            Button cancelButton = new Button("Hủy");
+
+            saveButton.addClickListener(e -> {
+                if (positionField.getValue() != null) {
+                    // Xóa composition cũ
+                    entityCompositionService.deleteById(composition.getId());
+
+                    // Tạo composition mới với position mới
+                    EntityCompositionId newId = EntityCompositionId.builder()
+                            .parentEntityId(parentEntity.getId())
+                            .childEntityId(composition.getChildEntity().getId())
+                            .position(positionField.getValue().longValue())
+                            .build();
+
+                    EntityComposition newComposition = EntityComposition.builder()
+                            .id(newId)
+                            .parentEntity(parentEntity)
+                            .childEntity(composition.getChildEntity())
+                            .build();
+
+                    entityCompositionService.save(newComposition);
+                    compositionGrid.setItems(entityCompositionService.findByParentEntityId(parentEntity.getId()));
+                    dialog.close();
+                }
+            });
+
+            cancelButton.addClickListener(e -> dialog.close());
+            dialogButtons.add(saveButton, cancelButton);
+            dialog.add(dialogButtons);
+            dialog.open();
+        });
+
+        // Xóa thành phần thực thể con
+        deleteCompositionButton.addClickListener(cl -> {
+            EntityComposition composition = compositionGrid.getSelectedItems().stream().findFirst().orElse(null);
+            if (composition == null) {
+                return;
+            }
+
+            entityCompositionService.deleteById(composition.getId());
+            EntityX parentEntity = parentEntityGrid.getSelectedItems().stream().findFirst().orElse(null);
+            if (parentEntity != null) {
+                compositionGrid.setItems(entityCompositionService.findByParentEntityId(parentEntity.getId()));
+            }
+        });
+
+        compositionButtons.add(addCompositionButton, editCompositionButton, deleteCompositionButton);
+        childEntityLayout.add(childEntityHeader, compositionGrid, compositionButtons);
+
+        rightLayout.add(compositionHeader, parentEntityLayout, childEntityLayout);
 
         layout.add(leftLayout, rightLayout);
         leftLayout.setWidth("50%");
         rightLayout.setWidth("50%");
+
+        // Sự kiện khi chọn parent entity, hiển thị các thành phần con
+        parentEntityGrid.addSelectionListener(selection -> {
+            EntityX selectedParentEntity = selection.getFirstSelectedItem().orElse(null);
+            if (selectedParentEntity != null) {
+                List<EntityComposition> compositions = entityCompositionService.findByParentEntityId(selectedParentEntity.getId());
+                compositionGrid.setItems(compositions);
+            } else {
+                compositionGrid.setItems(new ArrayList<>());
+            }
+        });
+
+        // Thêm thực thể mới
+        addEntityButton.addClickListener(cl -> {
+            Binder<EntityX> binder = new Binder<>();
+            EntityX newEntity = new EntityX();
+            binder.setBean(newEntity);
+
+            Dialog dialog = new Dialog();
+            dialog.setHeaderTitle("Thêm thực thể mới");
+            dialog.setWidth("600px");
+
+            VerticalLayout dialogLayout = new VerticalLayout();
+
+            ComboBox<Structure> structureField = new ComboBox<>("Cấu tạo");
+            structureField.setItems(structureService.findAll());
+            structureField.setItemLabelGenerator(s -> s.getId() + " - " + s.getCharacter().getString());
+            structureField.setWidth("100%");
+            binder.forField(structureField)
+                    .asRequired("Vui lòng chọn cấu tạo")
+                    .bind(EntityX::getStructure, EntityX::setStructure);
+
+            ComboBox<Pronunciation> pronunciationField = new ComboBox<>("Âm đọc");
+            pronunciationField.setItems(pronunciationService.findAll());
+            pronunciationField.setItemLabelGenerator(p -> p.getId() + " - " + p.getQuocNgu().getDescription());
+            pronunciationField.setWidth("100%");
+            binder.forField(pronunciationField)
+                    .asRequired("Vui lòng chọn âm đọc")
+                    .bind(EntityX::getPronunciation, EntityX::setPronunciation);
+
+            ComboBox<Meaning> meaningField = new ComboBox<>("Ý nghĩa");
+            meaningField.setItems(meaningService.findAll());
+            meaningField.setItemLabelGenerator(m -> {
+                StringBuilder sb = new StringBuilder(m.getId() + " - ");
+                m.getExplanations().forEach(e -> sb.append(e.getDescription()).append("; "));
+                return sb.toString();
+            });
+            meaningField.setWidth("100%");
+            binder.forField(meaningField)
+                    .asRequired("Vui lòng chọn ý nghĩa")
+                    .bind(EntityX::getMeaning, EntityX::setMeaning);
+
+            ComboBox<Language> languageField = new ComboBox<>("Ngôn ngữ");
+            languageField.setItems(languageService.findAll());
+            languageField.setItemLabelGenerator(l -> l.getId() + " - " + l.getAbbreviation());
+            languageField.setWidth("100%");
+            binder.forField(languageField)
+                    .asRequired("Vui lòng chọn ngôn ngữ")
+                    .bind(EntityX::getLanguage, EntityX::setLanguage);
+
+            TextField descriptionField = new TextField("Mô tả");
+            descriptionField.setWidth("100%");
+            binder.forField(descriptionField)
+                    .bind(EntityX::getDescription, EntityX::setDescription);
+
+            Checkbox compoundCheckbox = new Checkbox("Phức hợp");
+            binder.forField(compoundCheckbox)
+                    .bind(EntityX::isCompound, EntityX::setCompound);
+
+            Checkbox attestedCheckbox = new Checkbox("Có chứng thực");
+            binder.forField(attestedCheckbox)
+                    .bind(EntityX::isAttested, EntityX::setAttested);
+
+            dialogLayout.add(structureField, pronunciationField, meaningField, languageField,
+                    descriptionField, compoundCheckbox, attestedCheckbox);
+            dialog.add(dialogLayout);
+
+            HorizontalLayout dialogButtons = new HorizontalLayout();
+            Button saveButton = new Button("Lưu");
+            Button cancelButton = new Button("Hủy");
+
+            saveButton.addClickListener(e -> {
+                if (binder.validate().isOk()) {
+                    entityService.save(newEntity);
+                    entityGrid.setItems(entityService.findAll());
+                    parentEntityGrid.setItems(entityService.findByCompound(true));
+                    dialog.close();
+                }
+            });
+
+            cancelButton.addClickListener(e -> dialog.close());
+            dialogButtons.add(saveButton, cancelButton);
+            dialog.add(dialogButtons);
+            dialog.open();
+        });
+
+        // Sửa thực thể
+        editEntityButton.addClickListener(cl -> {
+            EntityX entity = entityGrid.getSelectedItems().stream().findFirst().orElse(null);
+            if (entity == null) {
+                return;
+            }
+
+            Binder<EntityX> binder = new Binder<>();
+            binder.setBean(entity);
+
+            Dialog dialog = new Dialog();
+            dialog.setHeaderTitle("Sửa thực thể");
+            dialog.setWidth("600px");
+
+            VerticalLayout dialogLayout = new VerticalLayout();
+
+            ComboBox<Structure> structureField = new ComboBox<>("Cấu tạo");
+            structureField.setItems(structureService.findAll());
+            structureField.setItemLabelGenerator(s -> s.getId() + " - " + s.getCharacter().getString());
+            structureField.setValue(entity.getStructure());
+            structureField.setWidth("100%");
+            binder.forField(structureField)
+                    .asRequired("Vui lòng chọn cấu tạo")
+                    .bind(EntityX::getStructure, EntityX::setStructure);
+
+            ComboBox<Pronunciation> pronunciationField = new ComboBox<>("Âm đọc");
+            pronunciationField.setItems(pronunciationService.findAll());
+            pronunciationField.setItemLabelGenerator(p -> p.getId() + " - " + p.getQuocNgu().getDescription());
+            pronunciationField.setValue(entity.getPronunciation());
+            pronunciationField.setWidth("100%");
+            binder.forField(pronunciationField)
+                    .asRequired("Vui lòng chọn âm đọc")
+                    .bind(EntityX::getPronunciation, EntityX::setPronunciation);
+
+            ComboBox<Meaning> meaningField = new ComboBox<>("Ý nghĩa");
+            meaningField.setItems(meaningService.findAll());
+            meaningField.setItemLabelGenerator(m -> {
+                StringBuilder sb = new StringBuilder(m.getId() + " - ");
+                m.getExplanations().forEach(e -> sb.append(e.getDescription()).append("; "));
+                return sb.toString();
+            });
+            meaningField.setValue(entity.getMeaning());
+            meaningField.setWidth("100%");
+            binder.forField(meaningField)
+                    .asRequired("Vui lòng chọn ý nghĩa")
+                    .bind(EntityX::getMeaning, EntityX::setMeaning);
+
+            ComboBox<Language> languageField = new ComboBox<>("Ngôn ngữ");
+            languageField.setItems(languageService.findAll());
+            languageField.setItemLabelGenerator(l -> l.getId() + " - " + l.getAbbreviation());
+            languageField.setValue(entity.getLanguage());
+            languageField.setWidth("100%");
+            binder.forField(languageField)
+                    .asRequired("Vui lòng chọn ngôn ngữ")
+                    .bind(EntityX::getLanguage, EntityX::setLanguage);
+
+            TextField descriptionField = new TextField("Mô tả");
+            descriptionField.setValue(entity.getDescription() != null ? entity.getDescription() : "");
+            descriptionField.setWidth("100%");
+            binder.forField(descriptionField)
+                    .bind(EntityX::getDescription, EntityX::setDescription);
+
+            Checkbox compoundCheckbox = new Checkbox("Phức hợp");
+            compoundCheckbox.setValue(entity.isCompound());
+            binder.forField(compoundCheckbox)
+                    .bind(EntityX::isCompound, EntityX::setCompound);
+
+            Checkbox attestedCheckbox = new Checkbox("Có chứng thực");
+            attestedCheckbox.setValue(entity.isAttested());
+            binder.forField(attestedCheckbox)
+                    .bind(EntityX::isAttested, EntityX::setAttested);
+
+            dialogLayout.add(structureField, pronunciationField, meaningField, languageField,
+                    descriptionField, compoundCheckbox, attestedCheckbox);
+            dialog.add(dialogLayout);
+
+            HorizontalLayout dialogButtons = new HorizontalLayout();
+            Button saveButton = new Button("Lưu");
+            Button cancelButton = new Button("Hủy");
+
+            saveButton.addClickListener(e -> {
+                if (binder.validate().isOk()) {
+                    entityService.save(entity);
+                    entityGrid.setItems(entityService.findAll());
+                    dialog.close();
+                }
+            });
+
+            cancelButton.addClickListener(e -> dialog.close());
+            dialogButtons.add(saveButton, cancelButton);
+            dialog.add(dialogButtons);
+            dialog.open();
+        });
+
+        // Xóa thực thể
+        deleteEntityButton.addClickListener(cl -> {
+            EntityX entity = entityGrid.getSelectedItems().stream().findFirst().orElse(null);
+            if (entity == null) {
+                return;
+            }
+            entityService.deleteById(entity.getId());
+            entityGrid.setItems(entityService.findAll());
+            parentEntityGrid.setItems(entityService.findByCompound(true));
+        });
+
+
 
         return layout;
     }
@@ -1534,7 +1907,11 @@ public class DictionaryManagementView extends VerticalLayout {
     private HorizontalLayout complementaryLayout() {
         HorizontalLayout layout = new HorizontalLayout();
         layout.setSizeFull();
+        H5 header = new H5("Quản lý bổ sung");
 
+        // Nội dung quản lý bổ sung sẽ được thêm vào đây trong tương lai
+
+        layout.add(header);
         return layout;
     }
 }

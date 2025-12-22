@@ -10,7 +10,7 @@ import org.hibernate.annotations.Nationalized;
 
 import java.util.List;
 
-@jakarta.persistence.Entity
+@Entity
 @Table(name = "Entity")
 @Getter
 @Setter
@@ -23,11 +23,11 @@ public class EntityX {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "structure_id")
     private Structure structure;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "pronunciation_id")
     private Pronunciation pronunciation;
 

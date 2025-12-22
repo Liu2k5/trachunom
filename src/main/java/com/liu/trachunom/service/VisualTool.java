@@ -45,7 +45,7 @@ public class VisualTool {
             VerticalLayout vLayout = new VerticalLayout();
             StructureComponent structureComponent = structureComponents.get(i);
             Integer quantity = structureComponent.getQuantity();
-            H5 content = new H5(structureComponent.getStructure().getCharacter().getString() + (quantity > 1 ? " x" + quantity : ""));
+            H5 content = new H5(structureComponent.getStructureComponent().getCharacter().getString() + (quantity > 1 ? " x" + quantity : ""));
             content.getStyle().setColor("white");
 
             VerticalLayout container = new VerticalLayout();
@@ -109,13 +109,15 @@ public class VisualTool {
             PronunciationClassification pronunciationClassification = pronunciationEvolution.getPronunciationClassification();
 
             HorizontalLayout hLayout = new HorizontalLayout();
-            H3 arrow = new H3("→");
+//            H3 arrow = new H3("→");
+            H3 arrow = new H3("<-");
             arrow.getStyle().setWidth("10px");
             arrow.getStyle().setColor(
                     pronunciationClassificationService.isChangingPronunciation(pronunciationClassification) ? "red" :
                     pronunciationClassificationService.isBorrowingPronunciation(pronunciationClassification) ? "blue" : "black");
 
-            Paragraph content = new Paragraph(pronunciationEvolution.getToPronunciation().getQuocNgu().getDescription());
+//            Paragraph content = new Paragraph(pronunciationEvolution.getToPronunciation().getQuocNgu().getDescription());
+            Paragraph content = new Paragraph(pronunciationEvolution.getFromPronunciation().getQuocNgu().getDescription());
 
             HorizontalLayout container = new HorizontalLayout();
             container.setPadding(false);
@@ -129,7 +131,8 @@ public class VisualTool {
                     .setAlignItems(Style.AlignItems.CENTER)
                     .setHeight("20px");
 
-            VerticalLayout vLayout = drawPronunciation(pronunciationEvolutionService.findByFromPronunciation(pronunciationEvolution.getToPronunciation()), depth + 1);
+//            VerticalLayout vLayout = drawPronunciation(pronunciationEvolutionService.findByFromPronunciation(pronunciationEvolution.getToPronunciation()), depth + 1);
+            VerticalLayout vLayout = drawPronunciation(pronunciationEvolutionService.findByToPronunciation(pronunciationEvolution.getFromPronunciation()), depth + 1);
             hLayout.add(container, vLayout);
             layout.add(hLayout);
 

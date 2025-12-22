@@ -11,4 +11,5 @@ import java.util.List;
 @Repository
 public interface EntityRepository extends JpaRepository<EntityX, Long> {
     List<EntityX> findByStructure_Character(CharacterX structureCharacter);
+    List<EntityX> findByCompound(boolean compound);
 }

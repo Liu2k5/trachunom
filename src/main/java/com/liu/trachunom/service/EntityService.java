@@ -38,4 +38,12 @@ public class EntityService {
     public List<EntityX> findAll() {
         return entityRepository.findAll();
     }
+
+    public void deleteById(Long id) {
+        entityRepository.deleteById(id);
+    }
+
+    public List<EntityX> findByCompound(boolean b) {
+        return entityRepository.findByCompound(b);
+    }
 }
