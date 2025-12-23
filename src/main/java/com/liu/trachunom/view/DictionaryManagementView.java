@@ -1502,9 +1502,9 @@ public class DictionaryManagementView extends VerticalLayout {
         Grid<EntityX> entityGrid = new Grid<>();
         entityGrid.setHeight("400px");
         entityGrid.addColumn(EntityX::getId, "id").setHeader("Mã").setWidth("75px").setFlexGrow(0);
-        entityGrid.addColumn(entity -> entity.getStructure().getCharacter().getString()).setHeader("Ký tự").setWidth("60px");
-        entityGrid.addColumn(entity -> entity.getStructure().getId()).setHeader("Cấu tạo").setWidth("100px");
-        entityGrid.addColumn(entity -> entity.getPronunciation().getQuocNgu().getDescription(), "pronunciation").setHeader("Âm đọc").setWidth("120px");
+        entityGrid.addColumn(entity -> entity.getCharacterString()).setHeader("Ký tự").setWidth("60px");
+        entityGrid.addColumn(entity -> entity.getStructureId()).setHeader("Cấu tạo").setWidth("100px");
+        entityGrid.addColumn(entity -> entity.getPronunciationString(), "pronunciation").setHeader("Âm đọc").setWidth("120px");
         entityGrid.addColumn(entity -> {
             StringBuilder meanings = new StringBuilder();
             for (Explanation explanation : entity.getMeaning().getExplanations()) {
@@ -1540,8 +1540,8 @@ public class DictionaryManagementView extends VerticalLayout {
         Grid<EntityX> parentEntityGrid = new Grid<>();
         parentEntityGrid.setHeight("150px");
         parentEntityGrid.addColumn(EntityX::getId).setHeader("Mã").setWidth("75px").setFlexGrow(0);
-        parentEntityGrid.addColumn(e -> e.getStructure().getCharacter().getString()).setHeader("Ký tự");
-        parentEntityGrid.addColumn(e -> e.getPronunciation().getQuocNgu().getDescription()).setHeader("Âm đọc");
+        parentEntityGrid.addColumn(e -> e.getCharacterString()).setHeader("Ký tự");
+        parentEntityGrid.addColumn(e -> e.getPronunciationString()).setHeader("Âm đọc");
         parentEntityGrid.setItems(entityService.findByCompound(true));
 
         parentEntityLayout.add(parentEntityHeader, parentEntityGrid);
@@ -1577,7 +1577,7 @@ public class DictionaryManagementView extends VerticalLayout {
 
             ComboBox<EntityX> childEntityField = new ComboBox<>("Thực thể con");
             childEntityField.setItems(entityService.findAll());
-            childEntityField.setItemLabelGenerator(e -> e.getId() + " - " + e.getStructure().getCharacter().getString());
+            childEntityField.setItemLabelGenerator(e -> e.getId() + " - " + e.getCharacterString());
             childEntityField.setWidth("100%");
 
             IntegerField positionField = new IntegerField("Vị trí");
@@ -1724,17 +1724,17 @@ public class DictionaryManagementView extends VerticalLayout {
             structureField.setItems(structureService.findAll());
             structureField.setItemLabelGenerator(s -> s.getId() + " - " + s.getCharacter().getString());
             structureField.setWidth("100%");
-            binder.forField(structureField)
-                    .asRequired("Vui lòng chọn cấu tạo")
-                    .bind(EntityX::getStructure, EntityX::setStructure);
+//            binder.forField(structureField)
+//                    .asRequired("Vui lòng chọn cấu tạo")
+//                    .bind(EntityX::getStructure, EntityX::setStructure);
 
             ComboBox<Pronunciation> pronunciationField = new ComboBox<>("Âm đọc");
             pronunciationField.setItems(pronunciationService.findAll());
             pronunciationField.setItemLabelGenerator(p -> p.getId() + " - " + p.getQuocNgu().getDescription());
             pronunciationField.setWidth("100%");
-            binder.forField(pronunciationField)
-                    .asRequired("Vui lòng chọn âm đọc")
-                    .bind(EntityX::getPronunciation, EntityX::setPronunciation);
+//            binder.forField(pronunciationField)
+//                    .asRequired("Vui lòng chọn âm đọc")
+//                    .bind(EntityX::getPronunciation, EntityX::setPronunciation);
 
             ComboBox<Meaning> meaningField = new ComboBox<>("Ý nghĩa");
             meaningField.setItems(meaningService.findAll());

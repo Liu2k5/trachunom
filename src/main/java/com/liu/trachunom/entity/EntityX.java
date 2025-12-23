@@ -46,4 +46,28 @@ public class EntityX {
 
     private boolean attested;
 
+    public String getCharacterString() {
+        try {
+            return this.structure.getCharacterString();
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    public String getPronunciationString() {
+        try {
+            return this.pronunciation.getString();
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    public String getStructureId() {
+        try {
+            return this.structure.getId().toString();
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
 }

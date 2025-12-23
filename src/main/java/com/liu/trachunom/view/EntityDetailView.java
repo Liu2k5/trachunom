@@ -92,7 +92,15 @@ public class EntityDetailView extends VerticalLayout implements HasUrlParameter<
 
         // Character display
         if (entity.getStructure() != null && entity.getStructure().getCharacter() != null) {
+
+            HorizontalLayout characterLayout = new HorizontalLayout();
+            characterLayout.setWidthFull();
+
             CharacterX character = entity.getStructure().getCharacter();
+
+            VerticalLayout characterSection = new VerticalLayout();
+            characterSection.setPadding(false);
+            characterSection.setSpacing(false);
 
             Div characterDisplay = new Div();
             characterDisplay.setText(character.getString());
@@ -102,89 +110,125 @@ public class EntityDetailView extends VerticalLayout implements HasUrlParameter<
                 .set("color", "#667eea")
                 .set("margin", "20px 0")
                 .set("font-weight", "bold");
+            characterSection.add(characterDisplay);
 
-            contentLayout.add(characterDisplay);
-        }
+            // Unicode
+            Paragraph unicodePara = new Paragraph();
+            Span unicodeLabel = new Span("Mã Unicode: ");
+            unicodeLabel.getStyle().set("font-weight", "bold");
+            Span unicodeValue = new Span("U+" + Integer.toHexString(character.getUnicode()).toUpperCase());
+            unicodePara.add(unicodeLabel, unicodeValue);
 
-        // Language section
-        if (entity.getLanguage() != null) {
-            VerticalLayout languageSection = createSection("Ngôn ngữ");
-            Paragraph langPara = new Paragraph(entity.getLanguage().getAbbreviation());
-            langPara.getStyle().set("color", "#666");
-            languageSection.add(langPara);
-            contentLayout.add(languageSection);
-        }
+            characterSection.add(unicodePara);
 
-        // Description section
-        if (entity.getDescription() != null && !entity.getDescription().isEmpty()) {
-            VerticalLayout descSection = createSection("Mô tả");
-            Paragraph descPara = new Paragraph(entity.getDescription());
-            descPara.getStyle().set("color", "#666");
-            descSection.add(descPara);
-            contentLayout.add(descSection);
-        }
-
-        // Structure info
-        if (entity.getStructure() != null) {
-            Structure structure = entity.getStructure();
-            VerticalLayout structureSection = createSection("Cấu tạo");
-
-            if (structure.getStructureComponents() != null) {
-                Paragraph classificationPara = new Paragraph();
-                HorizontalLayout value = visualTool.drawStructure(structure);
-                value.getStyle().set("width", "800px");
-                classificationPara.add(value);
-                structureSection.add(classificationPara);
+            // Radical
+            if (character.getRadical() != null) {
+                Paragraph radicalPara = new Paragraph();
+                Span radicalLabel = new Span("Bộ thủ: ");
+                radicalLabel.getStyle().set("font-weight", "bold");
+                Span radicalValue = new Span(character.getRadical().getString() +
+                        " (U+" + Integer.toHexString(character.getRadical().getUnicode()).toUpperCase() + ")");
+                radicalPara.add(radicalLabel, radicalValue);
+                characterSection.add(radicalPara);
             }
 
-            contentLayout.add(structureSection);
-        }
-
-        // Pronunciation section
-        if (entity.getPronunciation() != null) {
-            VerticalLayout pronunciationSection = createSection("Phát âm");
-
-            Pronunciation pronunciation = entity.getPronunciation();
-            if (pronunciation.getQuocNgu() != null) {
-                Div quocNguDiv = new Div();
-                H3 quocNguText = new H3(pronunciation.getQuocNgu().getDescription());
-                quocNguText.getStyle()
-                    .set("color", "#667eea")
-                    .set("margin", "10px 0");
-                quocNguDiv.add(quocNguText);
-
-                HorizontalLayout quocNguLayout = new HorizontalLayout();
-                quocNguLayout.add(quocNguDiv);
-                quocNguLayout.add(visualTool.drawPronunciation(pronunciation));
-
-                pronunciationSection.add(quocNguLayout);
+            // Stroke count
+            Integer totalStrokes = character.getTotalStrokeNumber();
+            if (totalStrokes == null && character.getRadical() != null) {
+                totalStrokes = character.getRadical().getStrokeNumber();
+                if (character.getAdditionalStrokeNumber() != null) {
+                    totalStrokes += character.getAdditionalStrokeNumber();
+                }
+            }
+            if (totalStrokes != null) {
+                Paragraph strokePara = new Paragraph();
+                Span strokeLabel = new Span("Số nét: ");
+                strokeLabel.getStyle().set("font-weight", "bold");
+                Span strokeValue = new Span(totalStrokes.toString());
+                strokePara.add(strokeLabel, strokeValue);
+                characterSection.add(strokePara);
             }
 
-            contentLayout.add(pronunciationSection);
-        }
 
-        // Meaning section
-        if (entity.getMeaning() != null && entity.getMeaning().getExplanations() != null) {
-            VerticalLayout meaningSection = createSection("Nghĩa");
+            VerticalLayout characterInfoLayout = new VerticalLayout();
+            characterInfoLayout.setPadding(false);
+            characterInfoLayout.setSpacing(false);
 
-            for (Explanation explanation : entity.getMeaning().getExplanations()) {
-                Div explanationDiv = new Div();
-                explanationDiv.getStyle()
-                    .set("padding", "15px")
-                    .set("margin", "10px 0")
-                    .set("border-left", "4px solid #667eea")
-                    .set("background", "#f9f9f9")
-                    .set("border-radius", "4px");
 
-                Html descriptionHtml = new Html("<div>" + explanation.getDescription() + "</div>");
-                explanationDiv.add(descriptionHtml);
-
-                meaningSection.add(explanationDiv);
+            // Description section
+            if (entity.getDescription() != null && !entity.getDescription().isEmpty()) {
+                VerticalLayout descSection = createSection("Mô tả");
+                Paragraph descPara = new Paragraph(entity.getDescription());
+                descPara.getStyle().set("color", "#666");
+                descSection.add(descPara);
+                characterInfoLayout.add(descSection);
             }
 
-            contentLayout.add(meaningSection);
-        }
+            // Structure info
+            if (entity.getStructure() != null) {
+                Structure structure = entity.getStructure();
+                VerticalLayout structureSection = createSection("Cấu tạo");
 
+                if (structure.getStructureComponents() != null) {
+                    Paragraph classificationPara = new Paragraph();
+                    HorizontalLayout value = visualTool.drawStructure(structure);
+                    value.getStyle().set("width", "800px");
+                    classificationPara.add(value);
+                    structureSection.add(classificationPara);
+                }
+
+                characterInfoLayout.add(structureSection);
+            }
+
+            // Pronunciation section
+            if (entity.getPronunciation() != null) {
+                VerticalLayout pronunciationSection = createSection("Phát âm");
+
+                Pronunciation pronunciation = entity.getPronunciation();
+                if (pronunciation.getQuocNgu() != null) {
+                    Div quocNguDiv = new Div();
+                    H3 quocNguText = new H3(pronunciation.getQuocNgu().getDescription());
+                    quocNguText.getStyle()
+                            .set("color", "#667eea")
+                            .set("margin", "10px 0");
+                    quocNguDiv.add(quocNguText);
+
+                    HorizontalLayout quocNguLayout = new HorizontalLayout();
+                    quocNguLayout.add(quocNguDiv);
+                    quocNguLayout.add(visualTool.drawPronunciation(pronunciation));
+
+                    pronunciationSection.add(quocNguLayout);
+                }
+
+                characterInfoLayout.add(pronunciationSection);
+            }
+
+
+            // Meaning section
+            if (entity.getMeaning() != null && entity.getMeaning().getExplanations() != null) {
+                VerticalLayout meaningSection = createSection("Nghĩa");
+
+                for (Explanation explanation : entity.getMeaning().getExplanations()) {
+                    Div explanationDiv = new Div();
+                    explanationDiv.getStyle()
+                            .set("padding", "15px")
+                            .set("margin", "10px 0")
+                            .set("border-left", "4px solid #667eea")
+                            .set("background", "#f9f9f9")
+                            .set("border-radius", "4px");
+
+                    Html descriptionHtml = new Html("<div>" + explanation.getDescription() + "</div>");
+                    explanationDiv.add(descriptionHtml);
+
+                    meaningSection.add(explanationDiv);
+                }
+                characterInfoLayout.add(meaningSection);
+            }
+
+            characterLayout.add(characterSection, characterInfoLayout);
+
+            contentLayout.add(characterLayout);
+        }
 
         // Entity evolution section
         if (!entityEvolutionService.findByToEntityId(entity.getId()).isEmpty()) {
@@ -205,7 +249,6 @@ public class EntityDetailView extends VerticalLayout implements HasUrlParameter<
         H3 sectionTitle = new H3(title);
         sectionTitle.getStyle()
             .set("color", "#333")
-            .set("border-bottom", "2px solid #667eea")
             .set("padding-bottom", "10px")
             .set("margin-top", "0");
 

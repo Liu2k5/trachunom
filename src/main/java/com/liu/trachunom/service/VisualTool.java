@@ -1,7 +1,9 @@
 package com.liu.trachunom.service;
 
+import com.google.common.collect.Maps;
 import com.liu.trachunom.entity.*;
 import com.liu.trachunom.view.EntityDetailView;
+import com.liu.trachunom.view.SearchView;
 import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H3;
@@ -10,11 +12,14 @@ import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.dom.Style;
+import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.RouterLink;
+import io.swagger.v3.oas.models.parameters.QueryParameter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -61,10 +66,17 @@ public class VisualTool {
             H5 content = new H5(structureComponent.getStructureComponent().getCharacter().getString() + (quantity > 1 ? " x" + quantity : ""));
             content.getStyle().setColor("white");
 
+            RouterLink link = new RouterLink("", SearchView.class);
+            QueryParameters params = new QueryParameters(Map.of("query",
+                    List.of(structureComponent.getStructureComponent().getCharacter().getString())));
+            link.setQueryParameters(params);
+            link.add(content);
+
+
             VerticalLayout container = new VerticalLayout();
             container.setPadding(false);
             container.setMargin(false);
-            container.add(content);
+            container.add(link);
 
             StructureClassification structureClassification = structureComponent.getStructureClassification();
             container.getStyle().setBackgroundColor(
@@ -198,10 +210,14 @@ public class VisualTool {
                 quocNgu = entity.getPronunciation().getQuocNgu().getDescription();
             }
 
+            Paragraph languageHeader = new Paragraph("(" + entity.getLanguage().getAbbreviation() + ")");
+            languageHeader.getStyle()
+                    .set("background-color", "red")
+                    .set("color", "white")
+                    .set("font-weight", "bold");
             if (entity.isAttested()) {
-                RouterLink header = new RouterLink(charString + " " + quocNgu, EntityDetailView.class, entity.getId());
+                H3 header = new H3(new RouterLink(charString + " " + quocNgu, EntityDetailView.class, entity.getId()));
                 header.getStyle()
-                        .set("margin", "0 0 10px 0")
                         .set("color", "#667eea")
                         .set("font-size", "1.5em");
                 H5 description = new H5(entity.getDescription());
@@ -209,19 +225,18 @@ public class VisualTool {
                         .set("margin", "0 0 0 20px")
                         .set("color", "#999")
                         .set("font-size", "1em");
-                entityContent.add(header, description);
+                entityContent.add(new HorizontalLayout(languageHeader, header), description);
             } else {
                 H3 header = new H3(charString + " " + quocNgu);
-                H5 description = new H5(entity.getDescription());
                 header.getStyle()
-                        .set("margin", "0 0 10px 0")
                         .set("color", "#999")
                         .set("font-size", "1.5em");
+                H5 description = new H5(entity.getDescription());
                 description.getStyle()
                         .set("margin", "0 0 0 20px")
                         .set("color", "#999")
                         .set("font-size", "1em");
-                entityContent.add(header, description);
+                entityContent.add(new HorizontalLayout(languageHeader, header), description);
             }
         }
 
@@ -230,9 +245,9 @@ public class VisualTool {
             description.getStyle()
                     .set("margin", "0")
                     .set("color", "#555");
-            for (Explanation explanation: entity.getMeaning().getExplanations()) {
-                description.add(explanation.getDescription());
-                description.add(new Html("<br/>"));
+            description.add(entity.getMeaning().getExplanations().getFirst().getDescription());
+            if (entity.getMeaning().getExplanations().size() > 1) {
+                description.add("...");
             }
             entityContent.add(description);
         }
@@ -249,7 +264,8 @@ public class VisualTool {
             evolutionLayout.setPadding(false);
 
             Paragraph evolutionDescription = new Paragraph("^ " + entityEvolution.getDescription());
-            evolutionDescription.getStyle().set("margin", "0 0 10px 0")
+            evolutionDescription.getStyle()
+                    .set("margin", "0 0 30px 0")
                     .set("color", "#333")
                     .set("color", "#555");
             evolutionLayout.add(evolutionDescription);

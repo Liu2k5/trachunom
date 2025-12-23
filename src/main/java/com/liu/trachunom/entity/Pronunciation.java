@@ -22,4 +22,12 @@ public class Pronunciation {
     @JoinColumn(name = "quoc_ngu_id")
     private QuocNgu quocNgu;
 
+    public String getString() {
+        try {
+            return this.quocNgu.getDescription();
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
 }

@@ -15,6 +15,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.*;
 
+import javax.swing.text.html.parser.Entity;
 import java.util.List;
 
 @Route("")
@@ -118,15 +119,15 @@ public class SearchView extends VerticalLayout implements BeforeEnterObserver {
 //                return;
 //            }
 
-            int codePoint = query.codePointAt(0);
-            CharacterX character = characterService.findByUnicode(codePoint);
+//            int codePoint = query.codePointAt(0);
+            List<EntityX> foundEntities = entityService.findByQuery(query);
 
-            if (character == null) {
-                showError("Không tìm thấy kí tự " + new String(Character.toChars(codePoint)));
+            if (foundEntities.isEmpty()) {
+                showError("Không tìm thấy kết quả");
                 return;
             }
 
-            displayCharacterInfo(character);
+            displayFoundEntities(foundEntities);
 
         } catch (Exception e) {
             showError("Lỗi: " + e.getMessage());
@@ -134,79 +135,17 @@ public class SearchView extends VerticalLayout implements BeforeEnterObserver {
         }
     }
 
-    private void displayCharacterInfo(CharacterX character) {
-        // Title
-        H1 resultTitle = new H1("Kết Quả Tìm Kiếm");
-        resultTitle.getStyle()
-            .set("color", "#333")
-            .set("margin-top", "0");
-
-        // Character display (large)
-        Div characterDisplay = new Div();
-        characterDisplay.setText(character.getString());
-        characterDisplay.getStyle()
-            .set("font-size", "120px")
-            .set("text-align", "center")
-            .set("color", "#667eea")
-            .set("margin", "20px 0")
-            .set("font-weight", "bold");
-
-        // Character info section
-        VerticalLayout infoSection = new VerticalLayout();
-        infoSection.setPadding(false);
-        infoSection.setSpacing(false);
-
-        // Unicode
-        Paragraph unicodePara = new Paragraph();
-        Span unicodeLabel = new Span("Mã Unicode: ");
-        unicodeLabel.getStyle().set("font-weight", "bold");
-        Span unicodeValue = new Span("U+" + Integer.toHexString(character.getUnicode()).toUpperCase());
-        unicodePara.add(unicodeLabel, unicodeValue);
-
-        infoSection.add(unicodePara);
-
-        // Radical
-        if (character.getRadical() != null) {
-            Paragraph radicalPara = new Paragraph();
-            Span radicalLabel = new Span("Bộ thủ: ");
-            radicalLabel.getStyle().set("font-weight", "bold");
-            Span radicalValue = new Span(character.getRadical().getString() +
-                " (U+" + Integer.toHexString(character.getRadical().getUnicode()).toUpperCase() + ")");
-            radicalPara.add(radicalLabel, radicalValue);
-            infoSection.add(radicalPara);
-        }
-
-        // Stroke count
-        Integer totalStrokes = character.getTotalStrokeNumber();
-        if (totalStrokes == null && character.getRadical() != null) {
-            totalStrokes = character.getRadical().getStrokeNumber();
-            if (character.getAdditionalStrokeNumber() != null) {
-                totalStrokes += character.getAdditionalStrokeNumber();
-            }
-        }
-        if (totalStrokes != null) {
-            Paragraph strokePara = new Paragraph();
-            Span strokeLabel = new Span("Số nét: ");
-            strokeLabel.getStyle().set("font-weight", "bold");
-            Span strokeValue = new Span(totalStrokes.toString());
-            strokePara.add(strokeLabel, strokeValue);
-            infoSection.add(strokePara);
-        }
-
-        // Meaning section
-        Paragraph meaningTitle = new Paragraph();
-        Span meaningLabel = new Span("Ý nghĩa:");
-        meaningLabel.getStyle().set("font-weight", "bold");
-        meaningTitle.add(meaningLabel);
-        infoSection.add(meaningTitle);
-
+    private void displayFoundEntities(List<EntityX> entities) {
         // Entities (meanings and pronunciations)
-        List<EntityX> entities = entityService.findByCharacter(character);
         VerticalLayout entitiesSection = new VerticalLayout();
         entitiesSection.setPadding(false);
         entitiesSection.setSpacing(true);
 
         if (entities != null && !entities.isEmpty()) {
+            H5 entitiesTitle = new H5("Kết quả tìm kiếm");
+            entitiesTitle.getStyle().set("margin", "0 0 10px 0").set("color", "#333");
+            entitiesSection.add(entitiesTitle);
+
             for (EntityX entity : entities) {
                 if (!entity.isAttested()) {
                     continue;
@@ -224,29 +163,23 @@ public class SearchView extends VerticalLayout implements BeforeEnterObserver {
                 entityContent.setPadding(false);
                 entityContent.setSpacing(false);
 
-                if (entity.getStructure() != null && entity.getStructure().getCharacter() != null) {
-                    String charString = entity.getStructure().getCharacter().getString();
-                    String quocNgu = "";
+                String hnom = entityService.getHnomString(entity);
+                String quocNgu = entityService.getQnguString(entity);
 
-                    if (entity.getMeaning() != null && entity.getPronunciation() != null) {
-                        quocNgu = entity.getPronunciation().getQuocNgu().getDescription();
-                    }
-
-                    RouterLink header = new RouterLink(charString + " " + quocNgu, EntityDetailView.class, entity.getId());
-                    header.getStyle()
+                RouterLink header = new RouterLink(hnom + " " + quocNgu, EntityDetailView.class, entity.getId());
+                header.getStyle()
                         .set("margin", "0 0 10px 0")
                         .set("color", "#667eea");
-                    entityContent.add(header);
-                }
+                entityContent.add(header);
 
                 if (entity.getMeaning() != null) {
                     Paragraph description = new Paragraph();
                     description.getStyle()
                             .set("margin", "0")
                             .set("color", "#555");
-                    for (Explanation explanation: entity.getMeaning().getExplanations()) {
-                        description.add(explanation.getDescription());
-                        description.add(new Html("<br/>"));
+                    description.add(entity.getMeaning().getExplanations().getFirst().getDescription());
+                    if (entity.getMeaning().getExplanations().size() > 1) {
+                        description.add(" ...");
                     }
                     entityContent.add(description);
                 }
@@ -255,12 +188,12 @@ public class SearchView extends VerticalLayout implements BeforeEnterObserver {
                 entitiesSection.add(entityDiv);
             }
         } else {
-            Paragraph noMeaning = new Paragraph("Chưa có thông tin ý nghĩa cho ký tự này.");
+            Paragraph noMeaning = new Paragraph("Chưa có thông tin");
             noMeaning.getStyle().set("color", "#999");
             entitiesSection.add(noMeaning);
         }
 
-        contentLayout.add(resultTitle, characterDisplay, infoSection, entitiesSection);
+        contentLayout.add(entitiesSection);
     }
 
     private void showError(String errorMessage) {

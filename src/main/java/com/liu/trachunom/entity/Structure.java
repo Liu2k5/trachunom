@@ -31,4 +31,12 @@ public class Structure {
     @Builder.Default
     private List<StructureComponent> structureComponents = new ArrayList<>();
 
+    public String getCharacterString() {
+        try {
+            return this.character.getString();
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
 }
