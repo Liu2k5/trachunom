@@ -1,11 +1,8 @@
 package com.liu.trachunom.view;
 
-import com.liu.trachunom.entity.CharacterX;
 import com.liu.trachunom.entity.EntityX;
-import com.liu.trachunom.entity.Explanation;
 import com.liu.trachunom.service.CharacterService;
 import com.liu.trachunom.service.EntityService;
-import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -15,7 +12,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.*;
 
-import javax.swing.text.html.parser.Entity;
 import java.util.List;
 
 @Route("")
