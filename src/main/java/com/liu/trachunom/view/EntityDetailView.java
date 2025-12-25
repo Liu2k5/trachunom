@@ -1,10 +1,7 @@
 package com.liu.trachunom.view;
 
 import com.liu.trachunom.entity.*;
-import com.liu.trachunom.service.EntityEvolutionService;
-import com.liu.trachunom.service.EntityService;
-import com.liu.trachunom.service.StructureService;
-import com.liu.trachunom.service.VisualTool;
+import com.liu.trachunom.service.*;
 import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -16,6 +13,8 @@ import jakarta.annotation.PostConstruct;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
+
 @Route("entity")
 @PageTitle("Chi tiết nghĩa - Tra Chữ Nôm")
 @NoArgsConstructor
@@ -26,6 +25,7 @@ public class EntityDetailView extends VerticalLayout implements HasUrlParameter<
     @Autowired private StructureService structureService;
     @Autowired private EntityEvolutionService entityEvolutionService;
     @Autowired private VisualTool visualTool;
+    @Autowired private EntityCompositionService entityCompositionService;
 
     @PostConstruct
     public void init() {
@@ -229,6 +229,103 @@ public class EntityDetailView extends VerticalLayout implements HasUrlParameter<
 
             contentLayout.add(characterLayout);
         }
+        displayEntityEvolution(entity);
+        displaySynonyms(entity);
+
+        contentLayout.addComponentAsFirst(backButton);
+    }
+
+    private void displayEntityEvolution(EntityX entity) {
+        // Entity evolution section
+        if (!entityEvolutionService.findByToEntityId(entity.getId()).isEmpty()) {
+            VerticalLayout evolutionSection = createSection("Quá trình phát triển nghĩa");
+            evolutionSection.add(visualTool.drawEntityEvolution(entity));
+            contentLayout.add(evolutionSection);
+        }
+    }
+
+    private void displayCompoundEntityDetail(EntityX entity) {
+        contentLayout.removeAll();
+
+        // Back button
+        Button backButton = new Button("← Quay lại");
+        backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        backButton.addClickListener(e -> getUI().ifPresent(ui -> ui.getPage().getHistory().back()));
+        backButton.getStyle().set("margin-bottom", "20px");
+
+        VerticalLayout compoundEntityInfoLayout = new VerticalLayout();
+        compoundEntityInfoLayout.setPadding(false);
+        compoundEntityInfoLayout.setSpacing(false);
+
+        // Description section
+        if (entity.getDescription() != null && !entity.getDescription().isEmpty()) {
+            VerticalLayout descSection = createSection("Mô tả");
+            Paragraph descPara = new Paragraph(entity.getDescription());
+            descPara.getStyle().set("color", "#666");
+            descSection.add(descPara);
+            compoundEntityInfoLayout.add(descSection);
+        }
+
+        VerticalLayout analysationLayout = createSection("Phân tích");
+        HorizontalLayout analysationHorizontalLayout = new HorizontalLayout();
+        analysationHorizontalLayout.setSpacing(false);
+
+        List<EntityComposition> entityCompositions = entityCompositionService.findByParentEntityId(entity.getId());
+        if (!entityCompositions.isEmpty()) {
+            for (EntityComposition composition : entityCompositions) {
+                EntityX childEntity = composition.getChildEntity();
+                String hnomString = entityService.getHnomString(childEntity);
+                String qnguString = entityService.getQnguString(childEntity);
+
+                VerticalLayout childEntityLayout = new VerticalLayout();
+                VerticalLayout hnomLayout = new  VerticalLayout();
+                VerticalLayout qnguLayout = new VerticalLayout();
+                hnomLayout.add(hnomString);
+                qnguLayout.add(qnguString);
+                childEntityLayout.add(hnomLayout,  qnguLayout);
+                hnomLayout.getStyle()
+                        .set("font-size", "100px")
+                        .set("text-align", "center")
+                        .set("color", "#667eea")
+                        .set("font-weight", "bold");
+                qnguLayout.getStyle()
+                        .set("color", "#667eea")
+                        .set("font-weight", "bold")
+                        .set("text-size", "20px");
+                childEntityLayout.setMargin(false);
+                childEntityLayout.setPadding(false);
+                childEntityLayout.setSpacing(false);
+
+                RouterLink link = new RouterLink(EntityDetailView.class, childEntity.getId());
+                link.add(childEntityLayout);
+                analysationHorizontalLayout.add(link);
+            }
+        }
+        analysationLayout.add(analysationHorizontalLayout);
+        compoundEntityInfoLayout.add(analysationLayout);
+
+        // Meaning section
+        if (entity.getMeaning() != null && entity.getMeaning().getExplanations() != null) {
+            VerticalLayout meaningSection = createSection("Nghĩa");
+
+            for (Explanation explanation : entity.getMeaning().getExplanations()) {
+                Div explanationDiv = new Div();
+                explanationDiv.getStyle()
+                        .set("padding", "15px")
+                        .set("margin", "10px 0")
+                        .set("border-left", "4px solid #667eea")
+                        .set("background", "#f9f9f9")
+                        .set("border-radius", "4px");
+
+                Html descriptionHtml = new Html("<div>" + explanation.getDescription() + "</div>");
+                explanationDiv.add(descriptionHtml);
+
+                meaningSection.add(explanationDiv);
+            }
+            compoundEntityInfoLayout.add(meaningSection);
+        }
+
+        contentLayout.add(compoundEntityInfoLayout);
 
         // Entity evolution section
         if (!entityEvolutionService.findByToEntityId(entity.getId()).isEmpty()) {
@@ -236,6 +333,8 @@ public class EntityDetailView extends VerticalLayout implements HasUrlParameter<
             evolutionSection.add(visualTool.drawEntityEvolution(entity));
             contentLayout.add(evolutionSection);
         }
+        displayEntityEvolution(entity);
+        displaySynonyms(entity);
 
         contentLayout.addComponentAsFirst(backButton);
     }
@@ -286,10 +385,49 @@ public class EntityDetailView extends VerticalLayout implements HasUrlParameter<
                 showError("Không tìm thấy thông tin nghĩa với ID: " + entityId);
                 return;
             }
-            displayEntityDetail(entity);
+            if (!entity.isCompound()) {
+                displayEntityDetail(entity);
+            } else {
+                displayCompoundEntityDetail(entity);
+            }
         } catch (Exception e) {
             showError("Lỗi: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    public void displaySynonyms(EntityX entity) {
+        List<EntityX> synonyms = entityService.findSynonyms(entity);
+        if (!synonyms.isEmpty()) {
+            VerticalLayout synonymSection = createSection("Từ đồng nghĩa");
+            HorizontalLayout synonymLayout = new HorizontalLayout();
+            for (EntityX synonym : synonyms) {
+                String hnomString = entityService.getHnomString(synonym);
+                String qnguString = entityService.getQnguString(synonym);
+                VerticalLayout synonymEntityLayout = new VerticalLayout();
+                VerticalLayout hnomLayout = new VerticalLayout();
+                VerticalLayout qnguLayout = new VerticalLayout();
+                hnomLayout.add(hnomString);
+                qnguLayout.add(qnguString);
+                synonymEntityLayout.add(hnomLayout, qnguLayout);
+                hnomLayout.getStyle()
+                        .set("font-size", "80px")
+                        .set("text-align", "center")
+                        .set("color", "#667eea")
+                        .set("font-weight", "bold");
+                qnguLayout.getStyle()
+                        .set("color", "#667eea")
+                        .set("font-weight", "bold")
+                        .set("text-size", "16px");
+                synonymEntityLayout.setMargin(false);
+                synonymEntityLayout.setPadding(false);
+                synonymEntityLayout.setSpacing(false);
+                RouterLink link = new RouterLink(EntityDetailView.class, synonym.getId());
+                link.add(synonymEntityLayout);
+                synonymLayout.add(link);
+            }
+            synonymSection.add(synonymLayout);
+            contentLayout.add(synonymSection);
         }
     }
 }

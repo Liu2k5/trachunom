@@ -1577,7 +1577,7 @@ public class DictionaryManagementView extends VerticalLayout {
 
             ComboBox<EntityX> childEntityField = new ComboBox<>("Thực thể con");
             childEntityField.setItems(entityService.findAll());
-            childEntityField.setItemLabelGenerator(e -> e.getId() + " - " + e.getCharacterString());
+            childEntityField.setItemLabelGenerator(e -> e.getId() + " - " + e.getCharacterString() + " (" + e.getPronunciationString() + ")");
             childEntityField.setWidth("100%");
 
             IntegerField positionField = new IntegerField("Vị trí");
@@ -1724,17 +1724,17 @@ public class DictionaryManagementView extends VerticalLayout {
             structureField.setItems(structureService.findAll());
             structureField.setItemLabelGenerator(s -> s.getId() + " - " + s.getCharacter().getString());
             structureField.setWidth("100%");
-//            binder.forField(structureField)
+            binder.forField(structureField)
 //                    .asRequired("Vui lòng chọn cấu tạo")
-//                    .bind(EntityX::getStructure, EntityX::setStructure);
+                    .bind(EntityX::getStructure, EntityX::setStructure);
 
             ComboBox<Pronunciation> pronunciationField = new ComboBox<>("Âm đọc");
             pronunciationField.setItems(pronunciationService.findAll());
             pronunciationField.setItemLabelGenerator(p -> p.getId() + " - " + p.getQuocNgu().getDescription());
             pronunciationField.setWidth("100%");
-//            binder.forField(pronunciationField)
+            binder.forField(pronunciationField)
 //                    .asRequired("Vui lòng chọn âm đọc")
-//                    .bind(EntityX::getPronunciation, EntityX::setPronunciation);
+                    .bind(EntityX::getPronunciation, EntityX::setPronunciation);
 
             ComboBox<Meaning> meaningField = new ComboBox<>("Ý nghĩa");
             meaningField.setItems(meaningService.findAll());
@@ -1814,7 +1814,7 @@ public class DictionaryManagementView extends VerticalLayout {
             structureField.setValue(entity.getStructure());
             structureField.setWidth("100%");
             binder.forField(structureField)
-                    .asRequired("Vui lòng chọn cấu tạo")
+//                    .asRequired("Vui lòng chọn cấu tạo")
                     .bind(EntityX::getStructure, EntityX::setStructure);
 
             ComboBox<Pronunciation> pronunciationField = new ComboBox<>("Âm đọc");
@@ -1823,7 +1823,7 @@ public class DictionaryManagementView extends VerticalLayout {
             pronunciationField.setValue(entity.getPronunciation());
             pronunciationField.setWidth("100%");
             binder.forField(pronunciationField)
-                    .asRequired("Vui lòng chọn âm đọc")
+//                    .asRequired("Vui lòng chọn âm đọc")
                     .bind(EntityX::getPronunciation, EntityX::setPronunciation);
 
             ComboBox<Meaning> meaningField = new ComboBox<>("Ý nghĩa");
@@ -1925,12 +1925,12 @@ public class DictionaryManagementView extends VerticalLayout {
 
             ComboBox<EntityX> fromEntityField = new ComboBox<>("Thực thể nguồn");
             fromEntityField.setItems(entityService.findAll());
-            fromEntityField.setItemLabelGenerator(e -> e.getId() + " - " + e.getStructure().getCharacter().getString());
+            fromEntityField.setItemLabelGenerator(e -> e.getId() + " - " + e.getCharacterString() + " (" + e.getPronunciationString() + ")");
             fromEntityField.setWidth("100%");
 
             ComboBox<EntityX> toEntityField = new ComboBox<>("Thực thể đích");
             toEntityField.setItems(entityService.findAll());
-            toEntityField.setItemLabelGenerator(e -> e.getId() + " - " + e.getStructure().getCharacter().getString());
+            toEntityField.setItemLabelGenerator(e -> e.getId() + " - " + e.getCharacterString() + " (" + e.getPronunciationString() + ")");
             toEntityField.setWidth("100%");
 
             TextField descriptionField = new TextField("Mô tả");
