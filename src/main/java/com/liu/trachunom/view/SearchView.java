@@ -15,6 +15,7 @@ import com.vaadin.flow.router.*;
 import java.util.List;
 
 @Route("")
+@PageTitle("Tìm chữ")
 public class SearchView extends VerticalLayout implements BeforeEnterObserver {
 
     private final CharacterService characterService;
@@ -162,11 +163,27 @@ public class SearchView extends VerticalLayout implements BeforeEnterObserver {
                 String hnom = entityService.getHnomString(entity);
                 String quocNgu = entityService.getQnguString(entity);
 
-                RouterLink header = new RouterLink(hnom + " " + quocNgu, EntityDetailView.class, entity.getId());
-                header.getStyle()
-                        .set("margin", "0 0 10px 0")
-                        .set("color", "#667eea");
-                entityContent.add(header);
+                Paragraph header = new Paragraph();
+                RouterLink headerRouterLink = new RouterLink(hnom + " " + quocNgu, EntityDetailView.class, entity.getId());
+                headerRouterLink.getStyle()
+                        .set("color", "#667eea")
+                        .set("font-size", "20px")
+                        .set("font-weight", "bold");
+                header.add(headerRouterLink);
+                Paragraph standardHeader = new Paragraph();
+                EntityX standardisedEntity = entityService.findStandardByEntity(entity);
+                if (standardisedEntity != null) {
+                    RouterLink standardHeaderRouterLink = new RouterLink("->" + standardisedEntity.getCharacterString(),
+                            EntityDetailView.class, standardisedEntity.getId());
+                    standardHeaderRouterLink.getStyle()
+                            .set("color", "white")
+                            .set("background-color", "red")
+                            .set("font-size", "20px");
+                    standardHeader.add(standardHeaderRouterLink);
+                    entityContent.add(new HorizontalLayout(header, standardHeader));
+                } else {
+                    entityContent.add(header);
+                }
 
                 if (entity.getMeaning() != null) {
                     Paragraph description = new Paragraph();

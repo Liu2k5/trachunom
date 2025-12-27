@@ -1,6 +1,9 @@
 package com.liu.trachunom.service;
 
+import com.liu.trachunom.entity.EntityX;
 import com.liu.trachunom.entity.Meaning;
+import com.liu.trachunom.entity.Pronunciation;
+import com.liu.trachunom.repository.EntityRepository;
 import com.liu.trachunom.repository.MeaningRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -8,11 +11,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class MeaningService {
     private final MeaningRepository meaningRepository;
+    private final EntityRepository  entityRepository;
 
     public List<Meaning> findAll() {
         return meaningRepository.findAll();
@@ -30,6 +35,33 @@ public class MeaningService {
     @Transactional
     public void deleteById(Long id) {
         meaningRepository.deleteById(id);
+    }
+
+    public List<Meaning> findAllWithPronunciation(Pronunciation pronunciation) {
+        List<Meaning> meanings = entityRepository.findByPronunciation(pronunciation)
+                .stream()
+                .sorted((o1, o2) -> {
+                    if (o1.isStandardised() && !o2.isStandardised()) {
+                        return -1;
+                    }
+                    if (!o1.isStandardised() && o2.isStandardised()) {
+                        return 1;
+                    }
+                    if (o1.isAttested() && !o2.isAttested()) {
+                        return -1;
+                    }
+                    if (!o1.isAttested() && o2.isAttested()) {
+                        return 1;
+                    }
+                    return o1.getId().compareTo(o2.getId());
+                })
+                .map(EntityX::getMeaning)
+                .distinct()
+                .collect(Collectors.toList());
+        meanings.addAll(meaningRepository.findAll());
+        return meanings.stream()
+                .distinct()
+                .toList();
     }
 }
 

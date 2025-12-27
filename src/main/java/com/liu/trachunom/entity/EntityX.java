@@ -46,6 +46,8 @@ public class EntityX {
 
     private boolean attested;
 
+    private boolean standardised;
+
     public String getCharacterString() {
         try {
             return this.structure.getCharacterString();

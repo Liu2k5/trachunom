@@ -1515,6 +1515,7 @@ public class DictionaryManagementView extends VerticalLayout {
         entityGrid.addColumn(entity -> entity.getLanguage().getAbbreviation(), "language").setHeader("Ngôn ngữ").setWidth("100px");
         entityGrid.addColumn(EntityX::isCompound).setHeader("Phức hợp").setWidth("100px");
         entityGrid.addColumn(EntityX::isAttested).setHeader("Có chứng thực").setWidth("100px");
+        entityGrid.addColumn(EntityX::isStandardised).setHeader("Chuẩn hóa").setWidth("100px");
         entityGrid.addColumn(EntityX::getDescription).setHeader("Mô tả");
         entityGrid.setItems(entityService.findAll());
 
@@ -1577,7 +1578,8 @@ public class DictionaryManagementView extends VerticalLayout {
 
             ComboBox<EntityX> childEntityField = new ComboBox<>("Thực thể con");
             childEntityField.setItems(entityService.findAll());
-            childEntityField.setItemLabelGenerator(e -> e.getId() + " - " + e.getCharacterString() + " (" + e.getPronunciationString() + ")");
+            childEntityField.setItemLabelGenerator(e -> e.getId() + " - " + e.getCharacterString() + " (" + e.getPronunciationString() + ")"
+                + (e.isStandardised() ? " *" : ""));
             childEntityField.setWidth("100%");
 
             IntegerField positionField = new IntegerField("Vị trí");
@@ -1769,13 +1771,23 @@ public class DictionaryManagementView extends VerticalLayout {
             binder.forField(attestedCheckbox)
                     .bind(EntityX::isAttested, EntityX::setAttested);
 
+            Checkbox standardisedCheckbox = new Checkbox("Chuẩn hóa");
+            binder.forField(standardisedCheckbox)
+                    .bind(EntityX::isStandardised, EntityX::setStandardised);
+
             dialogLayout.add(structureField, pronunciationField, meaningField, languageField,
-                    descriptionField, compoundCheckbox, attestedCheckbox);
+                    descriptionField, compoundCheckbox, attestedCheckbox, standardisedCheckbox);
             dialog.add(dialogLayout);
 
             HorizontalLayout dialogButtons = new HorizontalLayout();
             Button saveButton = new Button("Lưu");
             Button cancelButton = new Button("Hủy");
+
+            pronunciationField.addValueChangeListener(listener -> {
+                Meaning selectedMeaning = meaningField.getValue();
+                meaningField.setItems(meaningService.findAllWithPronunciation(pronunciationField.getValue()));
+                meaningField.setValue(selectedMeaning);
+            });
 
             saveButton.addClickListener(e -> {
                 if (binder.validate().isOk()) {
@@ -1827,7 +1839,7 @@ public class DictionaryManagementView extends VerticalLayout {
                     .bind(EntityX::getPronunciation, EntityX::setPronunciation);
 
             ComboBox<Meaning> meaningField = new ComboBox<>("Ý nghĩa");
-            meaningField.setItems(meaningService.findAll());
+            meaningField.setItems(meaningService.findAllWithPronunciation(pronunciationField.getValue()));
             meaningField.setItemLabelGenerator(m -> {
                 StringBuilder sb = new StringBuilder(m.getId() + " - ");
                 m.getExplanations().forEach(e -> sb.append(e.getDescription()).append("; "));
@@ -1864,13 +1876,23 @@ public class DictionaryManagementView extends VerticalLayout {
             binder.forField(attestedCheckbox)
                     .bind(EntityX::isAttested, EntityX::setAttested);
 
+            Checkbox standardisedCheckbox = new Checkbox("Chuẩn hóa");
+            binder.forField(standardisedCheckbox)
+                    .bind(EntityX::isStandardised, EntityX::setStandardised);
+
             dialogLayout.add(structureField, pronunciationField, meaningField, languageField,
-                    descriptionField, compoundCheckbox, attestedCheckbox);
+                    descriptionField, compoundCheckbox, attestedCheckbox, standardisedCheckbox);
             dialog.add(dialogLayout);
 
             HorizontalLayout dialogButtons = new HorizontalLayout();
             Button saveButton = new Button("Lưu");
             Button cancelButton = new Button("Hủy");
+
+            pronunciationField.addValueChangeListener(listener -> {
+                Meaning selectedMeaning =meaningField.getValue();
+                meaningField.setItems(meaningService.findAllWithPronunciation(pronunciationField.getValue()));
+                meaningField.setValue(selectedMeaning);
+            });
 
             saveButton.addClickListener(e -> {
                 if (binder.validate().isOk()) {

@@ -28,6 +28,7 @@ public class VisualTool {
     private final PronunciationClassificationService pronunciationClassificationService;
     private final PronunciationEvolutionService pronunciationEvolutionService;
     private final EntityEvolutionService entityEvolutionService;
+    private final EntityService entityService;
 
     private final int MAX_DEPTH = 50;
 
@@ -214,18 +215,41 @@ public class VisualTool {
             languageHeader.getStyle()
                     .set("background-color", "red")
                     .set("color", "white")
-                    .set("font-weight", "bold");
+                    .set("font-weight", "bold")
+                    .set("font-size", "20px");
             if (entity.isAttested()) {
-                H3 header = new H3(new RouterLink(charString + " " + quocNgu, EntityDetailView.class, entity.getId()));
-                header.getStyle()
+                RouterLink headerLink = new RouterLink(charString + " " + quocNgu, EntityDetailView.class, entity.getId());
+                headerLink.getStyle()
                         .set("color", "#667eea")
-                        .set("font-size", "1.5em");
+                        .set("font-weight", "bold")
+                        .set("font-size", "20px")
+                        .set("text-decoration", "none");
+                Paragraph header = new Paragraph(headerLink);
+
                 H5 description = new H5(entity.getDescription());
                 description.getStyle()
                         .set("margin", "0 0 0 20px")
                         .set("color", "#999")
                         .set("font-size", "1em");
-                entityContent.add(new HorizontalLayout(languageHeader, header), description);
+
+                Paragraph standardisedHeader = new Paragraph();
+                EntityX standardisedEntity = entityService.findStandardByEntity(entity);
+                if (standardisedEntity != null) {
+                    RouterLink standardLink = new RouterLink("->" + standardisedEntity.getCharacterString(), EntityDetailView.class, standardisedEntity.getId());
+                    standardLink.getStyle()
+                            .set("color", "white")
+                            .set("background-color", "red")
+                            .set("font-size", "20px")
+                            .set("text-decoration", "none")
+                            .set("padding", "2px 8px")
+                            .set("border-radius", "4px")
+                            .set("display", "inline-block");
+
+                    standardisedHeader = new Paragraph(standardLink);
+                    entityContent.add(new HorizontalLayout(languageHeader, header, standardisedHeader), description);
+                } else {
+                    entityContent.add(new HorizontalLayout(languageHeader, header), description);
+                }
             } else {
                 H3 header = new H3(charString + " " + quocNgu);
                 header.getStyle()

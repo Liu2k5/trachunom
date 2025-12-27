@@ -8,6 +8,7 @@ import com.liu.trachunom.repository.EntityRepository;
 import lombok.RequiredArgsConstructor;
 
 import javax.swing.text.html.parser.Entity;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -37,7 +38,17 @@ public class EntityService {
     }
 
     public List<EntityX> findAll() {
-        return entityRepository.findAll();
+        return entityRepository.findAll().stream()
+                .sorted((o1, o2) -> {
+                    if (o1.isStandardised() && !o2.isStandardised()) {
+                        return -1;
+                    }
+                    if (!o1.isStandardised() && o2.isStandardised()) {
+                        return 1;
+                    }
+                    return o1.getId().compareTo(o2.getId());
+                })
+                .toList();
     }
 
     public void deleteById(Long id) {
@@ -93,9 +104,41 @@ public class EntityService {
         List<Meaning> meanings = meaningService.findAll()
                 .stream()
                 .filter(meaning -> meaning.getExplanations().stream().anyMatch(explanations::contains))
-                .collect(toList());
+                .toList();
+        return findByStandardised(true).stream()
+                .filter(entityX -> meanings.contains(entityX.getMeaning())
+                        && !entityX.getId().equals(entity.getId())
+                        && !entityX.getPronunciationString().equals(entity.getPronunciationString())
+//                        && !entityX.getMeaning().getId().equals(entity.getMeaning().getId())
+                        // so sanh pronunciation + meaning de tranh di the
+                        && entityX.isAttested())
+                .toList();
+    }
+
+    private List<EntityX> findByStandardised(boolean b) {
+        return entityRepository.findByStandardised(b);
+    }
+
+    public EntityX findStandardByEntity(EntityX entity) {
+        EntityX foundEntity = entityRepository.findFirstByLanguageAndPronunciationAndMeaningAndStandardised(
+                entity.getLanguage(),
+                entity.getPronunciation(),
+                entity.getMeaning(),
+                true
+        );
+        if (foundEntity == null)  return null;
+        if (!foundEntity.getId().equals(entity.getId())) return foundEntity;
+        return null;
+    }
+
+    public List<EntityX> findVariances(EntityX entity) {
         return findAll().stream()
-                .filter(entityX -> meanings.contains(entityX.getMeaning()) && !entityX.getId().equals(entity.getId()) && entityX.isAttested())
+                .filter((EntityX entityX) -> !entityX.isCompound() // di the khong phai tu ghep
+                && !entityX.getId().equals(entity.getId())
+                && entity.getPronunciation() != null
+                && entityX.getPronunciation() != null
+                && entityX.getPronunciation().getId().equals(entity.getPronunciation().getId())
+                && entityX.getMeaning().getId().equals(entity.getMeaning().getId()))
                 .toList();
     }
 }

@@ -231,6 +231,7 @@ public class EntityDetailView extends VerticalLayout implements HasUrlParameter<
         }
         displayEntityEvolution(entity);
         displaySynonyms(entity);
+        displayVariances(entity);
 
         contentLayout.addComponentAsFirst(backButton);
     }
@@ -398,36 +399,66 @@ public class EntityDetailView extends VerticalLayout implements HasUrlParameter<
 
     public void displaySynonyms(EntityX entity) {
         List<EntityX> synonyms = entityService.findSynonyms(entity);
-        if (!synonyms.isEmpty()) {
-            VerticalLayout synonymSection = createSection("Từ đồng nghĩa");
-            HorizontalLayout synonymLayout = new HorizontalLayout();
-            for (EntityX synonym : synonyms) {
-                String hnomString = entityService.getHnomString(synonym);
-                String qnguString = entityService.getQnguString(synonym);
-                VerticalLayout synonymEntityLayout = new VerticalLayout();
-                VerticalLayout hnomLayout = new VerticalLayout();
-                VerticalLayout qnguLayout = new VerticalLayout();
-                hnomLayout.add(hnomString);
-                qnguLayout.add(qnguString);
-                synonymEntityLayout.add(hnomLayout, qnguLayout);
-                hnomLayout.getStyle()
-                        .set("font-size", "80px")
-                        .set("text-align", "center")
-                        .set("color", "#667eea")
-                        .set("font-weight", "bold");
-                qnguLayout.getStyle()
-                        .set("color", "#667eea")
-                        .set("font-weight", "bold")
-                        .set("text-size", "16px");
-                synonymEntityLayout.setMargin(false);
-                synonymEntityLayout.setPadding(false);
-                synonymEntityLayout.setSpacing(false);
-                RouterLink link = new RouterLink(EntityDetailView.class, synonym.getId());
-                link.add(synonymEntityLayout);
-                synonymLayout.add(link);
-            }
-            synonymSection.add(synonymLayout);
-            contentLayout.add(synonymSection);
+        if (synonyms.isEmpty()) {
+            return;
         }
+        VerticalLayout synonymSection = createSection("Từ đồng nghĩa");
+        HorizontalLayout synonymLayout = new HorizontalLayout();
+        for (EntityX synonym : synonyms) {
+            String hnomString = entityService.getHnomString(synonym);
+            String qnguString = entityService.getQnguString(synonym);
+            VerticalLayout synonymEntityLayout = new VerticalLayout();
+            VerticalLayout hnomLayout = new VerticalLayout();
+            VerticalLayout qnguLayout = new VerticalLayout();
+            hnomLayout.add(hnomString);
+            qnguLayout.add(qnguString);
+            synonymEntityLayout.add(hnomLayout, qnguLayout);
+            hnomLayout.getStyle()
+                    .set("font-size", "30px")
+                    .set("text-align", "center")
+                    .set("color", "#667eea")
+                    .set("font-weight", "bold");
+            qnguLayout.getStyle()
+                    .set("color", "#667eea")
+                    .set("font-weight", "bold")
+                    .set("font-size", "16px");
+            synonymEntityLayout.setMargin(false);
+            synonymEntityLayout.setPadding(false);
+            synonymEntityLayout.setSpacing(false);
+            RouterLink link = new RouterLink(EntityDetailView.class, synonym.getId());
+            link.add(synonymEntityLayout);
+            synonymLayout.add(link);
+        }
+        synonymSection.add(synonymLayout);
+        contentLayout.add(synonymSection);
+    }
+
+    public void displayVariances(EntityX entity) {
+        List<EntityX> variances = entityService.findVariances(entity);
+        if (variances.isEmpty()) {
+            return;
+        }
+        VerticalLayout varianceSection = createSection("Dị thể");
+        HorizontalLayout varianceLayout = new HorizontalLayout();
+        for (EntityX variance : variances) {
+            String hnomString = entityService.getHnomString(variance);
+            VerticalLayout varianceEntityLayout = new VerticalLayout();
+            VerticalLayout hnomLayout = new VerticalLayout();
+            hnomLayout.add(hnomString);
+            hnomLayout.getStyle()
+                    .set("font-size", "30px")
+                    .set("text-align", "center")
+                    .set("color", "#667eea")
+                    .set("font-weight", "bold");
+            varianceEntityLayout.add(hnomLayout);
+            varianceEntityLayout.setMargin(false);
+            varianceEntityLayout.setPadding(false);
+            varianceEntityLayout.setSpacing(false);
+            RouterLink link = new RouterLink(EntityDetailView.class, variance.getId());
+            link.add(varianceEntityLayout);
+            varianceLayout.add(link);
+        }
+        varianceSection.add(varianceLayout);
+        contentLayout.add(varianceSection);
     }
 }
