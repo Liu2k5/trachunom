@@ -32,4 +32,15 @@ public class Meaning {
         inverseJoinColumns = @JoinColumn(name = "explanation_id")
     )
     private List<Explanation> explanations;
+
+    public String getExplanationsString() {
+        StringBuilder sb = new StringBuilder();
+        for (Explanation explanation : explanations) {
+            if (!sb.isEmpty()) {
+                sb.append("; ");
+            }
+            sb.append(explanation.getDescription());
+        }
+        return sb.toString();
+    }
 }

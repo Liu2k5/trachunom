@@ -920,6 +920,7 @@ public class DictionaryManagementView extends VerticalLayout {
                             structureComponentGrid.setItems(refreshedStructure.getStructureComponents());
                         }
                         structureGrid.setItems(structureService.findAll());
+                        structureGrid.select(refreshedStructure);
                         dialog.close();
                     }
                 }
@@ -1002,6 +1003,8 @@ public class DictionaryManagementView extends VerticalLayout {
                     if (refreshedStructure != null) {
                         structureComponentGrid.setItems(refreshedStructure.getStructureComponents());
                     }
+                    structureGrid.setItems(structureService.findAll());
+                    structureGrid.select(refreshedStructure);
                     dialog.close();
                 }
             });
@@ -1029,6 +1032,7 @@ public class DictionaryManagementView extends VerticalLayout {
                 structureComponentGrid.setItems(refreshedStructure.getStructureComponents());
             }
             structureGrid.setItems(structureService.findAll());
+            structureGrid.select(refreshedStructure);
         });
 
         structureComponentButtons.add(addStructureComponentButton, editStructureComponentButton, deleteStructureComponentButton);
@@ -2179,7 +2183,8 @@ public class DictionaryManagementView extends VerticalLayout {
         Grid<ExampleWord> exampleWordGrid = new Grid<>();
         exampleWordGrid.setHeight("300px");
         exampleWordGrid.addColumn(ew -> ew.getEntity().getId()).setHeader("Mã thực thể").setWidth("100px");
-        exampleWordGrid.addColumn(ew -> ew.getEntity().getCharacterString()).setHeader("Ký tự").setWidth("80px");
+        exampleWordGrid.addColumn(ew -> entityService.getHnomString(ew.getEntity()) +
+                " (" + entityService.getQnguString(ew.getEntity()) + ")").setHeader("Chữ").setWidth("80px");
         exampleWordGrid.addColumn(ew -> ew.getExampleWordId().getPosition()).setHeader("Vị trí").setWidth("80px");
         exampleWordGrid.setItems(new ArrayList<>());
 
@@ -2203,7 +2208,9 @@ public class DictionaryManagementView extends VerticalLayout {
 
             ComboBox<EntityX> entityField = new ComboBox<>("Thực thể");
             entityField.setItems(entityService.findAll());
-            entityField.setItemLabelGenerator(e -> e.getId() + " - " + e.getCharacterString() + " (" + e.getPronunciationString() + ")");
+            entityField.setItemLabelGenerator(e -> e.getId() + " - " + entityService.getHnomString(e)
+                    + " (" + entityService.getQnguString(e) + ") " + (e.isStandardised() ? " *" : "")
+                    + (e.getMeaning() != null ? " - " + e.getExplanationsString() : ""));
             entityField.setWidth("100%");
 
             IntegerField positionField = new IntegerField("Vị trí");
@@ -2341,7 +2348,7 @@ public class DictionaryManagementView extends VerticalLayout {
         Grid<EntityX> entityXGrid = new Grid<>();
         entityXGrid.setHeight("200px");
         entityXGrid.addColumn(EntityX::getId).setHeader("Mã").setWidth("75px").setFlexGrow(0);
-        entityXGrid.addColumn(EntityX::getCharacterString).setHeader("Ký tự");
+        entityXGrid.addColumn((EntityX entity) -> entityService.getHnomString(entity) + ": " + entity.getExplanationsString()).setHeader("Ký tự");
         entityXGrid.setItems(entityService.findAll());
 
         entitySubLayout.add(entityXHeader, entityXGrid);
@@ -2375,7 +2382,7 @@ public class DictionaryManagementView extends VerticalLayout {
 
             ComboBox<Example> exampleComboBox = new ComboBox<>("Chọn ví dụ");
             exampleComboBox.setItems(exampleService.findAll());
-            exampleComboBox.setItemLabelGenerator(ex -> "Mã " + ex.getId() + " - " +
+            exampleComboBox.setItemLabelGenerator(ex -> ex.getId() + " - " +
                 (ex.getSource() != null ? ex.getSource().getName() : "Không có nguồn"));
             exampleComboBox.setWidth("100%");
 

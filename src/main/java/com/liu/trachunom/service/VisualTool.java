@@ -14,6 +14,8 @@ import com.vaadin.flow.router.RouterLink;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -55,6 +57,24 @@ public class VisualTool {
         if (structureComponents == null || structureComponents.isEmpty()) {
             return new HorizontalLayout();
         }
+
+        structureComponents.sort((StructureComponent o1, StructureComponent o2) -> {
+            StructureClassification c1 = o1.getStructureClassification();
+            StructureClassification c2 = o2.getStructureClassification();
+            if (structureClassificationService.isIdeographicClassification(c1) && !structureClassificationService.isIdeographicClassification(c2)) {
+                return -1;
+            }
+            if (structureClassificationService.isPhoneticClassification(c1) && structureClassificationService.isNoneClassification(c2)) {
+                return -1;
+            }
+            if (structureClassificationService.isPhoneticClassification(c1) && structureClassificationService.isIdeographicClassification(c2)) {
+                return 1;
+            }
+            if (structureClassificationService.isNoneClassification(c1) && !structureClassificationService.isNoneClassification(c2)) {
+                return 1;
+            }
+            return 0;
+        });
 
         HorizontalLayout layout = new HorizontalLayout();
         for (int i = 0; i < structureComponents.size(); i++) {
@@ -305,13 +325,13 @@ public class VisualTool {
         for (ExampleWord exampleWord : exampleWordService.findByExample(example)) {
             EntityX entity = exampleWord.getEntity();
 
-            Paragraph qnguText = new Paragraph(entity.getPronunciationString());
+            Paragraph qnguText = new Paragraph(entityService.getQnguString(entity));
             qnguText.getStyle()
                     .set("margin", "0px")
                     .set("padding", "0px")
                     .set("color", "black")
                     .set("font-size", "12px");
-            Paragraph hnomText = new Paragraph(entity.getCharacterString());
+            Paragraph hnomText = new Paragraph(entityService.getHnomString(entity));
             hnomText.getStyle()
                     .set("margin", "0px")
                     .set("padding", "0px")
@@ -332,7 +352,6 @@ public class VisualTool {
         }
         layout.setPadding(false);
         layout.setMargin(false);
-//        layout.getStyle().setWidth("100%");
         layout.getStyle().setGap("0px");
         if (example.getSource() != null) {
             HorizontalLayout sourceLayout = new HorizontalLayout();

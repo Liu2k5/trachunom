@@ -72,4 +72,12 @@ public class EntityX {
         }
     }
 
+    public String getExplanationsString() {
+        try {
+            return this.meaning.getExplanationsString();
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
 }
