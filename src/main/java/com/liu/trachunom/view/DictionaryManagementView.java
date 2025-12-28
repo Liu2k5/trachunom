@@ -56,6 +56,9 @@ public class DictionaryManagementView extends VerticalLayout {
     @Autowired private EntityCompositionService entityCompositionService;
     @Autowired private EntityEvolutionService entityEvolutionService;
     @Autowired private VisualTool visualTool;
+    @Autowired private ExampleService exampleService;
+    @Autowired private ExampleWordService exampleWordService;
+    @Autowired private EntityExampleService entityExampleService;
 
     @PostConstruct
     private void init() {
@@ -2062,6 +2065,386 @@ public class DictionaryManagementView extends VerticalLayout {
     }
 
     private HorizontalLayout complementaryLayout() {
-        return new HorizontalLayout();
+        HorizontalLayout layout = new HorizontalLayout();
+        layout.setSizeFull();
+
+        // ===== BẢNG VÍ DỤ =====
+        VerticalLayout exampleLayout = new VerticalLayout();
+        exampleLayout.setSizeFull();
+        H5 exampleHeader = new H5("Ví dụ");
+
+        Grid<Example> exampleGrid = new Grid<>();
+        exampleGrid.setHeight("300px");
+        exampleGrid.addColumn(Example::getId).setHeader("Mã").setWidth("75px").setFlexGrow(0);
+        exampleGrid.addColumn(e -> e.getSource() != null ? e.getSource().getName() : "").setHeader("Nguồn");
+        exampleGrid.setItems(exampleService.findAll());
+
+        HorizontalLayout exampleButtons = new HorizontalLayout();
+        Button addExampleButton = new Button("Thêm");
+        Button editExampleButton = new Button("Sửa");
+        Button deleteExampleButton = new Button("Xóa");
+
+        // Thêm ví dụ mới
+        addExampleButton.addClickListener(cl -> {
+            Dialog dialog = new Dialog();
+            dialog.setHeaderTitle("Thêm ví dụ mới");
+            dialog.setWidth("600px");
+
+            VerticalLayout dialogLayout = new VerticalLayout();
+
+            ComboBox<Source> sourceField = new ComboBox<>("Nguồn");
+            sourceField.setItems(sourceService.findAll());
+            sourceField.setItemLabelGenerator(Source::getName);
+            sourceField.setWidth("100%");
+
+            dialogLayout.add(sourceField);
+            dialog.add(dialogLayout);
+
+            HorizontalLayout dialogButtons = new HorizontalLayout();
+            Button saveButton = new Button("Lưu");
+            Button cancelButton = new Button("Hủy");
+
+            saveButton.addClickListener(e -> {
+                Example newExample = Example.builder()
+                        .source(sourceField.getValue())
+                        .build();
+                exampleService.save(newExample);
+                exampleGrid.setItems(exampleService.findAll());
+                dialog.close();
+            });
+
+            cancelButton.addClickListener(e -> dialog.close());
+            dialogButtons.add(saveButton, cancelButton);
+            dialog.add(dialogButtons);
+            dialog.open();
+        });
+
+        // Sửa ví dụ
+        editExampleButton.addClickListener(cl -> {
+            Example example = exampleGrid.getSelectedItems().stream().findFirst().orElse(null);
+            if (example == null) {
+                return;
+            }
+
+            Dialog dialog = new Dialog();
+            dialog.setHeaderTitle("Sửa ví dụ");
+            dialog.setWidth("600px");
+
+            VerticalLayout dialogLayout = new VerticalLayout();
+
+            ComboBox<Source> sourceField = new ComboBox<>("Nguồn");
+            sourceField.setItems(sourceService.findAll());
+            sourceField.setItemLabelGenerator(Source::getName);
+            sourceField.setValue(example.getSource());
+            sourceField.setWidth("100%");
+
+            dialogLayout.add(sourceField);
+            dialog.add(dialogLayout);
+
+            HorizontalLayout dialogButtons = new HorizontalLayout();
+            Button saveButton = new Button("Lưu");
+            Button cancelButton = new Button("Hủy");
+
+            saveButton.addClickListener(e -> {
+                example.setSource(sourceField.getValue());
+                exampleService.save(example);
+                exampleGrid.setItems(exampleService.findAll());
+                dialog.close();
+            });
+
+            cancelButton.addClickListener(e -> dialog.close());
+            dialogButtons.add(saveButton, cancelButton);
+            dialog.add(dialogButtons);
+            dialog.open();
+        });
+
+        // Xóa ví dụ
+        deleteExampleButton.addClickListener(cl -> {
+            Example example = exampleGrid.getSelectedItems().stream().findFirst().orElse(null);
+            if (example == null) {
+                return;
+            }
+            exampleService.deleteById(example.getId());
+            exampleGrid.setItems(exampleService.findAll());
+        });
+
+        exampleButtons.add(addExampleButton, editExampleButton, deleteExampleButton);
+        exampleLayout.add(exampleHeader, exampleGrid, exampleButtons);
+
+        // ===== BẢNG TỪ TRONG VÍ DỤ (EXAMPLE WORD) =====
+        VerticalLayout exampleWordLayout = new VerticalLayout();
+        exampleWordLayout.setSizeFull();
+        H5 exampleWordHeader = new H5("Từ trong ví dụ");
+
+        Grid<ExampleWord> exampleWordGrid = new Grid<>();
+        exampleWordGrid.setHeight("300px");
+        exampleWordGrid.addColumn(ew -> ew.getEntity().getId()).setHeader("Mã thực thể").setWidth("100px");
+        exampleWordGrid.addColumn(ew -> ew.getEntity().getCharacterString()).setHeader("Ký tự").setWidth("80px");
+        exampleWordGrid.addColumn(ew -> ew.getExampleWordId().getPosition()).setHeader("Vị trí").setWidth("80px");
+        exampleWordGrid.setItems(new ArrayList<>());
+
+        HorizontalLayout exampleWordButtons = new HorizontalLayout();
+        Button addExampleWordButton = new Button("Thêm");
+        Button editExampleWordButton = new Button("Sửa");
+        Button deleteExampleWordButton = new Button("Xóa");
+
+        // Thêm từ vào ví dụ
+        addExampleWordButton.addClickListener(cl -> {
+            Example example = exampleGrid.getSelectedItems().stream().findFirst().orElse(null);
+            if (example == null) {
+                return;
+            }
+
+            Dialog dialog = new Dialog();
+            dialog.setHeaderTitle("Thêm từ vào ví dụ");
+            dialog.setWidth("500px");
+
+            VerticalLayout dialogLayout = new VerticalLayout();
+
+            ComboBox<EntityX> entityField = new ComboBox<>("Thực thể");
+            entityField.setItems(entityService.findAll());
+            entityField.setItemLabelGenerator(e -> e.getId() + " - " + e.getCharacterString() + " (" + e.getPronunciationString() + ")");
+            entityField.setWidth("100%");
+
+            IntegerField positionField = new IntegerField("Vị trí");
+            positionField.setValue(1);
+            positionField.setWidth("100%");
+
+            dialogLayout.add(entityField, positionField);
+            dialog.add(dialogLayout);
+
+            HorizontalLayout dialogButtons = new HorizontalLayout();
+            Button saveButton = new Button("Lưu");
+            Button cancelButton = new Button("Hủy");
+
+            saveButton.addClickListener(e -> {
+                if (entityField.getValue() != null && positionField.getValue() != null) {
+                    ExampleWordId id = ExampleWordId.builder()
+                            .exampleId(example.getId())
+                            .entityId(entityField.getValue().getId())
+                            .position(positionField.getValue().longValue())
+                            .build();
+
+                    ExampleWord exampleWord = ExampleWord.builder()
+                            .exampleWordId(id)
+                            .example(example)
+                            .entity(entityField.getValue())
+                            .build();
+
+                    exampleWordService.save(exampleWord);
+                    exampleWordGrid.setItems(exampleWordService.findByExampleIdOrderByPosition(example.getId()));
+                    dialog.close();
+                }
+            });
+
+            cancelButton.addClickListener(e -> dialog.close());
+            dialogButtons.add(saveButton, cancelButton);
+            dialog.add(dialogButtons);
+            dialog.open();
+        });
+
+        // Sửa từ trong ví dụ (chỉ sửa được position)
+        editExampleWordButton.addClickListener(cl -> {
+            Example example = exampleGrid.getSelectedItems().stream().findFirst().orElse(null);
+            ExampleWord exampleWord = exampleWordGrid.getSelectedItems().stream().findFirst().orElse(null);
+            if (example == null || exampleWord == null) {
+                return;
+            }
+
+            Dialog dialog = new Dialog();
+            dialog.setHeaderTitle("Sửa vị trí từ");
+            dialog.setWidth("500px");
+
+            VerticalLayout dialogLayout = new VerticalLayout();
+
+            TextField entityField = new TextField("Thực thể");
+            entityField.setValue(exampleWord.getEntity().getId() + " - " + exampleWord.getEntity().getCharacterString());
+            entityField.setEnabled(false);
+            entityField.setWidth("100%");
+
+            IntegerField positionField = new IntegerField("Vị trí");
+            positionField.setValue(exampleWord.getExampleWordId().getPosition().intValue());
+            positionField.setWidth("100%");
+
+            dialogLayout.add(entityField, positionField);
+            dialog.add(dialogLayout);
+
+            HorizontalLayout dialogButtons = new HorizontalLayout();
+            Button saveButton = new Button("Lưu");
+            Button cancelButton = new Button("Hủy");
+
+            saveButton.addClickListener(e -> {
+                if (positionField.getValue() != null) {
+                    // Xóa ExampleWord cũ
+                    exampleWordService.deleteById(exampleWord.getExampleWordId());
+
+                    // Tạo ExampleWord mới với position mới
+                    ExampleWordId newId = ExampleWordId.builder()
+                            .exampleId(example.getId())
+                            .entityId(exampleWord.getEntity().getId())
+                            .position(positionField.getValue().longValue())
+                            .build();
+
+                    ExampleWord newExampleWord = ExampleWord.builder()
+                            .exampleWordId(newId)
+                            .example(example)
+                            .entity(exampleWord.getEntity())
+                            .build();
+
+                    exampleWordService.save(newExampleWord);
+                    exampleWordGrid.setItems(exampleWordService.findByExampleIdOrderByPosition(example.getId()));
+                    dialog.close();
+                }
+            });
+
+            cancelButton.addClickListener(e -> dialog.close());
+            dialogButtons.add(saveButton, cancelButton);
+            dialog.add(dialogButtons);
+            dialog.open();
+        });
+
+        // Xóa từ khỏi ví dụ
+        deleteExampleWordButton.addClickListener(cl -> {
+            Example example = exampleGrid.getSelectedItems().stream().findFirst().orElse(null);
+            ExampleWord exampleWord = exampleWordGrid.getSelectedItems().stream().findFirst().orElse(null);
+            if (example == null || exampleWord == null) {
+                return;
+            }
+
+            exampleWordService.deleteById(exampleWord.getExampleWordId());
+            exampleWordGrid.setItems(exampleWordService.findByExampleIdOrderByPosition(example.getId()));
+        });
+
+        exampleWordButtons.add(addExampleWordButton, editExampleWordButton, deleteExampleWordButton);
+        exampleWordLayout.add(exampleWordHeader, exampleWordGrid, exampleWordButtons);
+
+        // Khi chọn Example, hiển thị các ExampleWord của nó
+        exampleGrid.addSelectionListener(listener -> {
+            Example selectedExample = listener.getFirstSelectedItem().orElse(null);
+            if (selectedExample != null) {
+                List<ExampleWord> exampleWords = exampleWordService.findByExampleIdOrderByPosition(selectedExample.getId());
+                exampleWordGrid.setItems(exampleWords);
+            } else {
+                exampleWordGrid.setItems(new ArrayList<>());
+            }
+        });
+
+        // ===== BẢNG GHÉP THỰC THỂ VỚI VÍ DỤ (ENTITY EXAMPLE) =====
+        VerticalLayout entityExampleLayout = new VerticalLayout();
+        entityExampleLayout.setSizeFull();
+        H5 entityExampleHeader = new H5("Thực thể - Ví dụ");
+
+        // Bảng Entity
+        VerticalLayout entitySubLayout = new VerticalLayout();
+        H6 entityXHeader = new H6("Thực thể");
+
+        Grid<EntityX> entityXGrid = new Grid<>();
+        entityXGrid.setHeight("200px");
+        entityXGrid.addColumn(EntityX::getId).setHeader("Mã").setWidth("75px").setFlexGrow(0);
+        entityXGrid.addColumn(EntityX::getCharacterString).setHeader("Ký tự");
+        entityXGrid.setItems(entityService.findAll());
+
+        entitySubLayout.add(entityXHeader, entityXGrid);
+
+        // Bảng EntityExample
+        VerticalLayout entityExampleSubLayout = new VerticalLayout();
+        H6 entityExampleListHeader = new H6("Ví dụ của thực thể");
+
+        Grid<EntityExample> entityExampleGrid = new Grid<>();
+        entityExampleGrid.setHeight("200px");
+        entityExampleGrid.addColumn(ee -> ee.getExample().getId()).setHeader("Mã VD").setWidth("75px");
+        entityExampleGrid.addColumn(ee -> ee.getExample().getSource() != null ? ee.getExample().getSource().getName() : "").setHeader("Nguồn");
+        entityExampleGrid.setItems(new ArrayList<>());
+
+        HorizontalLayout entityExampleButtons = new HorizontalLayout();
+        Button addEntityExampleButton = new Button("Thêm");
+        Button deleteEntityExampleButton = new Button("Xóa");
+
+        // Thêm ví dụ cho thực thể
+        addEntityExampleButton.addClickListener(cl -> {
+            EntityX entity = entityXGrid.getSelectedItems().stream().findFirst().orElse(null);
+            if (entity == null) {
+                return;
+            }
+
+            Dialog dialog = new Dialog();
+            dialog.setHeaderTitle("Thêm ví dụ cho thực thể");
+            dialog.setWidth("600px");
+
+            VerticalLayout dialogLayout = new VerticalLayout();
+
+            ComboBox<Example> exampleComboBox = new ComboBox<>("Chọn ví dụ");
+            exampleComboBox.setItems(exampleService.findAll());
+            exampleComboBox.setItemLabelGenerator(ex -> "Mã " + ex.getId() + " - " +
+                (ex.getSource() != null ? ex.getSource().getName() : "Không có nguồn"));
+            exampleComboBox.setWidth("100%");
+
+            dialogLayout.add(exampleComboBox);
+            dialog.add(dialogLayout);
+
+            HorizontalLayout dialogButtons = new HorizontalLayout();
+            Button saveButton = new Button("Lưu");
+            Button cancelButton = new Button("Hủy");
+
+            saveButton.addClickListener(e -> {
+                if (exampleComboBox.getValue() != null) {
+                    EntityExampleId id = EntityExampleId.builder()
+                            .entityId(entity.getId())
+                            .exampleId(exampleComboBox.getValue().getId())
+                            .build();
+
+                    EntityExample entityExample = EntityExample.builder()
+                            .id(id)
+                            .entity(entity)
+                            .example(exampleComboBox.getValue())
+                            .build();
+
+                    entityExampleService.save(entityExample);
+                    entityExampleGrid.setItems(entityExampleService.findByEntityId(entity.getId()));
+                    dialog.close();
+                }
+            });
+
+            cancelButton.addClickListener(e -> dialog.close());
+            dialogButtons.add(saveButton, cancelButton);
+            dialog.add(dialogButtons);
+            dialog.open();
+        });
+
+        // Xóa ví dụ khỏi thực thể
+        deleteEntityExampleButton.addClickListener(cl -> {
+            EntityX entity = entityXGrid.getSelectedItems().stream().findFirst().orElse(null);
+            EntityExample entityExample = entityExampleGrid.getSelectedItems().stream().findFirst().orElse(null);
+            if (entity == null || entityExample == null) {
+                return;
+            }
+
+            entityExampleService.deleteById(entityExample.getId());
+            entityExampleGrid.setItems(entityExampleService.findByEntityId(entity.getId()));
+        });
+
+        entityExampleButtons.add(addEntityExampleButton, deleteEntityExampleButton);
+        entityExampleSubLayout.add(entityExampleListHeader, entityExampleGrid, entityExampleButtons);
+
+        // Khi chọn Entity, hiển thị các Example của nó
+        entityXGrid.addSelectionListener(selection -> {
+            EntityX selectedEntity = selection.getFirstSelectedItem().orElse(null);
+            if (selectedEntity != null) {
+                entityExampleGrid.setItems(entityExampleService.findByEntityId(selectedEntity.getId()));
+            } else {
+                entityExampleGrid.setItems(new ArrayList<>());
+            }
+        });
+
+        VerticalLayout entityExampleCombined = new VerticalLayout();
+        entityExampleCombined.add(entitySubLayout, entityExampleSubLayout);
+        entityExampleLayout.add(entityExampleHeader, entityExampleCombined);
+
+        layout.add(exampleLayout, exampleWordLayout, entityExampleLayout);
+        exampleLayout.setWidth("35%");
+        exampleWordLayout.setWidth("30%");
+        entityExampleLayout.setWidth("35%");
+
+        return layout;
     }
 }

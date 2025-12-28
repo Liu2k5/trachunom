@@ -1,11 +1,8 @@
 package com.liu.trachunom.service;
 
-import com.google.common.collect.Maps;
 import com.liu.trachunom.entity.*;
 import com.liu.trachunom.view.EntityDetailView;
 import com.liu.trachunom.view.SearchView;
-import com.vaadin.flow.component.Html;
-import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.html.Paragraph;
@@ -14,7 +11,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.dom.Style;
 import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.RouterLink;
-import io.swagger.v3.oas.models.parameters.QueryParameter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +25,7 @@ public class VisualTool {
     private final PronunciationEvolutionService pronunciationEvolutionService;
     private final EntityEvolutionService entityEvolutionService;
     private final EntityService entityService;
+    private final ExampleWordService exampleWordService;
 
     private final int MAX_DEPTH = 50;
 
@@ -39,7 +36,7 @@ public class VisualTool {
     public HorizontalLayout drawStructure(List<StructureComponent> structureComponents) {
         try {
             HorizontalLayout layout = drawStructure(structureComponents, 0);
-            if (layout.getChildren().count() == 0) {
+            if (layout.getChildren().findAny().isEmpty()) {
                 return new HorizontalLayout(new H5("Chữ tượng hình hoặc cấu tạo chưa xác định"));
             }
             return layout;
@@ -64,12 +61,12 @@ public class VisualTool {
             VerticalLayout vLayout = new VerticalLayout();
             StructureComponent structureComponent = structureComponents.get(i);
             Integer quantity = structureComponent.getQuantity();
-            H5 content = new H5(structureComponent.getStructureComponent().getCharacter().getString() + (quantity > 1 ? " x" + quantity : ""));
+            H5 content = new H5(structureComponent.getStructureComponent().getCharacterString() + (quantity > 1 ? " x" + quantity : ""));
             content.getStyle().setColor("white");
 
             RouterLink link = new RouterLink("", SearchView.class);
             QueryParameters params = new QueryParameters(Map.of("query",
-                    List.of(structureComponent.getStructureComponent().getCharacter().getString())));
+                    List.of(structureComponent.getStructureComponent().getCharacterString())));
             link.setQueryParameters(params);
             link.add(content);
 
@@ -203,8 +200,8 @@ public class VisualTool {
         entityContent.setPadding(false);
         entityContent.setSpacing(false);
 
-        if (entity.getStructure() != null && entity.getStructure().getCharacter() != null) {
-            String charString = entity.getStructure().getCharacter().getString();
+        if (entity.getStructure() != null) {
+            String charString = entity.getCharacterString();
             String quocNgu = "";
 
             if (entity.getMeaning() != null && entity.getPronunciation() != null) {
@@ -232,7 +229,6 @@ public class VisualTool {
                         .set("color", "#999")
                         .set("font-size", "1em");
 
-                Paragraph standardisedHeader = new Paragraph();
                 EntityX standardisedEntity = entityService.findStandardByEntity(entity);
                 if (standardisedEntity != null) {
                     RouterLink standardLink = new RouterLink("->" + standardisedEntity.getCharacterString(), EntityDetailView.class, standardisedEntity.getId());
@@ -245,7 +241,7 @@ public class VisualTool {
                             .set("border-radius", "4px")
                             .set("display", "inline-block");
 
-                    standardisedHeader = new Paragraph(standardLink);
+                    Paragraph standardisedHeader = new Paragraph(standardLink);
                     entityContent.add(new HorizontalLayout(languageHeader, header, standardisedHeader), description);
                 } else {
                     entityContent.add(new HorizontalLayout(languageHeader, header), description);
@@ -278,10 +274,7 @@ public class VisualTool {
 
 
         HorizontalLayout hLayout = new HorizontalLayout();
-        for (int i = 0; i < entityEvolutions.size(); i++) {
-//            VerticalLayout entityContent = new VerticalLayout();
-            EntityEvolution entityEvolution = entityEvolutions.get(i);
-
+        for (EntityEvolution entityEvolution : entityEvolutions) {
             VerticalLayout evolutionLayout = new VerticalLayout();
             evolutionLayout.setSpacing(false);
             evolutionLayout.setMargin(false);
@@ -304,6 +297,56 @@ public class VisualTool {
         layout.setMargin(false);
         layout.getStyle().setWidth("100%");
         layout.getStyle().setGap("0px");
+        return layout;
+    }
+
+    public HorizontalLayout drawExample(Example example) {
+        HorizontalLayout layout = new HorizontalLayout();
+        for (ExampleWord exampleWord : exampleWordService.findByExample(example)) {
+            EntityX entity = exampleWord.getEntity();
+
+            Paragraph qnguText = new Paragraph(entity.getPronunciationString());
+            qnguText.getStyle()
+                    .set("margin", "0px")
+                    .set("padding", "0px")
+                    .set("color", "black")
+                    .set("font-size", "12px");
+            Paragraph hnomText = new Paragraph(entity.getCharacterString());
+            hnomText.getStyle()
+                    .set("margin", "0px")
+                    .set("padding", "0px")
+                    .set("color", "black")
+                    .set("font-size", "40px");
+            RouterLink link = new RouterLink(EntityDetailView.class, entity.getId());
+            link.add(hnomText);
+
+            VerticalLayout vLayout = new VerticalLayout();
+            vLayout.setPadding(false);
+            vLayout.setMargin(false);
+            vLayout.setSpacing(false);
+            vLayout.getStyle().set("align-items", "center");
+            vLayout.add(qnguText);
+            vLayout.add(entity.isAttested() ? link : hnomText);
+
+            layout.add(vLayout);
+        }
+        layout.setPadding(false);
+        layout.setMargin(false);
+//        layout.getStyle().setWidth("100%");
+        layout.getStyle().setGap("0px");
+        if (example.getSource() != null) {
+            HorizontalLayout sourceLayout = new HorizontalLayout();
+            Paragraph sourceText = new Paragraph("(" + example.getSource().getName() + ")");
+            sourceText.getStyle()
+                    .set("width", "200px");
+            sourceLayout.add(sourceText);
+            sourceLayout.setPadding(false);
+            sourceLayout.setMargin(false);
+            sourceLayout.setSpacing(false);
+            sourceLayout.getStyle()
+                    .set("align-items", "end");
+            layout.add(sourceLayout);
+        }
         return layout;
     }
 

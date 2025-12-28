@@ -22,10 +22,11 @@ public class EntityDetailView extends VerticalLayout implements HasUrlParameter<
 
     @Autowired private EntityService entityService;
     private VerticalLayout contentLayout = new VerticalLayout();
-    @Autowired private StructureService structureService;
     @Autowired private EntityEvolutionService entityEvolutionService;
     @Autowired private VisualTool visualTool;
     @Autowired private EntityCompositionService entityCompositionService;
+    @Autowired
+    private EntityExampleService entityExampleService;
 
     @PostConstruct
     public void init() {
@@ -232,6 +233,7 @@ public class EntityDetailView extends VerticalLayout implements HasUrlParameter<
         displayEntityEvolution(entity);
         displaySynonyms(entity);
         displayVariances(entity);
+        displayExamples(entity);
 
         contentLayout.addComponentAsFirst(backButton);
     }
@@ -336,6 +338,7 @@ public class EntityDetailView extends VerticalLayout implements HasUrlParameter<
         }
         displayEntityEvolution(entity);
         displaySynonyms(entity);
+        displayExamples(entity);
 
         contentLayout.addComponentAsFirst(backButton);
     }
@@ -393,7 +396,6 @@ public class EntityDetailView extends VerticalLayout implements HasUrlParameter<
             }
         } catch (Exception e) {
             showError("Lỗi: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
@@ -412,22 +414,23 @@ public class EntityDetailView extends VerticalLayout implements HasUrlParameter<
             VerticalLayout qnguLayout = new VerticalLayout();
             hnomLayout.add(hnomString);
             qnguLayout.add(qnguString);
-            synonymEntityLayout.add(hnomLayout, qnguLayout);
+            RouterLink link = new RouterLink(EntityDetailView.class, synonym.getId());
+            link.add(hnomLayout);
+            synonymEntityLayout.add(qnguLayout, link);
             hnomLayout.getStyle()
-                    .set("font-size", "30px")
+                    .set("font-size", "40px")
                     .set("text-align", "center")
-                    .set("color", "#667eea")
-                    .set("font-weight", "bold");
+                    .set("color", "black");
             qnguLayout.getStyle()
-                    .set("color", "#667eea")
-                    .set("font-weight", "bold")
-                    .set("font-size", "16px");
+                    .set("color", "black")
+                    .set("font-size", "12px");
             synonymEntityLayout.setMargin(false);
             synonymEntityLayout.setPadding(false);
             synonymEntityLayout.setSpacing(false);
-            RouterLink link = new RouterLink(EntityDetailView.class, synonym.getId());
-            link.add(synonymEntityLayout);
-            synonymLayout.add(link);
+            synonymEntityLayout.getStyle()
+                    .set("align-items", "center")
+                    .set("width", "fit-content");
+            synonymLayout.add(synonymEntityLayout);
         }
         synonymSection.add(synonymLayout);
         contentLayout.add(synonymSection);
@@ -446,10 +449,9 @@ public class EntityDetailView extends VerticalLayout implements HasUrlParameter<
             VerticalLayout hnomLayout = new VerticalLayout();
             hnomLayout.add(hnomString);
             hnomLayout.getStyle()
-                    .set("font-size", "30px")
+                    .set("font-size", "40px")
                     .set("text-align", "center")
-                    .set("color", "#667eea")
-                    .set("font-weight", "bold");
+                    .set("color", "black");
             varianceEntityLayout.add(hnomLayout);
             varianceEntityLayout.setMargin(false);
             varianceEntityLayout.setPadding(false);
@@ -460,5 +462,17 @@ public class EntityDetailView extends VerticalLayout implements HasUrlParameter<
         }
         varianceSection.add(varianceLayout);
         contentLayout.add(varianceSection);
+    }
+
+    public void displayExamples(EntityX entity) {
+        List<EntityExample> entityExamples = entityExampleService.findByEntityId(entity.getId());
+        if (entityExamples.isEmpty()) {
+            return;
+        }
+        VerticalLayout exampleSection = createSection("Ví dụ");
+        for (EntityExample entityExample : entityExamples) {
+            exampleSection.add(visualTool.drawExample(entityExample.getExample()));
+        }
+        contentLayout.add(exampleSection);
     }
 }
