@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "StructureComponent")
+@Table(name = "structure_component")
 @Getter
 @Setter
 @NoArgsConstructor

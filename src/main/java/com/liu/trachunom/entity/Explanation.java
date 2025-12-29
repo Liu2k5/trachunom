@@ -5,7 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.Nationalized;
 
 @Entity
-@Table(name = "Explanation")
+@Table(name = "explanation")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -18,7 +18,6 @@ public class Explanation {
     @EqualsAndHashCode.Include
     private Long id;
 
-    @Column(columnDefinition = "NVARCHAR(MAX)")
-    @Nationalized
+    @Column(columnDefinition = "TEXT")
     private String description;
 }

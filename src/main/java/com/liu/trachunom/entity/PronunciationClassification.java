@@ -5,7 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.Nationalized;
 
 @Entity
-@Table(name = "PronunciationClassification")
+@Table(name = "pronunciation_classification")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -16,6 +16,5 @@ public class PronunciationClassification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Nationalized
     private String description;
 }

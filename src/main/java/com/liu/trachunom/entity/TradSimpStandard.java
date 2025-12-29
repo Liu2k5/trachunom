@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "TradSimpStandard")
+@Table(name = "trad_simp_standard")
 @Getter
 @Setter
 @NoArgsConstructor

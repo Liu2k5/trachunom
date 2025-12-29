@@ -12,7 +12,7 @@ import lombok.Setter;
 import java.util.List;
 
 @Entity
-@Table(name = "Meaning")
+@Table(name = "meaning")
 @Getter
 @Setter
 @NoArgsConstructor

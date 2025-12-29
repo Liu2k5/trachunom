@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "StructureClassification")
+@Table(name = "structure_classification")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -23,6 +23,5 @@ public class StructureClassification {
     @Id
     private Long id;
 
-    @Nationalized
     private String description;
 }

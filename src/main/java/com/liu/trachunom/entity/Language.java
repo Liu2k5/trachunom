@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "Language")
+@Table(name = "language")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -25,8 +25,7 @@ public class Language {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
-    @Nationalized
+
     private String abbreviation;
 
 }

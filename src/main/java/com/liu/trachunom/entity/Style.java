@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @jakarta.persistence.Entity
-@Table(name = "Style")
+@Table(name = "style")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -25,8 +25,6 @@ public class Style {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
-    @Column(columnDefinition = "NVARCHAR(MAX)")
-    @Nationalized
+
     private String description;
 }

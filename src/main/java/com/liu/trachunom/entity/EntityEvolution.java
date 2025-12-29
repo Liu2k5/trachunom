@@ -5,7 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.Nationalized;
 
 @Entity
-@Table(name = "EntityEvolution")
+@Table(name = "entity_evolution")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -25,7 +25,6 @@ public class EntityEvolution {
     @JoinColumn(name = "to_entity_id")
     private EntityX toEntity;
 
-    @Nationalized
     private String description;
 
 }

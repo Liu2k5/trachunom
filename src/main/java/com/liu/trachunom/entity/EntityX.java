@@ -11,7 +11,7 @@ import org.hibernate.annotations.Nationalized;
 import java.util.List;
 
 @Entity
-@Table(name = "Entity")
+@Table(name = "entity")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -39,7 +39,7 @@ public class EntityX {
     @JoinColumn(name = "language_id")
     private Language language;
 
-    @Nationalized
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     private boolean compound;

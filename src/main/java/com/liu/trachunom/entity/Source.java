@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "Source")
+@Table(name = "source")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -27,11 +27,9 @@ public class Source {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Nationalized
     private String name;
 
-    @Column(columnDefinition = "NVARCHAR(MAX)")
-    @Nationalized
+    @Column(columnDefinition = "TEXT")
     private String description;
 
 }

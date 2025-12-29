@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "PronunciationEvolution")
+@Table(name = "pronunciation_evolution")
 @Getter
 @Setter
 @NoArgsConstructor

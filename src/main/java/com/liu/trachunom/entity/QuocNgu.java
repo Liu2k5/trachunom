@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "QuocNgu")
+@Table(name = "quoc_ngu")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -22,8 +22,6 @@ public class QuocNgu {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(columnDefinition = "NVARCHAR(MAX)")
-    @Nationalized
     private String description;
 
 }
