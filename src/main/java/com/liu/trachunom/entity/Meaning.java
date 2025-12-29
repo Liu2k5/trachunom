@@ -37,7 +37,7 @@ public class Meaning {
         StringBuilder sb = new StringBuilder();
         for (Explanation explanation : explanations) {
             if (!sb.isEmpty()) {
-                sb.append("; ");
+                sb.append("; \n");
             }
             sb.append(explanation.getDescription());
         }

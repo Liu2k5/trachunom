@@ -8,6 +8,7 @@ import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.shared.Tooltip;
 import com.vaadin.flow.dom.Style;
 import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.RouterLink;
@@ -337,6 +338,7 @@ public class VisualTool {
                     .set("padding", "0px")
                     .set("color", "black")
                     .set("font-size", "40px");
+            hnomText.setTitle(entity.getExplanationsString());
             RouterLink link = new RouterLink(EntityDetailView.class, entity.getId());
             link.add(hnomText);
 
@@ -344,7 +346,9 @@ public class VisualTool {
             vLayout.setPadding(false);
             vLayout.setMargin(false);
             vLayout.setSpacing(false);
-            vLayout.getStyle().set("align-items", "center");
+            vLayout.getStyle()
+                    .set("align-items", "center")
+                    .set("width", "fit-content");
             vLayout.add(qnguText);
             vLayout.add(entity.isAttested() ? link : hnomText);
 
@@ -357,7 +361,9 @@ public class VisualTool {
             HorizontalLayout sourceLayout = new HorizontalLayout();
             Paragraph sourceText = new Paragraph("(" + example.getSource().getName() + ")");
             sourceText.getStyle()
-                    .set("width", "200px");
+                    .set("width", "200px")
+                    .set("font-size", "12px");
+            sourceText.setTitle(example.getSource().getDescription());
             sourceLayout.add(sourceText);
             sourceLayout.setPadding(false);
             sourceLayout.setMargin(false);

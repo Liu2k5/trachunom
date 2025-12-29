@@ -40,5 +40,13 @@ public class CharacterX {
             return "";
         }
     }
+
+    public String getRadicalString() {
+        try {
+            return new String(String.valueOf(this.radical.getUnicode()));
+        } catch  (Exception e) {
+            return "";
+        }
+    }
     
 }

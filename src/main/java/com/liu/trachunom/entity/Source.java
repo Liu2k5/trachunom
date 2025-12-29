@@ -30,4 +30,8 @@ public class Source {
     @Nationalized
     private String name;
 
+    @Column(columnDefinition = "NVARCHAR(MAX)")
+    @Nationalized
+    private String description;
+
 }

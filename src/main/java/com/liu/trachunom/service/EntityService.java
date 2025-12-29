@@ -95,7 +95,9 @@ public class EntityService {
 
     public List<EntityX> findByQuery(String query) {
         return entityRepository.findAll().stream()
-                .filter(entity -> getHnomString(entity).contains(query) || getQnguString(entity).contains(query))
+                .filter(entity -> getHnomString(entity).toLowerCase().contains(query.toLowerCase())
+                        || getQnguString(entity).toLowerCase().contains(query.toLowerCase())
+                        || entity.getExplanationsString().toLowerCase().contains(query.toLowerCase()))
                 .toList();
     }
 

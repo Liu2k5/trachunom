@@ -12,6 +12,6 @@ import java.util.List;
 public interface ExampleWordRepository extends JpaRepository<ExampleWord, ExampleWordId> {
     List<ExampleWord> findByExample_IdOrderByExampleWordId_Position(Long exampleId);
 
-    List<ExampleWord> findByExampleOrderByExampleWordId_Position(Example example);
+    List<ExampleWord> findByEntity_Id(Long id);
 }
 

@@ -30,7 +30,7 @@ public class Header extends HorizontalLayout {
             .set("font-size", "16px")
             .set("border", "1px solid #ced4da")
             .set("border-radius", "4px");
-        input.setValueChangeMode(ValueChangeMode.EAGER);
+        input.setValueChangeMode(ValueChangeMode.LAZY);
         input.addValueChangeListener((event) -> {
             String query = input.getValue();
             if (query != null && !query.trim().isEmpty()) {

@@ -7,9 +7,7 @@ import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.H5;
-import com.vaadin.flow.component.html.H6;
-import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
@@ -17,6 +15,7 @@ import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.annotation.UIScope;
@@ -58,7 +57,7 @@ public class DictionaryManagementView extends VerticalLayout {
     @Autowired private VisualTool visualTool;
     @Autowired private ExampleService exampleService;
     @Autowired private ExampleWordService exampleWordService;
-    @Autowired private EntityExampleService entityExampleService;
+    @Autowired private PictureService pictureService;
 
     @PostConstruct
     private void init() {
@@ -207,7 +206,7 @@ public class DictionaryManagementView extends VerticalLayout {
         characterGrid.setHeight("300px");
         characterGrid.addColumn(CharacterX::getString).setWidth("50px").setFlexGrow(0);
         characterGrid.addColumn(CharacterX::getUnicode, "Unicode").setHeader("Unicode");
-        characterGrid.addColumn(character -> character.getRadical().getString(), "radical)").setHeader("Bộ thủ").setWidth("75px");
+        characterGrid.addColumn(CharacterX::getRadicalString, "radical)").setHeader("Bộ thủ").setWidth("75px");
         characterGrid.addColumn(CharacterX::getAdditionalStrokeNumber, "additionalStrokeNumber").setHeader("Số nét phụ");
         characterGrid.addColumn(CharacterX::getTotalStrokeNumber, "totalStrokeNumber").setHeader("Tổng số nét");
         characterGrid.setItems(characterService.findAll());
@@ -253,12 +252,14 @@ public class DictionaryManagementView extends VerticalLayout {
             radicalField.setItems(radicalService.findAll());
             radicalField.setItemLabelGenerator((Radical radical) -> radical.getId() + " - " + radical.getString());
             radicalField.setValue(character.getRadical());
-            binder.forField(radicalField).asRequired("Vui lòng chọn bộ thủ")
+            binder.forField(radicalField)
+//                    .asRequired("Vui lòng chọn bộ thủ")
                     .bind(CharacterX::getRadical, CharacterX::setRadical);
 
             IntegerField additionalStrokeNumberField = new IntegerField("Số nét phụ");
             additionalStrokeNumberField.setValue(character.getAdditionalStrokeNumber());
-            binder.forField(additionalStrokeNumberField).withValidator(Objects::nonNull, "Số nét phụ phải là số nguyên")
+            binder.forField(additionalStrokeNumberField)
+//                    .withValidator(Objects::nonNull, "Số nét phụ phải là số nguyên")
                     .bind(CharacterX::getAdditionalStrokeNumber, CharacterX::setAdditionalStrokeNumber);
 
             IntegerField totalStrokeNumberField = new IntegerField("Tổng số nét");
@@ -427,7 +428,7 @@ public class DictionaryManagementView extends VerticalLayout {
             saveButton.addClickListener(cl2 -> {
                 if (binder.validate().isOk()) {
                     Explanation editedExplanation = binder.getBean();
-                    editedExplanation.setDescription(explanationField.getValue().toLowerCase().trim());
+                    editedExplanation.setDescription(explanationField.getValue().trim());
                     explanationService.save(editedExplanation);
                     explanationGrid.setItems(explanationService.findAll());
                     dialog.close();
@@ -626,9 +627,55 @@ public class DictionaryManagementView extends VerticalLayout {
         addSourceButton.addClickListener(cl -> {
             Source newSource = Source.builder()
                     .name("Nguồn mới")
+                    .description("")
                     .build();
-            sourceService.save(newSource);
-            sourceGrid.setItems(sourceService.findAll());
+
+            // Tạo binder cho dialog thêm mới
+            Binder<Source> binder = new Binder<>();
+            binder.setBean(newSource);
+
+            Dialog dialog = new Dialog();
+            VerticalLayout dialogLayout = new VerticalLayout();
+
+            TextField nameField = new TextField("Tên nguồn");
+            nameField.setWidth("400px");
+            nameField.setValue(newSource.getName());
+            binder.forField(nameField)
+                    .asRequired("Vui lòng nhập tên nguồn")
+                    .withValidator(string -> !sourceService.existsByName(string.trim()), "Đã tồn tại nguồn này")
+                    .bind(Source::getName, Source::setName);
+
+            TextField descriptionField = new TextField("Mô tả");
+            descriptionField.setWidth("400px");
+            descriptionField.setValue(newSource.getDescription() != null ? newSource.getDescription() : "");
+            binder.forField(descriptionField)
+                    .bind(Source::getDescription, Source::setDescription);
+
+            dialogLayout.add(nameField, descriptionField);
+            dialog.add(dialogLayout);
+
+            HorizontalLayout dialogButtons = new HorizontalLayout();
+            Button saveButton = new Button("Lưu");
+            Button cancelButton = new Button("Hủy");
+
+            saveButton.addClickListener(cl2 -> {
+                if (binder.validate().isOk()) {
+                    Source addedSource = binder.getBean();
+                    addedSource.setName(nameField.getValue().trim());
+                    addedSource.setDescription(descriptionField.getValue().trim());
+                    sourceService.save(addedSource);
+                    sourceGrid.setItems(sourceService.findAll());
+                    dialog.close();
+                }
+            });
+
+            cancelButton.addClickListener(cl2 -> {
+                dialog.close();
+            });
+
+            dialogButtons.add(saveButton, cancelButton);
+            dialog.add(dialogButtons);
+            dialog.open();
         });
 
         editSourceButton.addClickListener(cl -> {
@@ -642,7 +689,8 @@ public class DictionaryManagementView extends VerticalLayout {
             binder.setBean(source);
 
             Dialog dialog = new Dialog();
-            HorizontalLayout dialogLayout = new HorizontalLayout();
+            VerticalLayout dialogLayout = new VerticalLayout();
+
             TextField nameField = new TextField("Tên nguồn");
             nameField.setWidth("400px");
             nameField.setValue(source.getName());
@@ -650,8 +698,16 @@ public class DictionaryManagementView extends VerticalLayout {
                     .asRequired("Vui lòng nhập tên nguồn")
                     .withValidator(string -> !sourceService.existsByName(string.trim()) || string.trim().equals(source.getName()), "Đã tồn tại nguồn này")
                     .bind(Source::getName, Source::setName);
-            dialogLayout.add(nameField);
+
+            TextField descriptionField = new TextField("Mô tả");
+            descriptionField.setWidth("400px");
+            descriptionField.setValue(source.getDescription() != null ? source.getDescription() : "");
+            binder.forField(descriptionField)
+                    .bind(Source::getDescription, Source::setDescription);
+
+            dialogLayout.add(nameField, descriptionField);
             dialog.add(dialogLayout);
+
             HorizontalLayout dialogButtons = new HorizontalLayout();
             Button saveButton = new Button("Lưu");
             Button cancelButton = new Button("Hủy");
@@ -660,6 +716,7 @@ public class DictionaryManagementView extends VerticalLayout {
                 if (binder.validate().isOk()) {
                     Source editedSource = binder.getBean();
                     editedSource.setName(nameField.getValue().trim());
+                    editedSource.setDescription(descriptionField.getValue().trim());
                     sourceService.save(editedSource);
                     sourceGrid.setItems(sourceService.findAll());
                     dialog.close();
@@ -1491,6 +1548,15 @@ public class DictionaryManagementView extends VerticalLayout {
         meaningLayout.add(meaningAndExplanationLayout);
 
         layout.add(structureLayout, pronunciationLayout, meaningLayout);
+        structureLayout.setMargin(false);
+        pronunciationLayout.setMargin(false);
+        meaningLayout.setMargin(false);
+        structureLayout.setPadding(false);
+        pronunciationLayout.setPadding(false);
+        meaningLayout.setPadding(false);
+        structureLayout.setSpacing(false);
+        pronunciationLayout.setSpacing(false);
+        meaningLayout.setSpacing(false);
         structureLayout.setWidth("35%");
         pronunciationLayout.setWidth("35%");
         meaningLayout.setWidth("30%");
@@ -1509,9 +1575,9 @@ public class DictionaryManagementView extends VerticalLayout {
         Grid<EntityX> entityGrid = new Grid<>();
         entityGrid.setHeight("400px");
         entityGrid.addColumn(EntityX::getId, "id").setHeader("Mã").setWidth("75px").setFlexGrow(0);
-        entityGrid.addColumn(entity -> entity.getCharacterString()).setHeader("Ký tự").setWidth("60px");
-        entityGrid.addColumn(entity -> entity.getStructureId()).setHeader("Cấu tạo").setWidth("100px");
-        entityGrid.addColumn(entity -> entity.getPronunciationString(), "pronunciation").setHeader("Âm đọc").setWidth("120px");
+        entityGrid.addColumn(EntityX::getCharacterString).setHeader("Ký tự").setWidth("60px");
+        entityGrid.addColumn(EntityX::getStructureId).setHeader("Cấu tạo").setWidth("100px");
+        entityGrid.addColumn(EntityX::getPronunciationString, "pronunciation").setHeader("Âm đọc").setWidth("120px");
         entityGrid.addColumn(entity -> {
             StringBuilder meanings = new StringBuilder();
             for (Explanation explanation : entity.getMeaning().getExplanations()) {
@@ -1526,6 +1592,14 @@ public class DictionaryManagementView extends VerticalLayout {
         entityGrid.addColumn(EntityX::getDescription).setHeader("Mô tả");
         entityGrid.setItems(entityService.findAll());
 
+        TextField searchField = new TextField();
+        searchField.setPlaceholder("Tìm kiếm...");
+        searchField.setWidth("100%");
+        searchField.setValueChangeMode(ValueChangeMode.LAZY);
+        searchField.addValueChangeListener(vcl -> {
+            entityGrid.setItems(entityService.findByQuery(searchField.getValue()));
+        });
+
         HorizontalLayout entityButtons = new HorizontalLayout();
         Button addEntityButton = new Button("Thêm");
         Button editEntityButton = new Button("Sửa");
@@ -1533,9 +1607,9 @@ public class DictionaryManagementView extends VerticalLayout {
 
         entityButtons.add(addEntityButton, editEntityButton, deleteEntityButton);
 
-        leftLayout.add(entityHeader, entityGrid, entityButtons);
+        leftLayout.add(entityHeader, entityGrid, searchField, entityButtons);
 
-        // ===== PHẦN THỰC THỂ PHỨ HỢP =====
+        // ===== PHẦN THỰC THỂ PHỨC HỢP =====
         VerticalLayout rightLayout = new VerticalLayout();
         rightLayout.setSizeFull();
 
@@ -1546,10 +1620,10 @@ public class DictionaryManagementView extends VerticalLayout {
         H6 parentEntityHeader = new H6("Thực thể cha");
 
         Grid<EntityX> parentEntityGrid = new Grid<>();
-        parentEntityGrid.setHeight("150px");
+        parentEntityGrid.setHeight("500px");
         parentEntityGrid.addColumn(EntityX::getId).setHeader("Mã").setWidth("75px").setFlexGrow(0);
-        parentEntityGrid.addColumn(e -> e.getCharacterString()).setHeader("Ký tự");
-        parentEntityGrid.addColumn(e -> e.getPronunciationString()).setHeader("Âm đọc");
+        parentEntityGrid.addColumn(entity -> entityService.getHnomString(entity)).setHeader("Ký tự");
+        parentEntityGrid.addColumn(entity -> entityService.getQnguString(entity)).setHeader("Âm đọc");
         parentEntityGrid.setItems(entityService.findByCompound(true));
 
         parentEntityLayout.add(parentEntityHeader, parentEntityGrid);
@@ -1559,7 +1633,7 @@ public class DictionaryManagementView extends VerticalLayout {
         H6 childEntityHeader = new H6("Thành phần thực thể con");
 
         Grid<EntityComposition> compositionGrid = new Grid<>();
-        compositionGrid.setHeight("300px");
+        compositionGrid.setHeight("250px");
         compositionGrid.addColumn(ec -> ec.getChildEntity().getId()).setHeader("Mã").setWidth("100px");
         compositionGrid.addColumn(ec -> ec.getChildEntity().getStructure().getCharacter().getString()).setHeader("Ký tự").setWidth("60px");
         compositionGrid.addColumn(ec -> ec.getId().getPosition()).setHeader("Vị trí").setWidth("75px");
@@ -1579,7 +1653,6 @@ public class DictionaryManagementView extends VerticalLayout {
 
             Dialog dialog = new Dialog();
             dialog.setHeaderTitle("Thêm thành phần thực thể con");
-            dialog.setWidth("500px");
 
             VerticalLayout dialogLayout = new VerticalLayout();
 
@@ -1636,7 +1709,6 @@ public class DictionaryManagementView extends VerticalLayout {
 
             Dialog dialog = new Dialog();
             dialog.setHeaderTitle("Sửa vị trí thực thể con");
-            dialog.setWidth("500px");
 
             VerticalLayout dialogLayout = new VerticalLayout();
 
@@ -1705,6 +1777,12 @@ public class DictionaryManagementView extends VerticalLayout {
         childEntityLayout.add(childEntityHeader, compositionGrid, compositionButtons);
 
         rightLayout.add(compositionHeader, parentEntityLayout, childEntityLayout);
+        parentEntityLayout.setMargin(false);
+        childEntityLayout.setMargin(false);
+        parentEntityLayout.setPadding(false);
+        childEntityLayout.setPadding(false);
+        parentEntityLayout.setSpacing(false);
+        childEntityLayout.setSpacing(false);
 
         // Sự kiện khi chọn parent entity, hiển thị các thành phần con
         parentEntityGrid.addSelectionListener(selection -> {
@@ -1725,7 +1803,8 @@ public class DictionaryManagementView extends VerticalLayout {
 
             Dialog dialog = new Dialog();
             dialog.setHeaderTitle("Thêm thực thể mới");
-            dialog.setWidth("600px");
+            dialog.setWidth("800px");
+            dialog.setHeight("700px");
 
             VerticalLayout dialogLayout = new VerticalLayout();
 
@@ -1734,24 +1813,18 @@ public class DictionaryManagementView extends VerticalLayout {
             structureField.setItemLabelGenerator(s -> s.getId() + " - " + s.getCharacter().getString());
             structureField.setWidth("100%");
             binder.forField(structureField)
-//                    .asRequired("Vui lòng chọn cấu tạo")
                     .bind(EntityX::getStructure, EntityX::setStructure);
 
             ComboBox<Pronunciation> pronunciationField = new ComboBox<>("Âm đọc");
             pronunciationField.setItems(pronunciationService.findAll());
-            pronunciationField.setItemLabelGenerator(p -> p.getId() + " - " + p.getQuocNgu().getDescription());
+            pronunciationField.setItemLabelGenerator(p -> p.getQuocNgu().getDescription());
             pronunciationField.setWidth("100%");
             binder.forField(pronunciationField)
-//                    .asRequired("Vui lòng chọn âm đọc")
                     .bind(EntityX::getPronunciation, EntityX::setPronunciation);
 
             ComboBox<Meaning> meaningField = new ComboBox<>("Ý nghĩa");
             meaningField.setItems(meaningService.findAll());
-            meaningField.setItemLabelGenerator(m -> {
-                StringBuilder sb = new StringBuilder(m.getId() + " - ");
-                m.getExplanations().forEach(e -> sb.append(e.getDescription()).append("; "));
-                return sb.toString();
-            });
+            meaningField.setItemLabelGenerator(m -> m.getId() + " - " + m.getExplanationsString());
             meaningField.setWidth("100%");
             binder.forField(meaningField)
                     .asRequired("Vui lòng chọn ý nghĩa")
@@ -1759,31 +1832,71 @@ public class DictionaryManagementView extends VerticalLayout {
 
             ComboBox<Language> languageField = new ComboBox<>("Ngôn ngữ");
             languageField.setItems(languageService.findAll());
-            languageField.setItemLabelGenerator(l -> l.getId() + " - " + l.getAbbreviation());
+            languageField.setItemLabelGenerator(Language::getAbbreviation);
             languageField.setWidth("100%");
             binder.forField(languageField)
                     .asRequired("Vui lòng chọn ngôn ngữ")
                     .bind(EntityX::getLanguage, EntityX::setLanguage);
 
             TextField descriptionField = new TextField("Mô tả");
+            binder.forField(descriptionField).bind(EntityX::getDescription, EntityX::setDescription);
+
             descriptionField.setWidth("100%");
-            binder.forField(descriptionField)
-                    .bind(EntityX::getDescription, EntityX::setDescription);
 
             Checkbox compoundCheckbox = new Checkbox("Phức hợp");
             binder.forField(compoundCheckbox)
                     .bind(EntityX::isCompound, EntityX::setCompound);
-
-            Checkbox attestedCheckbox = new Checkbox("Có chứng thực");
+            Checkbox attestedCheckbox = new Checkbox("Đã chứng thực");
             binder.forField(attestedCheckbox)
                     .bind(EntityX::isAttested, EntityX::setAttested);
-
             Checkbox standardisedCheckbox = new Checkbox("Chuẩn hóa");
             binder.forField(standardisedCheckbox)
                     .bind(EntityX::isStandardised, EntityX::setStandardised);
 
+            // Phần xem trước cấu tạo
+            VerticalLayout structurePreviewLayout = new VerticalLayout();
+            structurePreviewLayout.setWidthFull();
+            H6 previewHeader = new H6("Xem trước cấu tạo");
+            VerticalLayout previewContent = new VerticalLayout();
+            previewContent.setWidthFull();
+            previewContent.getStyle()
+                    .set("border", "1px solid #ccc")
+                    .set("border-radius", "4px")
+                    .set("padding", "10px")
+                    .set("min-height", "100px")
+                    .set("background-color", "#f9f9f9");
+
+            structurePreviewLayout.add(previewHeader, previewContent);
+
+            // Hiển thị cấu tạo hiện tại
+            if (newEntity.getStructure() != null) {
+                HorizontalLayout preview = visualTool.drawStructure(newEntity.getStructure());
+                preview.getStyle()
+                        .set("justify-content", "center")
+                        .set("align-items", "center");
+                previewContent.add(preview);
+            } else {
+                previewContent.add(new Span("Chưa chọn cấu tạo"));
+            }
+
+            // Cập nhật xem trước khi chọn cấu tạo mới
+            structureField.addValueChangeListener(event -> {
+                previewContent.removeAll();
+                if (event.getValue() != null) {
+                    Structure selectedStructure = event.getValue();
+                    HorizontalLayout preview = visualTool.drawStructure(selectedStructure);
+                    preview.getStyle()
+                            .set("justify-content", "center")
+                            .set("align-items", "center");
+                    previewContent.add(preview);
+                } else {
+                    previewContent.add(new Span("Chưa chọn cấu tạo"));
+                }
+            });
+
             dialogLayout.add(structureField, pronunciationField, meaningField, languageField,
-                    descriptionField, compoundCheckbox, attestedCheckbox, standardisedCheckbox);
+                    descriptionField, compoundCheckbox, attestedCheckbox, standardisedCheckbox,
+                    structurePreviewLayout);
             dialog.add(dialogLayout);
 
             HorizontalLayout dialogButtons = new HorizontalLayout();
@@ -1798,7 +1911,7 @@ public class DictionaryManagementView extends VerticalLayout {
 
             saveButton.addClickListener(e -> {
                 if (binder.validate().isOk()) {
-                    entityService.save(newEntity);
+                    entityService.save(binder.getBean());
                     entityGrid.setItems(entityService.findAll());
                     parentEntityGrid.setItems(entityService.findByCompound(true));
                     dialog.close();
@@ -1813,82 +1926,104 @@ public class DictionaryManagementView extends VerticalLayout {
 
         // Sửa thực thể
         editEntityButton.addClickListener(cl -> {
-            EntityX entity = entityGrid.getSelectedItems().stream().findFirst().orElse(null);
-            if (entity == null) {
+            EntityX selectedEntity = entityGrid.getSelectedItems().stream().findFirst().orElse(null);
+            if (selectedEntity == null) {
                 return;
             }
 
-            Binder<EntityX> binder = new Binder<>();
-            binder.setBean(entity);
-
             Dialog dialog = new Dialog();
             dialog.setHeaderTitle("Sửa thực thể");
-            dialog.setWidth("600px");
+            dialog.setWidth("800px");
+            dialog.setHeight("700px");
 
             VerticalLayout dialogLayout = new VerticalLayout();
+
+            Binder<EntityX> binder = new Binder<>(EntityX.class);
+            binder.setBean(selectedEntity);
 
             ComboBox<Structure> structureField = new ComboBox<>("Cấu tạo");
             structureField.setItems(structureService.findAll());
             structureField.setItemLabelGenerator(s -> s.getId() + " - " + s.getCharacter().getString());
-            structureField.setValue(entity.getStructure());
+            binder.forField(structureField).bind(EntityX::getStructure, EntityX::setStructure);
             structureField.setWidth("100%");
-            binder.forField(structureField)
-//                    .asRequired("Vui lòng chọn cấu tạo")
-                    .bind(EntityX::getStructure, EntityX::setStructure);
 
             ComboBox<Pronunciation> pronunciationField = new ComboBox<>("Âm đọc");
             pronunciationField.setItems(pronunciationService.findAll());
-            pronunciationField.setItemLabelGenerator(p -> p.getId() + " - " + p.getQuocNgu().getDescription());
-            pronunciationField.setValue(entity.getPronunciation());
+            pronunciationField.setItemLabelGenerator(p -> p.getQuocNgu().getDescription());
+            binder.forField(pronunciationField).bind(EntityX::getPronunciation, EntityX::setPronunciation);
             pronunciationField.setWidth("100%");
-            binder.forField(pronunciationField)
-//                    .asRequired("Vui lòng chọn âm đọc")
-                    .bind(EntityX::getPronunciation, EntityX::setPronunciation);
 
             ComboBox<Meaning> meaningField = new ComboBox<>("Ý nghĩa");
-            meaningField.setItems(meaningService.findAllWithPronunciation(pronunciationField.getValue()));
-            meaningField.setItemLabelGenerator(m -> {
-                StringBuilder sb = new StringBuilder(m.getId() + " - ");
-                m.getExplanations().forEach(e -> sb.append(e.getDescription()).append("; "));
-                return sb.toString();
-            });
-            meaningField.setValue(entity.getMeaning());
-            meaningField.setWidth("100%");
+            meaningField.setItems(meaningService.findAll());
+            meaningField.setItemLabelGenerator(m -> m.getId() + " - " + m.getExplanationsString());
             binder.forField(meaningField)
                     .asRequired("Vui lòng chọn ý nghĩa")
                     .bind(EntityX::getMeaning, EntityX::setMeaning);
+            meaningField.setWidth("100%");
 
             ComboBox<Language> languageField = new ComboBox<>("Ngôn ngữ");
             languageField.setItems(languageService.findAll());
-            languageField.setItemLabelGenerator(l -> l.getId() + " - " + l.getAbbreviation());
-            languageField.setValue(entity.getLanguage());
-            languageField.setWidth("100%");
+            languageField.setItemLabelGenerator(Language::getAbbreviation);
             binder.forField(languageField)
                     .asRequired("Vui lòng chọn ngôn ngữ")
                     .bind(EntityX::getLanguage, EntityX::setLanguage);
+            languageField.setWidth("100%");
 
             TextField descriptionField = new TextField("Mô tả");
-            descriptionField.setValue(entity.getDescription() != null ? entity.getDescription() : "");
+            binder.forField(descriptionField).bind(EntityX::getDescription, EntityX::setDescription);
             descriptionField.setWidth("100%");
-            binder.forField(descriptionField)
-                    .bind(EntityX::getDescription, EntityX::setDescription);
 
             Checkbox compoundCheckbox = new Checkbox("Phức hợp");
-            compoundCheckbox.setValue(entity.isCompound());
-            binder.forField(compoundCheckbox)
-                    .bind(EntityX::isCompound, EntityX::setCompound);
-
-            Checkbox attestedCheckbox = new Checkbox("Có chứng thực");
-            attestedCheckbox.setValue(entity.isAttested());
-            binder.forField(attestedCheckbox)
-                    .bind(EntityX::isAttested, EntityX::setAttested);
-
+            binder.forField(compoundCheckbox).bind(EntityX::isCompound, EntityX::setCompound);
+            Checkbox attestedCheckbox = new Checkbox("Đã chứng thực");
+            binder.forField(attestedCheckbox).bind(EntityX::isAttested, EntityX::setAttested);
             Checkbox standardisedCheckbox = new Checkbox("Chuẩn hóa");
-            binder.forField(standardisedCheckbox)
-                    .bind(EntityX::isStandardised, EntityX::setStandardised);
+            binder.forField(standardisedCheckbox).bind(EntityX::isStandardised, EntityX::setStandardised);
+
+            // Phần xem trước cấu tạo
+            VerticalLayout structurePreviewLayout = new VerticalLayout();
+            structurePreviewLayout.setWidthFull();
+            H6 previewHeader = new H6("Xem trước cấu tạo");
+            VerticalLayout previewContent = new VerticalLayout();
+            previewContent.setWidthFull();
+            previewContent.getStyle()
+                    .set("border", "1px solid #ccc")
+                    .set("border-radius", "4px")
+                    .set("padding", "10px")
+                    .set("min-height", "100px")
+                    .set("background-color", "#f9f9f9");
+
+            structurePreviewLayout.add(previewHeader, previewContent);
+
+            // Hiển thị cấu tạo hiện tại
+            if (selectedEntity.getStructure() != null) {
+                HorizontalLayout preview = visualTool.drawStructure(selectedEntity.getStructure());
+                preview.getStyle()
+                        .set("justify-content", "center")
+                        .set("align-items", "center");
+                previewContent.add(preview);
+            } else {
+                previewContent.add(new Span("Chưa chọn cấu tạo"));
+            }
+
+            // Cập nhật xem trước khi chọn cấu tạo mới
+            structureField.addValueChangeListener(event -> {
+                previewContent.removeAll();
+                if (event.getValue() != null) {
+                    Structure selectedStructure = event.getValue();
+                    HorizontalLayout preview = visualTool.drawStructure(selectedStructure);
+                    preview.getStyle()
+                            .set("justify-content", "center")
+                            .set("align-items", "center");
+                    previewContent.add(preview);
+                } else {
+                    previewContent.add(new Span("Chưa chọn cấu tạo"));
+                }
+            });
 
             dialogLayout.add(structureField, pronunciationField, meaningField, languageField,
-                    descriptionField, compoundCheckbox, attestedCheckbox, standardisedCheckbox);
+                    descriptionField, compoundCheckbox, attestedCheckbox, standardisedCheckbox,
+                    structurePreviewLayout);
             dialog.add(dialogLayout);
 
             HorizontalLayout dialogButtons = new HorizontalLayout();
@@ -1896,15 +2031,16 @@ public class DictionaryManagementView extends VerticalLayout {
             Button cancelButton = new Button("Hủy");
 
             pronunciationField.addValueChangeListener(listener -> {
-                Meaning selectedMeaning =meaningField.getValue();
+                Meaning selectedMeaning = meaningField.getValue();
                 meaningField.setItems(meaningService.findAllWithPronunciation(pronunciationField.getValue()));
                 meaningField.setValue(selectedMeaning);
             });
 
             saveButton.addClickListener(e -> {
                 if (binder.validate().isOk()) {
-                    entityService.save(entity);
+                    entityService.save(binder.getBean());
                     entityGrid.setItems(entityService.findAll());
+                    parentEntityGrid.setItems(entityService.findByCompound(true));
                     dialog.close();
                 }
             });
@@ -1917,11 +2053,11 @@ public class DictionaryManagementView extends VerticalLayout {
 
         // Xóa thực thể
         deleteEntityButton.addClickListener(cl -> {
-            EntityX entity = entityGrid.getSelectedItems().stream().findFirst().orElse(null);
-            if (entity == null) {
+            EntityX selectedEntity = entityGrid.getSelectedItems().stream().findFirst().orElse(null);
+            if (selectedEntity == null) {
                 return;
             }
-            entityService.deleteById(entity.getId());
+            entityService.deleteById(selectedEntity.getId());
             entityGrid.setItems(entityService.findAll());
             parentEntityGrid.setItems(entityService.findByCompound(true));
         });
@@ -1970,7 +2106,7 @@ public class DictionaryManagementView extends VerticalLayout {
 
             HorizontalLayout dialogButtons = new HorizontalLayout();
             Button saveButton = new Button("Lưu");
-            Button cancelButton = new Button("Hủy");
+            Button cancelButton = new Button("Xóa");
 
             saveButton.addClickListener(e -> {
                 if (fromEntityField.getValue() != null && toEntityField.getValue() != null) {
@@ -2061,6 +2197,16 @@ public class DictionaryManagementView extends VerticalLayout {
         entityEvolutionLayout.add(entityEvolutionHeader, entityEvolutionGrid, entityEvolutionButtons);
 
         layout.add(leftLayout, rightLayout, entityEvolutionLayout);
+        leftLayout.setMargin(false);
+        rightLayout.setMargin(false);
+        entityEvolutionLayout.setMargin(false);
+        leftLayout.setPadding(false);
+        rightLayout.setPadding(false);
+        entityEvolutionLayout.setPadding(false);
+        leftLayout.setSpacing(false);
+        rightLayout.setSpacing(false);
+        entityEvolutionLayout.setSpacing(false);
+
         leftLayout.setWidth("50%");
         rightLayout.setWidth("20%");
         entityEvolutionLayout.setWidth("30%");
@@ -2081,6 +2227,8 @@ public class DictionaryManagementView extends VerticalLayout {
         exampleGrid.setHeight("300px");
         exampleGrid.addColumn(Example::getId).setHeader("Mã").setWidth("75px").setFlexGrow(0);
         exampleGrid.addColumn(e -> e.getSource() != null ? e.getSource().getName() : "").setHeader("Nguồn");
+        exampleGrid.addColumn(example -> exampleService.getHnomByExample(example)).setHeader("Hán Nôm");
+        exampleGrid.addColumn(example -> exampleService.getQnguByExample(example)).setHeader("Quốc Ngữ");
         exampleGrid.setItems(exampleService.findAll());
 
         HorizontalLayout exampleButtons = new HorizontalLayout();
@@ -2240,6 +2388,13 @@ public class DictionaryManagementView extends VerticalLayout {
 
                     exampleWordService.save(exampleWord);
                     exampleWordGrid.setItems(exampleWordService.findByExampleIdOrderByPosition(example.getId()));
+
+                    Example selectedExample = exampleGrid.getSelectedItems().stream().findFirst().orElse(null);
+                    if (selectedExample != null) {
+                        exampleGrid.setItems(exampleService.findAll());
+                        exampleGrid.select(selectedExample);
+                    }
+
                     dialog.close();
                 }
             });
@@ -2300,6 +2455,13 @@ public class DictionaryManagementView extends VerticalLayout {
 
                     exampleWordService.save(newExampleWord);
                     exampleWordGrid.setItems(exampleWordService.findByExampleIdOrderByPosition(example.getId()));
+
+                    Example selectedExample = exampleGrid.getSelectedItems().stream().findFirst().orElse(null);
+                    if (selectedExample != null) {
+                        exampleGrid.setItems(exampleService.findAll());
+                        exampleGrid.select(selectedExample);
+                    }
+
                     dialog.close();
                 }
             });
@@ -2320,73 +2482,65 @@ public class DictionaryManagementView extends VerticalLayout {
 
             exampleWordService.deleteById(exampleWord.getExampleWordId());
             exampleWordGrid.setItems(exampleWordService.findByExampleIdOrderByPosition(example.getId()));
+
+            Example selectedExample = exampleGrid.getSelectedItems().stream().findFirst().orElse(null);
+            if (selectedExample != null) {
+                exampleGrid.setItems(exampleService.findAll());
+                exampleGrid.select(selectedExample);
+            }
         });
 
         exampleWordButtons.add(addExampleWordButton, editExampleWordButton, deleteExampleWordButton);
         exampleWordLayout.add(exampleWordHeader, exampleWordGrid, exampleWordButtons);
 
-        // Khi chọn Example, hiển thị các ExampleWord của nó
-        exampleGrid.addSelectionListener(listener -> {
-            Example selectedExample = listener.getFirstSelectedItem().orElse(null);
-            if (selectedExample != null) {
-                List<ExampleWord> exampleWords = exampleWordService.findByExampleIdOrderByPosition(selectedExample.getId());
-                exampleWordGrid.setItems(exampleWords);
-            } else {
-                exampleWordGrid.setItems(new ArrayList<>());
-            }
-        });
 
-        // ===== BẢNG GHÉP THỰC THỂ VỚI VÍ DỤ (ENTITY EXAMPLE) =====
+        // ===== BẢNG QUẢN LÝ HÌNH ẢNH (PICTURE) =====
         VerticalLayout entityExampleLayout = new VerticalLayout();
         entityExampleLayout.setSizeFull();
-        H5 entityExampleHeader = new H5("Thực thể - Ví dụ");
+        H5 pictureHeader = new H5("Hình ảnh");
 
-        // Bảng Entity
-        VerticalLayout entitySubLayout = new VerticalLayout();
-        H6 entityXHeader = new H6("Thực thể");
+        Grid<Picture> pictureGrid = new Grid<>();
+        pictureGrid.setHeight("300px");
+        pictureGrid.addColumn(Picture::getId).setHeader("Mã").setWidth("75px").setFlexGrow(0);
+        pictureGrid.addColumn(p -> p.getCharacter() != null ? p.getCharacter().getString() : "").setHeader("Ký tự").setWidth("80px");
+        pictureGrid.addColumn(p -> p.getSource() != null ? p.getSource().getName() : "").setHeader("Nguồn");
+        pictureGrid.addColumn(p -> p.getStyle() != null ? p.getStyle().getDescription() : "").setHeader("Phong cách");
+        pictureGrid.addColumn(Picture::getLink).setHeader("Liên kết");
+        pictureGrid.setItems(pictureService.findAll());
 
-        Grid<EntityX> entityXGrid = new Grid<>();
-        entityXGrid.setHeight("200px");
-        entityXGrid.addColumn(EntityX::getId).setHeader("Mã").setWidth("75px").setFlexGrow(0);
-        entityXGrid.addColumn((EntityX entity) -> entityService.getHnomString(entity) + ": " + entity.getExplanationsString()).setHeader("Ký tự");
-        entityXGrid.setItems(entityService.findAll());
+        HorizontalLayout pictureButtons = new HorizontalLayout();
+        Button addPictureButton = new Button("Thêm");
+        Button editPictureButton = new Button("Sửa");
+        Button deletePictureButton = new Button("Xóa");
 
-        entitySubLayout.add(entityXHeader, entityXGrid);
-
-        // Bảng EntityExample
-        VerticalLayout entityExampleSubLayout = new VerticalLayout();
-        H6 entityExampleListHeader = new H6("Ví dụ của thực thể");
-
-        Grid<EntityExample> entityExampleGrid = new Grid<>();
-        entityExampleGrid.setHeight("200px");
-        entityExampleGrid.addColumn(ee -> ee.getExample().getId()).setHeader("Mã VD").setWidth("75px");
-        entityExampleGrid.addColumn(ee -> ee.getExample().getSource() != null ? ee.getExample().getSource().getName() : "").setHeader("Nguồn");
-        entityExampleGrid.setItems(new ArrayList<>());
-
-        HorizontalLayout entityExampleButtons = new HorizontalLayout();
-        Button addEntityExampleButton = new Button("Thêm");
-        Button deleteEntityExampleButton = new Button("Xóa");
-
-        // Thêm ví dụ cho thực thể
-        addEntityExampleButton.addClickListener(cl -> {
-            EntityX entity = entityXGrid.getSelectedItems().stream().findFirst().orElse(null);
-            if (entity == null) {
-                return;
-            }
-
+        // Thêm hình ảnh mới
+        addPictureButton.addClickListener(cl -> {
             Dialog dialog = new Dialog();
-            dialog.setHeaderTitle("Thêm ví dụ cho thực thể");
+            dialog.setHeaderTitle("Thêm hình ảnh mới");
             dialog.setWidth("600px");
 
             VerticalLayout dialogLayout = new VerticalLayout();
 
-            ComboBox<Example> exampleComboBox = new ComboBox<>("Chọn ví dụ");
-            exampleComboBox.setItems(exampleService.findAll());
-            exampleComboBox.setItemLabelGenerator(ex -> ex.getId() + " - " +
-                (ex.getSource() != null ? ex.getSource().getName() : "Không có nguồn"));
-            exampleComboBox.setWidth("100%");
+            ComboBox<CharacterX> characterField = new ComboBox<>("Ký tự");
+            characterField.setItems(characterService.findAll());
+            characterField.setItemLabelGenerator(CharacterX::getString);
+            characterField.setWidth("100%");
 
-            dialogLayout.add(exampleComboBox);
+            ComboBox<Source> sourceField = new ComboBox<>("Nguồn");
+            sourceField.setItems(sourceService.findAll());
+            sourceField.setItemLabelGenerator(Source::getName);
+            sourceField.setWidth("100%");
+
+            ComboBox<Style> styleField = new ComboBox<>("Phong cách");
+            styleField.setItems(styleService.findAll());
+            styleField.setItemLabelGenerator(Style::getDescription);
+            styleField.setWidth("100%");
+
+            TextField linkField = new TextField("Liên kết");
+            linkField.setWidth("100%");
+            linkField.setPlaceholder("Nhập URL hình ảnh");
+
+            dialogLayout.add(characterField, sourceField, styleField, linkField);
             dialog.add(dialogLayout);
 
             HorizontalLayout dialogButtons = new HorizontalLayout();
@@ -2394,22 +2548,15 @@ public class DictionaryManagementView extends VerticalLayout {
             Button cancelButton = new Button("Hủy");
 
             saveButton.addClickListener(e -> {
-                if (exampleComboBox.getValue() != null) {
-                    EntityExampleId id = EntityExampleId.builder()
-                            .entityId(entity.getId())
-                            .exampleId(exampleComboBox.getValue().getId())
-                            .build();
-
-                    EntityExample entityExample = EntityExample.builder()
-                            .id(id)
-                            .entity(entity)
-                            .example(exampleComboBox.getValue())
-                            .build();
-
-                    entityExampleService.save(entityExample);
-                    entityExampleGrid.setItems(entityExampleService.findByEntityId(entity.getId()));
-                    dialog.close();
-                }
+                Picture newPicture = Picture.builder()
+                        .character(characterField.getValue())
+                        .source(sourceField.getValue())
+                        .style(styleField.getValue())
+                        .link(linkField.getValue())
+                        .build();
+                pictureService.save(newPicture);
+                pictureGrid.setItems(pictureService.findAll());
+                dialog.close();
             });
 
             cancelButton.addClickListener(e -> dialog.close());
@@ -2418,40 +2565,107 @@ public class DictionaryManagementView extends VerticalLayout {
             dialog.open();
         });
 
-        // Xóa ví dụ khỏi thực thể
-        deleteEntityExampleButton.addClickListener(cl -> {
-            EntityX entity = entityXGrid.getSelectedItems().stream().findFirst().orElse(null);
-            EntityExample entityExample = entityExampleGrid.getSelectedItems().stream().findFirst().orElse(null);
-            if (entity == null || entityExample == null) {
+        // Sửa hình ảnh
+        editPictureButton.addClickListener(cl -> {
+            Picture picture = pictureGrid.getSelectedItems().stream().findFirst().orElse(null);
+            if (picture == null) {
                 return;
             }
 
-            entityExampleService.deleteById(entityExample.getId());
-            entityExampleGrid.setItems(entityExampleService.findByEntityId(entity.getId()));
+            Dialog dialog = new Dialog();
+            dialog.setHeaderTitle("Sửa hình ảnh");
+            dialog.setWidth("600px");
+
+            VerticalLayout dialogLayout = new VerticalLayout();
+
+            ComboBox<CharacterX> characterField = new ComboBox<>("Ký tự");
+            characterField.setItems(characterService.findAll());
+            characterField.setItemLabelGenerator(CharacterX::getString);
+            characterField.setValue(picture.getCharacter());
+            characterField.setWidth("100%");
+
+            ComboBox<Source> sourceField = new ComboBox<>("Nguồn");
+            sourceField.setItems(sourceService.findAll());
+            sourceField.setItemLabelGenerator(Source::getName);
+            sourceField.setValue(picture.getSource());
+            sourceField.setWidth("100%");
+
+            ComboBox<Style> styleField = new ComboBox<>("Phong cách");
+            styleField.setItems(styleService.findAll());
+            styleField.setItemLabelGenerator(Style::getDescription);
+            styleField.setValue(picture.getStyle());
+            styleField.setWidth("100%");
+
+            TextField linkField = new TextField("Liên kết");
+            linkField.setValue(picture.getLink() != null ? picture.getLink() : "");
+            linkField.setWidth("100%");
+            linkField.setPlaceholder("Nhập URL hình ảnh");
+
+            dialogLayout.add(characterField, sourceField, styleField, linkField);
+            dialog.add(dialogLayout);
+
+            HorizontalLayout dialogButtons = new HorizontalLayout();
+            Button saveButton = new Button("Lưu");
+            Button cancelButton = new Button("Hủy");
+
+            saveButton.addClickListener(e -> {
+                picture.setCharacter(characterField.getValue());
+                picture.setSource(sourceField.getValue());
+                picture.setStyle(styleField.getValue());
+                picture.setLink(linkField.getValue());
+                pictureService.save(picture);
+                pictureGrid.setItems(pictureService.findAll());
+                dialog.close();
+            });
+
+            cancelButton.addClickListener(e -> dialog.close());
+            dialogButtons.add(saveButton, cancelButton);
+            dialog.add(dialogButtons);
+            dialog.open();
         });
 
-        entityExampleButtons.add(addEntityExampleButton, deleteEntityExampleButton);
-        entityExampleSubLayout.add(entityExampleListHeader, entityExampleGrid, entityExampleButtons);
+        // Xóa hình ảnh
+        deletePictureButton.addClickListener(cl -> {
+            Picture picture = pictureGrid.getSelectedItems().stream().findFirst().orElse(null);
+            if (picture == null) {
+                return;
+            }
+            pictureService.delete(picture.getId());
+            pictureGrid.setItems(pictureService.findAll());
+        });
 
-        // Khi chọn Entity, hiển thị các Example của nó
-        entityXGrid.addSelectionListener(selection -> {
-            EntityX selectedEntity = selection.getFirstSelectedItem().orElse(null);
-            if (selectedEntity != null) {
-                entityExampleGrid.setItems(entityExampleService.findByEntityId(selectedEntity.getId()));
+        pictureButtons.add(addPictureButton, editPictureButton, deletePictureButton);
+        entityExampleLayout.add(pictureHeader, pictureGrid, pictureButtons);
+
+        // Sự kiện khi chọn Example, hiển thị từ trong ví dụ
+        exampleGrid.addSelectionListener(selection -> {
+            Example selectedExample = selection.getFirstSelectedItem().orElse(null);
+            if (selectedExample != null) {
+                exampleWordGrid.setItems(exampleWordService.findByExampleIdOrderByPosition(selectedExample.getId()));
             } else {
-                entityExampleGrid.setItems(new ArrayList<>());
+                exampleWordGrid.setItems(new ArrayList<>());
             }
         });
 
-        VerticalLayout entityExampleCombined = new VerticalLayout();
-        entityExampleCombined.add(entitySubLayout, entityExampleSubLayout);
-        entityExampleLayout.add(entityExampleHeader, entityExampleCombined);
 
         layout.add(exampleLayout, exampleWordLayout, entityExampleLayout);
         exampleLayout.setWidth("35%");
         exampleWordLayout.setWidth("30%");
         entityExampleLayout.setWidth("35%");
 
+        exampleLayout.setMargin(false);
+        exampleWordLayout.setMargin(false);
+        entityExampleLayout.setMargin(false);
+        exampleLayout.setPadding(false);
+        exampleWordLayout.setPadding(false);
+        entityExampleLayout.setPadding(false);
+        exampleLayout.setSpacing(false);
+        exampleWordLayout.setSpacing(false);
+        entityExampleLayout.setSpacing(false);
+
+        layout.setMargin(false);
+        layout.setPadding(false);
+        layout.setSpacing(false);
         return layout;
     }
 }

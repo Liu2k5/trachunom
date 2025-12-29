@@ -25,8 +25,7 @@ public class EntityDetailView extends VerticalLayout implements HasUrlParameter<
     @Autowired private EntityEvolutionService entityEvolutionService;
     @Autowired private VisualTool visualTool;
     @Autowired private EntityCompositionService entityCompositionService;
-    @Autowired
-    private EntityExampleService entityExampleService;
+    @Autowired private ExampleService exampleService;
 
     @PostConstruct
     public void init() {
@@ -465,13 +464,13 @@ public class EntityDetailView extends VerticalLayout implements HasUrlParameter<
     }
 
     public void displayExamples(EntityX entity) {
-        List<EntityExample> entityExamples = entityExampleService.findByEntityId(entity.getId());
-        if (entityExamples.isEmpty()) {
+        List<Example> examples = exampleService.findByEntityId(entity.getId());
+        if (examples.isEmpty()) {
             return;
         }
         VerticalLayout exampleSection = createSection("Ví dụ");
-        for (EntityExample entityExample : entityExamples) {
-            exampleSection.add(visualTool.drawExample(entityExample.getExample()));
+        for (Example example : examples) {
+            exampleSection.add(visualTool.drawExample(example));
         }
         contentLayout.add(exampleSection);
     }

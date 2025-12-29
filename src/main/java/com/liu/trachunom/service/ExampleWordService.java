@@ -39,7 +39,7 @@ public class ExampleWordService {
     }
 
     public List<ExampleWord> findByExample(Example example) {
-        return exampleWordRepository.findByExampleOrderByExampleWordId_Position(example);
+        return exampleWordRepository.findByExample_IdOrderByExampleWordId_Position(example.getId());
     }
 }
 
