@@ -24,7 +24,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class VisualTool {
     private final StructureClassificationService structureClassificationService;
-    private final PronunciationClassificationService pronunciationClassificationService;
     private final PronunciationEvolutionService pronunciationEvolutionService;
     private final EntityEvolutionService entityEvolutionService;
     private final EntityService entityService;
@@ -155,16 +154,11 @@ public class VisualTool {
 
         VerticalLayout layout = new VerticalLayout();
         for (PronunciationEvolution pronunciationEvolution : pronunciationEvolutions) {
-            PronunciationClassification pronunciationClassification = pronunciationEvolution.getPronunciationClassification();
 
             HorizontalLayout hLayout = new HorizontalLayout();
 //            H3 arrow = new H3("→");
             H3 arrow = new H3("<-");
             arrow.getStyle().setWidth("10px");
-            arrow.getStyle().setColor(
-                    pronunciationClassificationService.isChangingPronunciation(pronunciationClassification) ? "red" :
-                    pronunciationClassificationService.isBorrowingPronunciation(pronunciationClassification) ? "blue" : "black");
-
 //            Paragraph content = new Paragraph(pronunciationEvolution.getToPronunciation().getQuocNgu().getDescription());
             Paragraph content = new Paragraph(pronunciationEvolution.getFromPronunciation().getQuocNgu().getDescription());
 
@@ -229,7 +223,7 @@ public class VisualTool {
                 quocNgu = entity.getPronunciation().getQuocNgu().getDescription();
             }
 
-            Paragraph languageHeader = new Paragraph("(" + entity.getLanguage().getAbbreviation() + ")");
+            Paragraph languageHeader = new Paragraph(" " + entity.getLanguage().getAbbreviation() + " ");
             languageHeader.getStyle()
                     .set("background-color", "red")
                     .set("color", "white")

@@ -23,10 +23,4 @@ public class PronunciationEvolution {
     @ManyToOne
     @JoinColumn(name = "to_pronunciation_id")
     private Pronunciation toPronunciation;
-
-    @MapsId("pronunciationClassificationId")
-    @ManyToOne
-    @JoinColumn(name = "pronunciation_classification_id")
-    private PronunciationClassification pronunciationClassification;
-
 }

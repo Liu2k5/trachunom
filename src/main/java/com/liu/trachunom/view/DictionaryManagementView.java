@@ -51,7 +51,6 @@ public class DictionaryManagementView extends VerticalLayout {
     @Autowired private StructureComponentService structureComponentService;
     @Autowired private PronunciationService pronunciationService;
     @Autowired private PronunciationEvolutionService pronunciationEvolutionService;
-    @Autowired private PronunciationClassificationService pronunciationClassificationService;
     @Autowired private EntityCompositionService entityCompositionService;
     @Autowired private EntityEvolutionService entityEvolutionService;
     @Autowired private VisualTool visualTool;
@@ -1216,8 +1215,6 @@ public class DictionaryManagementView extends VerticalLayout {
         pronunciationChangeGrid.addColumn((PronunciationEvolution pronunciationEvolution) ->
                 (pronunciationEvolution.getId().getToPronunciationId() + " - " +
                 pronunciationEvolution.getToPronunciation().getQuocNgu().getDescription()), "toPronunciation").setHeader("Âm sau");
-        pronunciationChangeGrid.addColumn((PronunciationEvolution pronunciationEvolution) ->
-                pronunciationEvolution.getPronunciationClassification().getDescription(), "pronunciationClassifcation").setHeader("Phân loại");
         pronunciationChangeGrid.setItems(new ArrayList<>());
 
         HorizontalLayout pronunciationChangeButtons = new HorizontalLayout();
@@ -1243,28 +1240,14 @@ public class DictionaryManagementView extends VerticalLayout {
             toPronunciationField.setValue(binder.getBean().getFromPronunciation());
             toPronunciationField.setValue(binder.getBean().getFromPronunciation());
 
-            ComboBox<PronunciationClassification> classificationField = new ComboBox<>("Phân loại");
-            classificationField.setItems(pronunciationClassificationService.findAll());
-            classificationField.setItemLabelGenerator(PronunciationClassification::getDescription);
-            classificationField.setValue(binder.getBean().getPronunciationClassification());
-
             binder.forField(toPronunciationField).asRequired("Vui lòng chọn âm sau")
                     .withValidator((p) -> pronunciationEvolutionService.findById(new PronunciationEvolutionId().builder()
                             .fromPronunciationId(pronunciation.getId())
                             .toPronunciationId(toPronunciationField.getValue() != null ? toPronunciationField.getValue().getId() : null)
-                            .pronunciationClassificationId(classificationField.getValue() != null ? classificationField.getValue().getId() : null)
                             .build()) == null, "Biến đổi âm đọc này đã tồn tại")
                     .bind(PronunciationEvolution::getToPronunciation, PronunciationEvolution::setToPronunciation);
 
-            binder.forField(classificationField).asRequired("Vui lòng chọn phân loại")
-                    .withValidator((p) -> pronunciationEvolutionService.findById(new PronunciationEvolutionId().builder()
-                            .fromPronunciationId(pronunciation.getId())
-                            .toPronunciationId(toPronunciationField.getValue() != null ? toPronunciationField.getValue().getId() : null)
-                            .pronunciationClassificationId(classificationField.getValue() != null ? classificationField.getValue().getId() : null)
-                            .build()) == null, "Biến đổi âm đọc này đã tồn tại")
-                    .bind(PronunciationEvolution::getPronunciationClassification, PronunciationEvolution::setPronunciationClassification);
-
-            pronunciationChangeForm.add(toPronunciationField, classificationField);
+            pronunciationChangeForm.add(toPronunciationField);
 
             HorizontalLayout pronunciationChangeFormButton = new HorizontalLayout();
             Button saveButton = new Button("Lưu");
@@ -1278,11 +1261,9 @@ public class DictionaryManagementView extends VerticalLayout {
                             .id(new PronunciationEvolutionId().builder()
                                     .fromPronunciationId(pronunciation.getId())
                                     .toPronunciationId(toPronunciationField.getValue().getId())
-                                    .pronunciationClassificationId(classificationField.getValue().getId())
                                     .build())
                             .toPronunciation(toPronunciationField.getValue())
                             .fromPronunciation(pronunciation)
-                            .pronunciationClassification(classificationField.getValue())
                             .build();
 
                 pronunciationEvolutionService.save(editedPronunciationEvolution);
@@ -2362,7 +2343,7 @@ public class DictionaryManagementView extends VerticalLayout {
             entityField.setWidth("100%");
 
             IntegerField positionField = new IntegerField("Vị trí");
-            positionField.setValue(1);
+            positionField.setValue(exampleWordGrid.getListDataView().getItemCount() + 1);
             positionField.setWidth("100%");
 
             dialogLayout.add(entityField, positionField);

@@ -45,7 +45,8 @@ public class EntityDetailView extends VerticalLayout implements HasUrlParameter<
             .set("padding", "30px")
             .set("border-radius", "8px")
             .set("box-shadow", "0 2px 10px rgba(0,0,0,0.1)")
-            .set("max-width", "1000px");
+            .set("max-width", "1000px")
+            .set("width", "calc(100vw - 40px)");
 
         add(header, contentLayout);
         setAlignItems(Alignment.CENTER);
@@ -101,6 +102,7 @@ public class EntityDetailView extends VerticalLayout implements HasUrlParameter<
             VerticalLayout characterSection = new VerticalLayout();
             characterSection.setPadding(false);
             characterSection.setSpacing(false);
+            characterSection.setWidth("250px");
 
             Div characterDisplay = new Div();
             characterDisplay.setText(character.getString());
@@ -168,13 +170,18 @@ public class EntityDetailView extends VerticalLayout implements HasUrlParameter<
             if (entity.getStructure() != null) {
                 Structure structure = entity.getStructure();
                 VerticalLayout structureSection = createSection("Cấu tạo");
+                structureSection.setWidthFull();
 
                 if (structure.getStructureComponents() != null) {
-                    Paragraph classificationPara = new Paragraph();
+                    Paragraph structureLayout = new Paragraph();
+                    VerticalLayout valueContainer = new VerticalLayout();
                     HorizontalLayout value = visualTool.drawStructure(structure);
-                    value.getStyle().set("width", "800px");
-                    classificationPara.add(value);
-                    structureSection.add(classificationPara);
+                    valueContainer.add(value);
+                    valueContainer.getStyle().set("width", "100%");
+                    structureLayout.add(valueContainer);
+                    structureLayout.setSizeFull();
+                    structureSection.add(structureLayout);
+                    structureSection.setSizeFull();
                 }
 
                 characterInfoLayout.add(structureSection);
