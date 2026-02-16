@@ -1,6 +1,9 @@
 package com.liu.trachunom.service;
 
 import com.liu.trachunom.entity.*;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.hilla.BrowserCallable;
+import com.vaadin.hilla.crud.ListRepositoryService;
 import org.springframework.stereotype.Service;
 
 import com.liu.trachunom.repository.EntityRepository;
@@ -8,15 +11,19 @@ import com.liu.trachunom.repository.EntityRepository;
 import lombok.RequiredArgsConstructor;
 
 import javax.swing.text.html.parser.Entity;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
 @Service
+@BrowserCallable
+@AnonymousAllowed
 @RequiredArgsConstructor
-public class EntityService {
+public class EntityService extends ListRepositoryService<EntityX, Long, EntityRepository> {
     private final EntityRepository entityRepository;
     private final EntityCompositionService entityCompositionService;
     private final MeaningService meaningService;
@@ -59,24 +66,35 @@ public class EntityService {
         return entityRepository.findByCompound(b);
     }
 
-    public String getHnomString(EntityX entity) {
-        try {
-            return entity.getStructure().getCharacter().getString();
-            // ca thuc the don va kep deu co the co 1 ki tu han nom dai dien
-        } catch (Exception e) {
-            if (entity.isCompound()) {
-                List<EntityComposition> entityCompositions = entityCompositionService.findByParentEntityId(entity.getId());
-                StringBuilder hnomString = new StringBuilder();
-                for (EntityComposition ec : entityCompositions) {
-                    hnomString.append(ec.getChildEntity().getStructure().getCharacter().getString());
-                }
-                return hnomString.toString();
+    public String getHnomStringById(Long entityId) {
+        EntityX entity = findById(entityId);
+
+        List<EntityComposition> entityCompositions = entityCompositionService.findByParentEntityId(entity.getId());
+        if (entityCompositions.isEmpty()) {
+            try {
+                return entity.getStructure().getCharacterString();
+            } catch (Exception e) {
+                return "an error occurred";
             }
-            return "";
+        } else {
+            StringBuilder hnomString = new StringBuilder();
+            for (EntityComposition ec : entityCompositions) {
+                try {
+                    hnomString.append(ec.getChildEntity().getStructure().getCharacter().getString());
+                } catch (Exception e) {
+                    // Nếu có lỗi, bỏ qua và tiếp tục
+                }
+            }
+            if (!entity.isCompound()) {
+                return "[" + hnomString.toString() + "]";
+            }
+            return hnomString.toString();
         }
     }
 
-    public String getQnguString(EntityX entity) {
+    public String getQnguStringById(Long entityId) {
+        EntityX entity = findById(entityId);
+
         try {
             return entity.getPronunciation().getString();
         } catch (Exception e) {
@@ -94,11 +112,22 @@ public class EntityService {
     }
 
     public List<EntityX> findByQuery(String query) {
-        return entityRepository.findAll().stream()
-                .filter(entity -> getHnomString(entity).toLowerCase().contains(query.toLowerCase())
-                        || getQnguString(entity).toLowerCase().contains(query.toLowerCase())
-                        || entity.getExplanationsString().toLowerCase().contains(query.toLowerCase()))
-                .toList();
+        List<EntityX> results =
+        entityRepository.findAll().stream()
+            .filter(entity ->
+                getHnomStringById(entity.getId()).equals(query) || getQnguStringById(entity.getId()).toLowerCase().contains(query.toLowerCase())
+            )
+            .collect(Collectors.toList());
+        results
+        .addAll(
+        entityRepository.findAll().stream()
+                .filter(entity -> entity.getMeaning() != null)
+                .filter(entity ->
+                        entity.getMeaning().getExplanations().stream()
+                        .anyMatch(explanation -> explanation.getDescription().toLowerCase().contains(query.toLowerCase())))
+                .toList()
+        );
+        return results.stream().distinct().collect(Collectors.toList());
     }
 
     public List<EntityX> findSynonyms(EntityX entity) {

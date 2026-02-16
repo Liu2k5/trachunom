@@ -2,6 +2,9 @@ package com.liu.trachunom.service;
 
 import java.util.List;
 
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.hilla.BrowserCallable;
+import com.vaadin.hilla.crud.ListRepositoryService;
 import org.springframework.stereotype.Service;
 
 import com.liu.trachunom.entity.QuocNgu;
@@ -11,8 +14,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@BrowserCallable
+@AnonymousAllowed
 @RequiredArgsConstructor
-public class QuocNguService {
+public class QuocNguService extends ListRepositoryService<QuocNgu, Long, QuocNguRepository> {
     private final QuocNguRepository quocNguRepository;
     
     public List<String> findAllPronunciations() {

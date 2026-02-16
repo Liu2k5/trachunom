@@ -4,6 +4,9 @@ import com.liu.trachunom.entity.Pronunciation;
 import com.liu.trachunom.entity.PronunciationEvolution;
 import com.liu.trachunom.repository.PronunciationRepository;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.hilla.BrowserCallable;
+import com.vaadin.hilla.crud.ListRepositoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,11 +14,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
+@BrowserCallable
+@AnonymousAllowed
 @RequiredArgsConstructor
-public class PronunciationService {
+public class PronunciationService extends ListRepositoryService<Pronunciation, Long, PronunciationRepository> {
     private final PronunciationRepository pronunciationRepository;
     private final QuocNguService quocNguService;
-    private final VisualTool visualTool;
     private final PronunciationEvolutionService pronunciationEvolutionService;
 
     public Pronunciation findById(Long pronunciationId) {

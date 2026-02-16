@@ -43,7 +43,7 @@ public class CharacterX {
 
     public String getRadicalString() {
         try {
-            return new String(String.valueOf(this.radical.getUnicode()));
+            return new String(Character.toChars(this.radical.getUnicode()));
         } catch  (Exception e) {
             return "";
         }

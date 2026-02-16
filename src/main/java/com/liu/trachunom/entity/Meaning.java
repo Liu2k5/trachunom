@@ -2,12 +2,7 @@ package com.liu.trachunom.entity;
 
 import jakarta.persistence.*;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 
@@ -18,7 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Data
 public class Meaning {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,13 +29,17 @@ public class Meaning {
     private List<Explanation> explanations;
 
     public String getExplanationsString() {
-        StringBuilder sb = new StringBuilder();
-        for (Explanation explanation : explanations) {
-            if (!sb.isEmpty()) {
-                sb.append("; \n");
+        try {
+            StringBuilder sb = new StringBuilder();
+            for (Explanation explanation : explanations) {
+                if (!sb.isEmpty()) {
+                    sb.append("; \n");
+                }
+                sb.append(explanation.getDescription());
             }
-            sb.append(explanation.getDescription());
+            return sb.toString();
+        } catch (Exception e) {
+            return "";
         }
-        return sb.toString();
     }
 }

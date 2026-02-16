@@ -4,14 +4,19 @@ import com.liu.trachunom.entity.Example;
 import com.liu.trachunom.entity.ExampleWord;
 import com.liu.trachunom.repository.ExampleRepository;
 import com.liu.trachunom.repository.ExampleWordRepository;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.hilla.BrowserCallable;
+import com.vaadin.hilla.crud.ListRepositoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@BrowserCallable
+@AnonymousAllowed
 @RequiredArgsConstructor
-public class ExampleService {
+public class ExampleService extends ListRepositoryService<Example, Long, ExampleRepository> {
     private final ExampleRepository exampleRepository;
     private final ExampleWordRepository exampleWordRepository;
     private final EntityService entityService;
@@ -32,7 +37,7 @@ public class ExampleService {
         List<ExampleWord> foundExampleWords = exampleWordRepository.findByExample_IdOrderByExampleWordId_Position(example.getId());
         StringBuilder output = new StringBuilder();
         for (ExampleWord exampleWord : foundExampleWords) {
-            output.append(entityService.getHnomString(exampleWord.getEntity()));
+            output.append(entityService.getHnomStringById(exampleWord.getEntity().getId()));
         }
         return output.toString();
     }
@@ -45,7 +50,7 @@ public class ExampleService {
                 if (i > 0) {
                     output.append(" ");
                 }
-                output.append(entityService.getQnguString(foundExampleWords.get(i).getEntity()));
+                output.append(entityService.getQnguStringById(foundExampleWords.get(i).getEntity().getId()));
             }
         }
         return output.toString();
@@ -57,5 +62,17 @@ public class ExampleService {
                 .map(ExampleWord::getExample)
                 .distinct()
                 .toList();
+    }
+
+    public String getHnomString(Example example) {
+        return getHnomByExample(example);
+    }
+
+    public String getQnguString(Example example) {
+        return getQnguByExample(example);
+    }
+
+    public Example findById(Long exampleId) {
+        return exampleRepository.findById(exampleId).orElse(null);
     }
 }

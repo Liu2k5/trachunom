@@ -4,6 +4,9 @@ import com.liu.trachunom.entity.Example;
 import com.liu.trachunom.entity.ExampleWord;
 import com.liu.trachunom.entity.ExampleWordId;
 import com.liu.trachunom.repository.ExampleWordRepository;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.hilla.BrowserCallable;
+import com.vaadin.hilla.crud.ListRepositoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,8 +15,10 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@BrowserCallable
+@AnonymousAllowed
 @RequiredArgsConstructor
-public class ExampleWordService {
+public class ExampleWordService extends ListRepositoryService<ExampleWord, ExampleWordId, ExampleWordRepository> {
     private final ExampleWordRepository exampleWordRepository;
 
     public List<ExampleWord> findAll() {
@@ -38,8 +43,8 @@ public class ExampleWordService {
         exampleWordRepository.deleteById(id);
     }
 
-    public List<ExampleWord> findByExample(Example example) {
-        return exampleWordRepository.findByExample_IdOrderByExampleWordId_Position(example.getId());
+    public List<ExampleWord> findByExampleId(Long exampleId) {
+        return exampleWordRepository.findByExample_IdOrderByExampleWordId_Position(exampleId);
     }
 }
 

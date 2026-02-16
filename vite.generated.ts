@@ -35,7 +35,7 @@ import { createRequire } from 'module';
 import { visualizer } from 'rollup-plugin-visualizer';
 import reactPlugin from '@vitejs/plugin-react';
 
-
+import vitePluginFileSystemRouter from '@vaadin/hilla-file-router/vite-plugin.js';
 
 // Make `require` compatible with ES modules
 const require = createRequire(import.meta.url);
@@ -793,7 +793,7 @@ export const vaadinConfig: UserConfigFn = (env) => {
           }
         }
       },
-      
+      vitePluginFileSystemRouter({isDevMode: devMode}),
       checker({
         typescript: true
       }),

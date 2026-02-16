@@ -1,11 +1,7 @@
 package com.liu.trachunom.entity;
 
-import jakarta.persistence.EmbeddedId;
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MapsId;
-import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -34,9 +30,9 @@ public class StructureComponent {
     @JoinColumn(name = "structure_component_id")
     private Structure structureComponent;
 
+    @MapsId("classificationId")
     @ManyToOne
     @JoinColumn(name = "classification_id")
-    @MapsId("classificationId")
     private StructureClassification structureClassification;
     
     private Integer quantity;

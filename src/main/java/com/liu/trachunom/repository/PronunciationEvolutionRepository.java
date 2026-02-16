@@ -5,12 +5,13 @@ import com.liu.trachunom.entity.PronunciationEvolution;
 import com.liu.trachunom.entity.PronunciationEvolutionId;
 import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public interface PronunciationEvolutionRepository extends JpaRepository<PronunciationEvolution, PronunciationEvolutionId> {
+public interface PronunciationEvolutionRepository extends JpaRepository<PronunciationEvolution, PronunciationEvolutionId>, JpaSpecificationExecutor<PronunciationEvolution> {
     List<PronunciationEvolution> findByFromPronunciation(Pronunciation fromPronunciation);
 
     List<PronunciationEvolution> findByToPronunciation(Pronunciation fromPronunciation);

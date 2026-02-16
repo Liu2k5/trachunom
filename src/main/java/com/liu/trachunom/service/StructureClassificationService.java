@@ -3,50 +3,55 @@ package com.liu.trachunom.service;
 import java.util.List;
 
 import com.liu.trachunom.entity.StructureClassification;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.hilla.BrowserCallable;
+import com.vaadin.hilla.crud.ListRepositoryService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.liu.trachunom.repository.ClassificationRepository;
+import com.liu.trachunom.repository.StructureClassificationRepository;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
+@BrowserCallable
+@AnonymousAllowed
 @RequiredArgsConstructor
-public class StructureClassificationService {
-    private final ClassificationRepository classificationRepository;
+public class StructureClassificationService extends ListRepositoryService<StructureClassification, Long, StructureClassificationRepository> {
+    private final StructureClassificationRepository structureClassificationRepository;
 
     public List<StructureClassification> findAll() {
-        return classificationRepository.findAll();
+        return structureClassificationRepository.findAll();
     }
 
     public StructureClassification findById(Long classificationId) {
-        return classificationRepository.findById(classificationId).orElseThrow(() -> new RuntimeException("Phân loại không tồn tại"));
+        return structureClassificationRepository.findById(classificationId).orElseThrow(() -> new RuntimeException("Phân loại không tồn tại"));
     }
 
     @Transactional
     public StructureClassification save(StructureClassification structureClassification) {
-        return classificationRepository.save(structureClassification);
+        return structureClassificationRepository.save(structureClassification);
     }
 
     @Transactional
     public void delete(Long id) {
-        classificationRepository.deleteById(id);
+        structureClassificationRepository.deleteById(id);
     }
 
     public boolean existsById(Long id) {
-        return classificationRepository.existsById(id);
+        return structureClassificationRepository.existsById(id);
     }
 
     public StructureClassification getPhoneticClassification() {
-        return classificationRepository.findByDescription("Biểu âm");
+        return structureClassificationRepository.findByDescription("Biểu âm");
     }
 
     public StructureClassification getNoneClassification() {
-        return classificationRepository.findByDescription("Không");
+        return structureClassificationRepository.findByDescription("Không");
     }
 
     public StructureClassification getIdeographicClassification() {
-        return classificationRepository.findByDescription("Biểu ý");
+        return structureClassificationRepository.findByDescription("Biểu ý");
     }
 
     public boolean isPhoneticClassification(StructureClassification structureClassification) {

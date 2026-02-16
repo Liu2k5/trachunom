@@ -2,6 +2,9 @@ package com.liu.trachunom.service;
 
 import com.liu.trachunom.entity.Style;
 import com.liu.trachunom.repository.StyleRepository;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.hilla.BrowserCallable;
+import com.vaadin.hilla.crud.ListRepositoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,8 +12,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
+@BrowserCallable
+@AnonymousAllowed
 @RequiredArgsConstructor
-public class StyleService {
+public class StyleService extends ListRepositoryService<Style, Long, StyleRepository> {
     private final StyleRepository styleRepository;
 
     public Style findById(Long id) {

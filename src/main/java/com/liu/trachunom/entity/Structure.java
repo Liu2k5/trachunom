@@ -1,5 +1,6 @@
 package com.liu.trachunom.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,6 +10,7 @@ import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "structure")
@@ -27,16 +29,16 @@ public class Structure {
     @JoinColumn(name = "unicode")
     private CharacterX character;
 
-    @OneToMany(mappedBy = "structure", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    @Builder.Default
-    private List<StructureComponent> structureComponents = new ArrayList<>();
-
     public String getCharacterString() {
         try {
-            return this.character.getString();
+            if (this.character != null) {
+                return this.character.getString();
+            }
+            return "[Cấu tạo #" + this.id + "]";
         } catch (Exception e) {
-            return "";
+            return "[Cấu tạo #" + this.id + "]";
         }
     }
+
 
 }

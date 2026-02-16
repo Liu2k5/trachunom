@@ -34,4 +34,10 @@ public class EntityServiceTest {
         List<EntityX> results = entityService.findSynonyms(example);
         assertEquals(1, results.size());
     }
+
+    @Test
+    public void test3() {
+        EntityX example = entityService.findById(29L);
+        assertEquals("[阿貶]", entityService.getHnomStringById(example.getId()));
+    }
 }

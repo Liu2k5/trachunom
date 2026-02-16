@@ -3,6 +3,9 @@ package com.liu.trachunom.service;
 import com.liu.trachunom.entity.Explanation;
 import com.liu.trachunom.entity.Meaning;
 import com.liu.trachunom.repository.ExplanationRepository;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.hilla.BrowserCallable;
+import com.vaadin.hilla.crud.ListRepositoryService;
 import org.springframework.stereotype.Service;
 
 
@@ -12,8 +15,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
+@BrowserCallable
+@AnonymousAllowed
 @RequiredArgsConstructor
-public class ExplanationService {
+public class ExplanationService extends ListRepositoryService<Explanation, Long, ExplanationRepository> {
 
     private final ExplanationRepository explanationRepository;
 

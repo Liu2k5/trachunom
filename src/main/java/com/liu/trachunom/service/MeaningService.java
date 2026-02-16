@@ -5,6 +5,9 @@ import com.liu.trachunom.entity.Meaning;
 import com.liu.trachunom.entity.Pronunciation;
 import com.liu.trachunom.repository.EntityRepository;
 import com.liu.trachunom.repository.MeaningRepository;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.hilla.BrowserCallable;
+import com.vaadin.hilla.crud.ListRepositoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,8 +17,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@BrowserCallable
+@AnonymousAllowed
 @RequiredArgsConstructor
-public class MeaningService {
+public class MeaningService extends ListRepositoryService<Meaning, Long, MeaningRepository> {
     private final MeaningRepository meaningRepository;
     private final EntityRepository  entityRepository;
 
@@ -23,8 +28,8 @@ public class MeaningService {
         return meaningRepository.findAll();
     }
 
-    public Optional<Meaning> findById(Long id) {
-        return meaningRepository.findById(id);
+    public Meaning findById(Long id) {
+        return meaningRepository.findById(id).orElseThrow(() -> new RuntimeException("Ý nghĩa không tồn tại"));
     }
 
     @Transactional

@@ -2,6 +2,9 @@ package com.liu.trachunom.service;
 
 import com.liu.trachunom.entity.Source;
 import com.liu.trachunom.repository.SourceRepository;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.hilla.BrowserCallable;
+import com.vaadin.hilla.crud.ListRepositoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,8 +12,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
+@BrowserCallable
+@AnonymousAllowed
 @RequiredArgsConstructor
-public class SourceService {
+public class SourceService extends ListRepositoryService<Source, Long, SourceRepository> {
     private final SourceRepository sourceRepository;
 
     public Source findById(Long id) {
