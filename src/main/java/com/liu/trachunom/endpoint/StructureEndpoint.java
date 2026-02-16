@@ -45,4 +45,10 @@ public class StructureEndpoint {
         Structure structure = structureService.findById(structureId);
         return entityMapper.toStructureDto(structure);
     }
+
+    public List<StructureDto> findAll() {
+        return structureService.findAll().stream()
+                .map(entityMapper::toStructureDto)
+                .collect(Collectors.toList());
+    }
 }

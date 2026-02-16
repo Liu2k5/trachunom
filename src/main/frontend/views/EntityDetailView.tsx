@@ -155,13 +155,15 @@ export default function EntityDetailView() {
                                     >
                                         <HnomQnguComponent entityId={entity.id} markedId={0}/>
                                     </div>
-                                    <div>
-                                        <p>Unicode: U+{(entity.structure?.character?.characterString?.charCodeAt(0))?.toString(16).toUpperCase()}</p>
-                                        <p>Bộ {entity.structure?.character?.radicalString}
-                                            + {entity.structure?.character?.additionalStrokeNumber} nét,
-                                            tổng {entity.structure?.character?.totalStrokeNumber}
-                                        </p>
-                                    </div>
+                                    {entity.structure?.character && (
+                                        <div>
+                                            <p>Unicode: U+{(entity.structure?.character?.characterString?.charCodeAt(0))?.toString(16).toUpperCase()}</p>
+                                            <p>Bộ {entity.structure?.character?.radicalString}
+                                                + {entity.structure?.character?.additionalStrokeNumber} nét,
+                                                tổng {entity.structure?.character?.totalStrokeNumber}
+                                            </p>
+                                        </div>
+                                    )}
                                 </>
                             )
                             :

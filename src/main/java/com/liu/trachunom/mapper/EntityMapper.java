@@ -137,15 +137,15 @@ public class EntityMapper {
         return new StructureComponentDto();
     }
 
-    public StructureDto toStructureDto(Structure entity) {
-        if (entity == null) {
+    public StructureDto toStructureDto(Structure structure) {
+        if (structure == null) {
             return null;
         }
 
         return StructureDto.builder()
-                .id(entity.getId())
-                .character(toCharacterDto(entity.getCharacter()))
-                .characterString(entity.getCharacterString())
+                .id(structure.getId())
+                .character(toCharacterDto(structure.getCharacter()))
+                .characterString(structureService.getCharacterStringById(structure.getId()))
                 .build();
     }
 

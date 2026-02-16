@@ -27,6 +27,7 @@ public class EntityService extends ListRepositoryService<EntityX, Long, EntityRe
     private final EntityRepository entityRepository;
     private final EntityCompositionService entityCompositionService;
     private final MeaningService meaningService;
+    private final StructureService structureService;
 
     public EntityX findById(Long id) {
         return entityRepository.findById(id).orElse(null);
@@ -72,7 +73,7 @@ public class EntityService extends ListRepositoryService<EntityX, Long, EntityRe
         List<EntityComposition> entityCompositions = entityCompositionService.findByParentEntityId(entity.getId());
         if (entityCompositions.isEmpty()) {
             try {
-                return entity.getStructure().getCharacterString();
+                return structureService.getCharacterStringById(entity.getStructure().getId());
             } catch (Exception e) {
                 return "an error occurred";
             }

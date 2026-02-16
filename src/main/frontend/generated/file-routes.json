@@ -16,6 +16,7 @@
       "icon": "la la-book"
     },
     "title": "Quản Lý Từ Điển",
+    "loginRequired": true,
     "flowLayout": false,
     "params": {}
   },

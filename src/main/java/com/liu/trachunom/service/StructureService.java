@@ -34,10 +34,21 @@ public class StructureService extends ListRepositoryService<Structure, Long, Str
 
     public String getCharacterStringById(Long id) {
         Structure structure = findById(id);
-        if (structure != null && structure.getCharacter() != null) {
-            return structure.getCharacter().getString();
+        if (structure == null) {
+            return null;
         }
-        return null;
+        if (structure.getCharacter() != null) {
+            return structure.getCharacter().getString();
+        } else {
+            List<StructureComponent> components = structureComponentService.findByStructure(structure);
+            StringBuilder characterString = new StringBuilder();
+            for (StructureComponent component : components) {
+                if (component.getStructureComponent().getCharacter() != null) {
+                    characterString.append(component.getStructureComponent().getCharacter().getString());
+                }
+            }
+            return "[" + characterString.toString() + "]";
+        }
     }
 
     public boolean existsById(Long structureId) {

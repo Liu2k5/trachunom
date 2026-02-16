@@ -118,7 +118,7 @@ export const config: ViewConfig = {
     menu: {order: 2, icon: 'la la-book'},
     title: 'Quản Lý Từ Điển',
     route: 'dictionary-management',
-    // loginRequired: true,
+    loginRequired: true,
 };
 
 interface TabProps {
@@ -1726,7 +1726,7 @@ const EntityTabContent = () => {
     const [entities, setEntities] = useState<EntityX[]>([]);
     const [compositions, setCompositions] = useState<EntityComposition[]>([]);
     const [evolutions, setEvolutions] = useState<EntityEvolution[]>([]);
-    const [structures, setStructures] = useState<Structure[]>([]);
+    const [structures, setStructures] = useState<StructureDto[]>([]);
     const [meanings, setMeanings] = useState<Meaning[]>([]);
     const [languages, setLanguages] = useState<Language[]>([]);
     const [pronunciations, setPronunciations] = useState<Pronunciation[]>([]);
@@ -1754,16 +1754,6 @@ const EntityTabContent = () => {
     useEffect(() => {
         EntityService.findAll().then(data => setEntities((data || []).filter(e => e !== undefined)));
     }, []);
-
-    // // Map selected entity DTO to entity when selectedEntityDto changes
-    // useEffect(() => {
-    //     if (selectedEntityDto) {
-    //         EntityMapper.toEntityX(selectedEntityDto).then(entity => setSelectedEntity(entity))
-    //             .catch((error: any) => console.error('Error mapping EntityDto to Entity:', error));
-    //     } else {
-    //         setSelectedEntity(null);
-    //     }
-    // }, [selectedEntityDto]);
 
     // Map selected composition to DTO
     useEffect(() => {
@@ -1810,13 +1800,9 @@ const EntityTabContent = () => {
     }, [selectedEntity]);
 
     useEffect(() => {
-        StructureService.findAll().then(structures => {
-            const tempStructures: Structure[] = [];
-            structures?.forEach(structure => {
-                if (structure) tempStructures.push(structure);
-            });
-            setStructures(tempStructures);
-        })
+        StructureEndpoint.findAll()
+            .then(structures => structures?.filter(structure => structure !== undefined))
+            .then(structures => setStructures(structures as StructureDto[]))
             .catch(error => console.error('Error fetching structures:', error));
     }, []);
 
@@ -2110,7 +2096,7 @@ const EntityTabContent = () => {
             </div>
             <div>
                 <h3>Cấu tạo thực thể</h3>
-                {(selectedEntity) ? (
+                {(selectedEntity && selectedEntity.compound) ? (
                     <>
                         <p style={{ fontSize: '14px', color: '#666', marginBottom: '10px' }}>
                             Thực thể đã chọn: {selectedEntity.id}
@@ -2187,7 +2173,7 @@ const EntityTabContent = () => {
                     </>
                 ) : (
                     <p style={{ fontSize: '14px', color: '#999', fontStyle: 'italic' }}>
-                        Vui lòng chọn một thực thể để quản lý cấu tạo
+                        Vui lòng chọn một thực thể phức để quản lý cấu tạo
                     </p>
                 )}
             </div>
