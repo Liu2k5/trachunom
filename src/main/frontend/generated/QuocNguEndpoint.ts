@@ -1,0 +1,6 @@
+import { EndpointRequestInit as EndpointRequestInit_1 } from "@vaadin/hilla-frontend";
+import type QuocNguDto_1 from "./com/liu/trachunom/dto/QuocNguDto.js";
+import client_1 from "./connect-client.default.js";
+async function delete_1(id: number | undefined, init?: EndpointRequestInit_1): Promise<void> { return client_1.call("QuocNguEndpoint", "delete", { id }, init); }
+async function save_1(quocNguDto: QuocNguDto_1 | undefined, init?: EndpointRequestInit_1): Promise<QuocNguDto_1 | undefined> { return client_1.call("QuocNguEndpoint", "save", { quocNguDto }, init); }
+export { delete_1 as delete, save_1 as save };

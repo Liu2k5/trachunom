@@ -1,0 +1,48 @@
+[
+  {
+    "route": "about",
+    "menu": {
+      "order": 3,
+      "icon": "la la-info-circle"
+    },
+    "title": "Giới Thiệu",
+    "flowLayout": false,
+    "params": {}
+  },
+  {
+    "route": "dictionary-management",
+    "menu": {
+      "order": 2,
+      "icon": "la la-book"
+    },
+    "title": "Quản Lý Từ Điển",
+    "flowLayout": false,
+    "params": {}
+  },
+  {
+    "route": "entity/:id",
+    "title": "Chi Tiết Thực Thể",
+    "flowLayout": false,
+    "params": {}
+  },
+  {
+    "route": "",
+    "menu": {
+      "order": 0,
+      "icon": "la la-home"
+    },
+    "title": "Tra Chữ Nôm",
+    "flowLayout": false,
+    "params": {}
+  },
+  {
+    "route": "search",
+    "menu": {
+      "order": 1,
+      "icon": "la la-search"
+    },
+    "title": "Tìm Chữ",
+    "flowLayout": false,
+    "params": {}
+  }
+]

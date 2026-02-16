@@ -1,0 +1,21 @@
+import { EndpointRequestInit as EndpointRequestInit_1 } from "@vaadin/hilla-frontend";
+import type StructureClassification_1 from "./com/liu/trachunom/entity/StructureClassification.js";
+import type Filter_1 from "./com/vaadin/hilla/crud/filter/Filter.js";
+import type Pageable_1 from "./com/vaadin/hilla/mappedtypes/Pageable.js";
+import client_1 from "./connect-client.default.js";
+async function count_1(filter: Filter_1 | undefined, init?: EndpointRequestInit_1): Promise<number> { return client_1.call("StructureClassificationService", "count", { filter }, init); }
+async function exists_1(id: number, init?: EndpointRequestInit_1): Promise<boolean> { return client_1.call("StructureClassificationService", "exists", { id }, init); }
+async function get_1(id: number, init?: EndpointRequestInit_1): Promise<StructureClassification_1 | undefined> { return client_1.call("StructureClassificationService", "get", { id }, init); }
+async function list_1(pageable: Pageable_1, filter: Filter_1 | undefined, init?: EndpointRequestInit_1): Promise<Array<StructureClassification_1>> { return client_1.call("StructureClassificationService", "list", { pageable, filter }, init); }
+async function delete_1(id: number | undefined, init?: EndpointRequestInit_1): Promise<void> { return client_1.call("StructureClassificationService", "delete", { id }, init); }
+async function existsById_1(id: number | undefined, init?: EndpointRequestInit_1): Promise<boolean> { return client_1.call("StructureClassificationService", "existsById", { id }, init); }
+async function findAll_1(init?: EndpointRequestInit_1): Promise<Array<StructureClassification_1 | undefined> | undefined> { return client_1.call("StructureClassificationService", "findAll", {}, init); }
+async function findById_1(classificationId: number | undefined, init?: EndpointRequestInit_1): Promise<StructureClassification_1 | undefined> { return client_1.call("StructureClassificationService", "findById", { classificationId }, init); }
+async function getIdeographicClassification_1(init?: EndpointRequestInit_1): Promise<StructureClassification_1 | undefined> { return client_1.call("StructureClassificationService", "getIdeographicClassification", {}, init); }
+async function getNoneClassification_1(init?: EndpointRequestInit_1): Promise<StructureClassification_1 | undefined> { return client_1.call("StructureClassificationService", "getNoneClassification", {}, init); }
+async function getPhoneticClassification_1(init?: EndpointRequestInit_1): Promise<StructureClassification_1 | undefined> { return client_1.call("StructureClassificationService", "getPhoneticClassification", {}, init); }
+async function isIdeographicClassification_1(structureClassification: StructureClassification_1 | undefined, init?: EndpointRequestInit_1): Promise<boolean> { return client_1.call("StructureClassificationService", "isIdeographicClassification", { structureClassification }, init); }
+async function isNoneClassification_1(structureClassification: StructureClassification_1 | undefined, init?: EndpointRequestInit_1): Promise<boolean> { return client_1.call("StructureClassificationService", "isNoneClassification", { structureClassification }, init); }
+async function isPhoneticClassification_1(structureClassification: StructureClassification_1 | undefined, init?: EndpointRequestInit_1): Promise<boolean> { return client_1.call("StructureClassificationService", "isPhoneticClassification", { structureClassification }, init); }
+async function save_1(structureClassification: StructureClassification_1 | undefined, init?: EndpointRequestInit_1): Promise<StructureClassification_1 | undefined> { return client_1.call("StructureClassificationService", "save", { structureClassification }, init); }
+export { count_1 as count, delete_1 as delete, exists_1 as exists, existsById_1 as existsById, findAll_1 as findAll, findById_1 as findById, get_1 as get, getIdeographicClassification_1 as getIdeographicClassification, getNoneClassification_1 as getNoneClassification, getPhoneticClassification_1 as getPhoneticClassification, isIdeographicClassification_1 as isIdeographicClassification, isNoneClassification_1 as isNoneClassification, isPhoneticClassification_1 as isPhoneticClassification, list_1 as list, save_1 as save };

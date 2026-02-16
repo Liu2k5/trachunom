@@ -1,0 +1,29 @@
+import type EntityCompositionDto_1 from "./EntityCompositionDto.js";
+import type EntityDto_1 from "./EntityDto.js";
+import type EntityEvolutionDto_1 from "./EntityEvolutionDto.js";
+import type ExampleDto_1 from "./ExampleDto.js";
+import type LanguageDto_1 from "./LanguageDto.js";
+import type MeaningDto_1 from "./MeaningDto.js";
+import type PronunciationDto_1 from "./PronunciationDto.js";
+import type StructureDto_1 from "./StructureDto.js";
+interface EntityDetailDto {
+    id?: number;
+    structure?: StructureDto_1;
+    pronunciation?: PronunciationDto_1;
+    meaning?: MeaningDto_1;
+    language?: LanguageDto_1;
+    description?: string;
+    compound: boolean;
+    attested: boolean;
+    standardised: boolean;
+    hnomString?: string;
+    qnguString?: string;
+    explanationsString?: string;
+    compositions?: Array<EntityCompositionDto_1 | undefined>;
+    evolutions?: Array<EntityEvolutionDto_1 | undefined>;
+    synonyms?: Array<EntityDto_1 | undefined>;
+    variances?: Array<EntityDto_1 | undefined>;
+    examples?: Array<ExampleDto_1 | undefined>;
+    compositionComponents?: Array<EntityDto_1 | undefined>;
+}
+export default EntityDetailDto;
