@@ -13,6 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 public class MeaningDto {
     private Long id;
+    private MeaningDto origin;
     private List<ExplanationDto> explanations;
     private String explanationsString;
 }

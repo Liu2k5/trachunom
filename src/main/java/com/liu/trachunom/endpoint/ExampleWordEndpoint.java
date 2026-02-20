@@ -12,6 +12,7 @@ import com.vaadin.hilla.Endpoint;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Endpoint
 @AnonymousAllowed
@@ -22,12 +23,17 @@ public class ExampleWordEndpoint {
     private final ExampleService exampleService;
     private final EntityService entityService;
 
-    public List<ExampleWord> findAll() {
-        return exampleWordService.findAll();
+    public List<ExampleWordDto> list() {
+
+        return exampleWordService.findAll().stream()
+                .map(entityMapper::toExampleWordDto)
+                .collect(Collectors.toList());
     }
 
-    public List<ExampleWord> findByExampleId(Long exampleId) {
-        return exampleWordService.findByExampleId(exampleId);
+    public List<ExampleWordDto> findByExampleId(Long exampleId) {
+        return exampleWordService.findByExampleId(exampleId).stream()
+                .map(entityMapper::toExampleWordDto)
+                .collect(Collectors.toList());
     }
 
     public ExampleWordDto save(Long exampleId, Long entityId, Long position) {
@@ -41,11 +47,15 @@ public class ExampleWordEndpoint {
         return entityMapper.toExampleWordDto(exampleWord);
     }
 
-    public void delete(Long exampleId, Long entityId, Long position) {
+    public void deleteByEachId(Long exampleId, Long entityId, Long position) {
         ExampleWordId id = new ExampleWordId();
         id.setExampleId(exampleId);
         id.setEntityId(entityId);
         id.setPosition(position);
+        delete(id);
+    }
+
+    public void delete(ExampleWordId id) {
         exampleWordService.deleteById(id);
     }
 }

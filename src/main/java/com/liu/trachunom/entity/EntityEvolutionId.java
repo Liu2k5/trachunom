@@ -11,6 +11,7 @@ import java.util.Objects;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class EntityEvolutionId implements Serializable {
     private Long fromEntityId;
     private Long toEntityId;

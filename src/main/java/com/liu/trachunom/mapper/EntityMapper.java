@@ -65,8 +65,18 @@ public class EntityMapper {
                     .collect(Collectors.toList());
         }
 
+        MeaningDto originDto = null;
+        if (entity.getOrigin() != null) {
+            // Chỉ map id và explanationsString của origin để tránh đệ quy vô hạn
+            originDto = MeaningDto.builder()
+                    .id(entity.getOrigin().getId())
+                    .explanationsString(entity.getOrigin().getExplanationsString())
+                    .build();
+        }
+
         return MeaningDto.builder()
                 .id(entity.getId())
+                .origin(originDto)
                 .explanations(explanationDtos)
                 .explanationsString(entity.getExplanationsString())
                 .build();
@@ -110,16 +120,13 @@ public class EntityMapper {
             return null;
         }
         return StructureComponentDto.builder()
-//                .id(entity.getId())
-//                .structure(entity.getStructure() != null ? toStructureDto(entity.getStructure()) : null)
+
                 .structureId(entity.getStructure() != null ? entity.getStructure().getId() : null)
                 .structureCharacterString(entity.getStructure() != null ?
                         entity.getStructure().getCharacterString() : null)
-//                .structureComponent(entity.getStructureComponent() != null ? toStructureDto(entity.getStructureComponent()) : null)
                 .structureComponentId(entity.getStructureComponent() != null ? entity.getStructureComponent().getId() : null)
                 .structureComponentCharacterString(entity.getStructureComponent() != null ?
                         entity.getStructureComponent().getCharacterString() : null)
-//                .structureClassification(entity.getStructureClassification() != null ? toStructureClassificationDto(entity.getStructureClassification()) : null)
                 .classificationId(entity.getStructureClassification() != null ? entity.getStructureClassification().getId() : null)
                 .classificationDescription(entity.getStructureClassification() != null ?
                         entity.getStructureClassification().getDescription() : null)
@@ -142,10 +149,20 @@ public class EntityMapper {
             return null;
         }
 
+        String characterString = structure.getCharacter() != null ? structure.getCharacterString() : null;
+        StringBuilder stringBuilder = new StringBuilder();
+        entityService.findByCharacter(structure.getCharacter()).forEach(entity -> {
+            stringBuilder.append(entity != null
+                    ? entityService.getQnguStringById(entity.getId())
+                    : entity.getPronunciationString())
+                    .append(" ");
+        });
+
         return StructureDto.builder()
                 .id(structure.getId())
                 .character(toCharacterDto(structure.getCharacter()))
-                .characterString(structureService.getCharacterStringById(structure.getId()))
+                .characterString(characterString)
+                .characterWithPronunciationsString(characterString + " " + stringBuilder.toString().trim())
                 .build();
     }
 
@@ -225,8 +242,8 @@ public class EntityMapper {
         }
         return ExampleDto.builder()
                 .id(example.getId())
-                .hnomString(exampleService.getHnomString(example))
-                .qnguString(exampleService.getQnguString(example))
+                .hnomString(exampleService.getHnomStringByExampleId(example.getId()))
+                .qnguString(exampleService.getQnguStringByExampleId(example.getId()))
                 .exampleWords(exampleWordService
                         .findByExampleId(example.getId())
                         .stream()
@@ -509,6 +526,8 @@ public class EntityMapper {
         return PronunciationEvolutionDto.builder()
                 .fromPronunciationId(pronunciationEvolution.getId().getFromPronunciationId())
                 .toPronunciationId(pronunciationEvolution.getId().getToPronunciationId())
+                .fromPronunciationString(pronunciationEvolution.getFromPronunciation().getString())
+                .toPronunciationId(pronunciationEvolution.getId().getToPronunciationId())
                 .build();
     }
 
@@ -534,8 +553,14 @@ public class EntityMapper {
                     .collect(Collectors.toList());
         }
 
+        Meaning origin = null;
+        if (meaningDto.getOrigin() != null && meaningDto.getOrigin().getId() != null) {
+            origin = meaningService.findById(meaningDto.getOrigin().getId());
+        }
+
         return Meaning.builder()
                 .id(meaningDto.getId())
+                .origin(origin)
                 .explanations(explanations)
                 .build();
     }

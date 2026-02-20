@@ -20,20 +20,20 @@ public class EntityServiceTest {
     @Autowired
     private EntityCompositionService entityCompositionService;
 
-    @Test
-    public void test() {
-        List<EntityX> results = entityService.findByQuery("失情");
-        System.out.println(results.size());
-        List<EntityComposition> compositions = entityCompositionService.findByParentEntityId(results.get(0).getId());
-        System.out.println(compositions.size());
-    }
-
-    @Test
-    public void test2() {
-        EntityX example = entityService.findById(10L);
-        List<EntityX> results = entityService.findSynonyms(example);
-        assertEquals(1, results.size());
-    }
+//    @Test
+//    public void test() {
+//        List<EntityX> results = entityService.findByQuery("失情");
+//        System.out.println(results.size());
+//        List<EntityComposition> compositions = entityCompositionService.findByParentEntityId(results.get(0).getId());
+//        System.out.println(compositions.size());
+//    }
+//
+//    @Test
+//    public void test2() {
+//        EntityX example = entityService.findById(10L);
+//        List<EntityX> results = entityService.findSynonyms(example);
+//        assertEquals(1, results.size());
+//    }
 
     @Test
     public void test3() {

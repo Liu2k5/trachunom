@@ -33,11 +33,11 @@ class EntityXModel<T extends EntityX_1 = EntityX_1> extends ObjectModel_1<T> {
     get standardised(): BooleanModel_1 {
         return this[_getPropertyModel_1]("standardised", (parent, key) => new BooleanModel_1(parent, key, false, { meta: { javaType: "boolean" } }));
     }
-    get explanationsString(): StringModel_1 {
-        return this[_getPropertyModel_1]("explanationsString", (parent, key) => new StringModel_1(parent, key, true, { meta: { javaType: "java.lang.String" } }));
-    }
     get pronunciationString(): StringModel_1 {
         return this[_getPropertyModel_1]("pronunciationString", (parent, key) => new StringModel_1(parent, key, true, { meta: { javaType: "java.lang.String" } }));
+    }
+    get explanationsString(): StringModel_1 {
+        return this[_getPropertyModel_1]("explanationsString", (parent, key) => new StringModel_1(parent, key, true, { meta: { javaType: "java.lang.String" } }));
     }
     get characterString(): StringModel_1 {
         return this[_getPropertyModel_1]("characterString", (parent, key) => new StringModel_1(parent, key, true, { meta: { javaType: "java.lang.String" } }));

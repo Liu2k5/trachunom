@@ -20,6 +20,10 @@ public class Meaning {
     @EqualsAndHashCode.Include
     private Long id;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "origin_id")
+    private Meaning origin;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "Meaning_Explanation",

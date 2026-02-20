@@ -33,8 +33,8 @@ public class ExampleService extends ListRepositoryService<Example, Long, Example
         exampleRepository.deleteById(id);
     }
 
-    public String getHnomByExample(Example example) {
-        List<ExampleWord> foundExampleWords = exampleWordRepository.findByExample_IdOrderByExampleWordId_Position(example.getId());
+    public String getHnomStringByExampleId(Long exampleId) {
+        List<ExampleWord> foundExampleWords = exampleWordRepository.findByExample_IdOrderByExampleWordId_Position(exampleId);
         StringBuilder output = new StringBuilder();
         for (ExampleWord exampleWord : foundExampleWords) {
             output.append(entityService.getHnomStringById(exampleWord.getEntity().getId()));
@@ -42,8 +42,8 @@ public class ExampleService extends ListRepositoryService<Example, Long, Example
         return output.toString();
     }
 
-    public String getQnguByExample(Example example) {
-        List<ExampleWord> foundExampleWords = exampleWordRepository.findByExample_IdOrderByExampleWordId_Position(example.getId());
+    public String getQnguStringByExampleId(Long exampleId) {
+        List<ExampleWord> foundExampleWords = exampleWordRepository.findByExample_IdOrderByExampleWordId_Position(exampleId);
         StringBuilder output = new StringBuilder();
         if (!foundExampleWords.isEmpty()) {
             for (int i = 0; i < foundExampleWords.size(); i++) {
@@ -62,14 +62,6 @@ public class ExampleService extends ListRepositoryService<Example, Long, Example
                 .map(ExampleWord::getExample)
                 .distinct()
                 .toList();
-    }
-
-    public String getHnomString(Example example) {
-        return getHnomByExample(example);
-    }
-
-    public String getQnguString(Example example) {
-        return getQnguByExample(example);
     }
 
     public Example findById(Long exampleId) {

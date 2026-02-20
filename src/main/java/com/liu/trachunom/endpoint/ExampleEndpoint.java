@@ -32,10 +32,10 @@ public class ExampleEndpoint {
     }
 
     public String getHnomString(Example example) {
-        return exampleService.getHnomString(example);
+        return exampleService.getHnomStringByExampleId(example.getId());
     }
 
     public String getQnguString(Example example) {
-        return exampleService.getQnguString(example);
+        return exampleService.getQnguStringByExampleId(example.getId());
     }
 }

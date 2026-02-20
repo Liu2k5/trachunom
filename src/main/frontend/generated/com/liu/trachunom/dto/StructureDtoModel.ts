@@ -12,5 +12,8 @@ class StructureDtoModel<T extends StructureDto_1 = StructureDto_1> extends Objec
     get character(): CharacterDtoModel_1 {
         return this[_getPropertyModel_1]("character", (parent, key) => new CharacterDtoModel_1(parent, key, true));
     }
+    get characterWithPronunciationsString(): StringModel_1 {
+        return this[_getPropertyModel_1]("characterWithPronunciationsString", (parent, key) => new StringModel_1(parent, key, true, { meta: { javaType: "java.lang.String" } }));
+    }
 }
 export default StructureDtoModel;

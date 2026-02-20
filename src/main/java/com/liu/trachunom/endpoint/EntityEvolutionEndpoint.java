@@ -5,6 +5,7 @@ import com.liu.trachunom.entity.EntityEvolution;
 import com.liu.trachunom.entity.EntityEvolutionId;
 import com.liu.trachunom.mapper.EntityMapper;
 import com.liu.trachunom.service.EntityEvolutionService;
+import com.liu.trachunom.service.EntityService;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.BrowserCallable;
 import lombok.RequiredArgsConstructor;
@@ -12,12 +13,15 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
+
 @BrowserCallable
 @AnonymousAllowed
 @RequiredArgsConstructor
 public class EntityEvolutionEndpoint {
     private final EntityEvolutionService entityEvolutionService;
     private final EntityMapper entityMapper;
+    private final EntityService entityService;
 
     public List<EntityEvolutionDto> findByFromEntityId(Long fromEntityId) {
         return entityEvolutionService.findByFromEntityId(fromEntityId).stream()
@@ -31,7 +35,26 @@ public class EntityEvolutionEndpoint {
         return entityMapper.toEntityEvolutionDto(evolution);
     }
 
-    public void delete(Long fromEntityId, Long toEntityId) {
+    public EntityEvolutionDto saveByEachId(Long fromEntityId, Long toEntityId, String description) {
+        EntityEvolutionId evolutionId = EntityEvolutionId.builder()
+                .fromEntityId(fromEntityId)
+                .toEntityId(toEntityId)
+                .build();
+        EntityEvolution evolution = EntityEvolution.builder()
+                .id(evolutionId)
+                .fromEntity(entityService.findById(fromEntityId))
+                .toEntity(entityService.findById(toEntityId))
+                .description(description)
+                .build();
+        entityEvolutionService.save(evolution);
+        return entityMapper.toEntityEvolutionDto(evolution);
+    }
+
+    public void delete(EntityEvolutionId id) {
+        entityEvolutionService.deleteById(id);
+    }
+
+    public void deleteByEachId(Long fromEntityId, Long toEntityId) {
         EntityEvolutionId id = new EntityEvolutionId(fromEntityId, toEntityId);
         entityEvolutionService.deleteById(id);
     }

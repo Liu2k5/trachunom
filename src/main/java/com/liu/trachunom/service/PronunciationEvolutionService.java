@@ -54,5 +54,13 @@ public class PronunciationEvolutionService extends ListRepositoryService<Pronunc
     public List<PronunciationEvolution> findByToPronunciation(Pronunciation fromPronunciation) {
         return pronunciationEvolutionRepository.findByToPronunciation(fromPronunciation);
     }
+
+    public List<PronunciationEvolution> findByFromPronunciationId(Long fromPronunciationId) {
+        return pronunciationEvolutionRepository.findByFromPronunciation_Id(fromPronunciationId);
+    }
+
+    public List<PronunciationEvolution> findByToPronunciationId(Long toPronunciationId) {
+        return pronunciationEvolutionRepository.findByToPronunciation_Id(toPronunciationId);
+    }
 }
 

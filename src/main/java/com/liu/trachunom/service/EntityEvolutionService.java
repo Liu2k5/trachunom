@@ -17,7 +17,7 @@ public class EntityEvolutionService {
 
     @Transactional(readOnly = true)
     public List<EntityEvolution> findAll() {
-        return entityEvolutionRepository.findAllWithEntities();
+        return entityEvolutionRepository.findAll();
     }
 
     @Transactional(readOnly = true)

@@ -1,6 +1,7 @@
 package com.liu.trachunom.repository;
 
 import com.liu.trachunom.entity.*;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
@@ -17,4 +18,8 @@ public interface EntityRepository extends JpaRepository<EntityX, Long>, JpaSpeci
     List<EntityX> findByStandardised(boolean b);
 
     List<EntityX> findByPronunciation(Pronunciation pronunciation);
+
+//    @EntityGraph(attributePaths = {"structure", "pronunciation", "meaning", "language"})
+//    @Override
+//    List<EntityX> findAll();
 }

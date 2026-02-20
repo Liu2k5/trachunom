@@ -13,7 +13,7 @@ import EntityEvolutionDto from "Frontend/generated/com/liu/trachunom/dto/EntityE
 import EntityDto from "Frontend/generated/com/liu/trachunom/dto/EntityDto";
 import EntityX from "Frontend/generated/com/liu/trachunom/entity/EntityX";
 import {EntityService} from "Frontend/generated/endpoints";
-import {HnomQnguComponent} from 'Frontend/utils/entityUtils';
+import {DrawEvolution, DrawPronunciationEvolution, DrawStructure, HnomQnguComponent} from 'Frontend/utils/entityUtils';
 
 export const config: ViewConfig = {
     title: 'Chi Tiết Thực Thể',
@@ -93,7 +93,7 @@ export default function EntityDetailView() {
     return (
         <div
             style={{
-                width: '100%',
+                width: 'auto',
                 minHeight: '100vh',
                 background: '#f5f5f5',
                 padding: '20px',
@@ -197,6 +197,28 @@ export default function EntityDetailView() {
                         }
                     </div>
 
+                    {/* Pronunciation */}
+                    {entity.pronunciation && (
+                        <section style={{marginBottom: '30px'}}>
+                            <h2
+                                style={{
+                                    color: '#667eea',
+                                    fontSize: '20px',
+                                    marginBottom: '15px',
+                                    borderLeft: '4px solid #667eea',
+                                    paddingLeft: '12px',
+                                }}
+                            >
+                                Phát âm
+                            </h2>
+                            <div style={{paddingLeft: '16px'}}>
+                                <p style={{fontSize: '18px', color: '#333'}}>
+                                    <DrawPronunciationEvolution pronunciationId={entity.pronunciation.id}/>
+                                </p>
+                            </div>
+                        </section>
+                    )}
+
                     {/* Meanings */}
                     {entity.meaning?.explanations && entity.meaning.explanations.length > 0 && (
                         <section style={{marginBottom: '30px'}}>
@@ -279,7 +301,7 @@ export default function EntityDetailView() {
                                     <p>{entity.hnomString} {entity.qnguString}</p>
                                     <p>{entity.explanationsString}</p>
                                 </div>
-                                {drawEvolution(entity.evolutions?.filter((evolution): evolution is EntityEvolutionDto => evolution !== undefined))}
+                                <DrawEvolution evolutions={entity.evolutions?.filter((evolution): evolution is EntityEvolutionDto => evolution !== undefined)} />
                             </div>
                         </section>
                     )}
@@ -421,182 +443,4 @@ export default function EntityDetailView() {
             </div>
         </div>
     );
-}
-
-function DrawStructure({structure}: {structure : StructureDto | undefined }): JSX.Element {
-    const [structureComponents, setStructureComponents] = useState<StructureComponentDto[]>([]);
-    const [gridTemplateColumns, setGridTemplateColumns] = useState<string>("");
-
-    useEffect(() => {
-        if (!structure?.id) {
-            setStructureComponents([]);
-            return;
-        }
-
-        // Fetch structure components
-        StructureEndpoint.getStructureComponents(structure.id)
-            .then((data: (StructureComponentDto | undefined)[] | undefined) => {
-                const filtered = (data || []).filter((c): c is StructureComponentDto => c !== undefined);
-                setStructureComponents(filtered);
-            })
-            .catch((error: any) => console.error('Error fetching structure components:', error));
-
-        // Fetch grid template columns
-        getGridTemplateColumnsByStructureId(structure.id)
-            .then((data) => {
-                setGridTemplateColumns(data != undefined ? data : "");
-            })
-            .catch((error) => console.error('Error fetching grid template:', error));
-    }, [structure?.id]);
-
-    if (!structure || structureComponents.length === 0) {
-        return <div></div>;
-    }
-
-    let components: JSX.Element[] = [];
-    structureComponents.forEach((component) => {
-        if (component != undefined) {
-            components.push(<StructureRow key={component?.structureComponentId} component={component}/>);
-        }
-    });
-
-    return (
-        <div style={{
-            borderSpacing: "0px",
-            display: "grid",
-            gridTemplateColumns: gridTemplateColumns,
-            gridGap: "1px",
-        }}
-             data-here='aaa'
-        >
-            {components.map((component) => component)}
-        </div>
-    );
-
-}
-
-function StructureRow({component}: { component: StructureComponentDto; }): JSX.Element {
-    const [structureComponent, setStructureComponent] = useState<StructureDto | null>(null);
-
-    useEffect(() => {
-        getStructureDtoByStructureId(component.structureComponentId)
-            .then((data) => setStructureComponent(data ?? null))
-            .catch((error) => console.error('Error fetching structure:', error));
-    }, [component.structureComponentId]);
-
-    const recursiveValue = structureComponent ? <DrawStructure structure={structureComponent}/> : null;
-
-    return (
-        <div style={{alignItems: "start", verticalAlign: "top"}}>
-            <div style={{borderSpacing: "0px"}}>
-                <div style={{
-                    backgroundColor: (component.classificationId == 1 ? "red" :
-                        (component.classificationId == -1 ? "blue" : "grey")),
-                    margin: "0px auto auto auto",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    height: "40px",
-                }}>
-                    <a style={{
-                        textDecoration: "none",
-                        color: "white",
-                        fontWeight: "bold",
-                        fontFamily: "sans-serif",
-                        fontSize: "18px",
-                    }}
-                       href={"/search?query=" + component.structureComponentCharacterString}>
-                        {component.structureComponentCharacterString || ''}
-                    </a>
-                </div>
-                <div>
-                    {recursiveValue}
-                </div>
-            </div>
-        </div>
-    );
-}
-
-function drawEvolution(evolutions: EntityEvolutionDto[] | null | undefined): JSX.Element {
-    return (
-        <div style={{
-            display: 'flex',
-            gap: '20px',
-            overflowX: 'auto',
-            paddingBottom: '10px',
-        }}>
-            {evolutions?.map((evolution, index) =>
-                evolution ? (
-                    <EvolutionRow evolution={evolution} key={index}></EvolutionRow>
-                ) : null
-            )}
-        </div>
-    );
-}
-
-function EvolutionRow({evolution}: { evolution: EntityEvolutionDto | null | undefined }): JSX.Element {
-    const [evolutions, setEvolutions] = useState<EntityEvolutionDto[] | null>(null);
-    useEffect(() => {
-        getEntityEvolutionsByToEntityId(evolution?.fromEntityId)
-            .then((results: any) => {
-                setEvolutions(results ?? null);
-            })
-            .catch((error: any) => console.error('Error fetching evolutions:', error));
-    }, [evolution?.fromEntityId]);
-    const recursiveValue = evolution?.fromEntity ? drawEvolution(evolutions) : undefined;
-
-    return (
-        <div
-            style={{
-                minWidth: '100px',
-                // textAlign: 'center',
-                padding: '10px',
-                borderRadius: '6px',
-            }}
-        >
-            <p
-                style={{
-                    fontSize: '14px',
-                    color: 'darkcyan',
-                    marginBottom: '20px',
-                }}
-            >
-                {evolution?.description}
-            </p>
-            <div
-                style={{
-                    backgroundColor: '#f0f0f0',
-                }}
-            >
-                <a
-                    href={'/entity/' + evolution?.fromEntityId}
-                    style={{
-                        textDecoration: 'none',
-                        color: 'black',
-                    }}
-                >
-                    <div
-                        style={{
-                            // fontSize: '40px',
-                            // fontWeight: 'bold',
-                            // color: '#667eea',
-                            // marginBottom: '10px',
-                            fontFamily: 'serif',
-                        }}
-                    >
-                        {(evolution?.fromEntity?.hnomString ?? '') + ' ' + (evolution?.fromEntity?.qnguString ?? '')}
-                    </div>
-                    <p>{evolution?.fromEntity?.explanationsString}</p>
-                </a>
-            </div>
-            <div
-                style={{
-                    fontSize: '16px',
-                    color: '#333',
-                }}
-            >
-                {recursiveValue}
-            </div>
-        </div>
-    )
 }

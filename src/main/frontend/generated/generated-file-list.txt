@@ -45,6 +45,7 @@ com/liu/trachunom/dto/EntityDetailDto.ts
 com/liu/trachunom/dto/EntityDto.ts
 com/liu/trachunom/dto/EntityEvolutionDto.ts
 com/liu/trachunom/dto/StructureDto.ts
+com/liu/trachunom/entity/EntityEvolutionId.ts
 com/liu/trachunom/dto/ExplanationDto.ts
 com/liu/trachunom/entity/Explanation.ts
 com/liu/trachunom/dto/LanguageDto.ts
@@ -91,7 +92,6 @@ com/vaadin/hilla/mappedtypes/Pageable.ts
 com/liu/trachunom/entity/ExampleWordId.ts
 com/liu/trachunom/entity/MeaningExplanationId.ts
 com/liu/trachunom/entity/EntityCompositionId.ts
-com/liu/trachunom/entity/EntityEvolutionId.ts
 com/vaadin/hilla/crud/filter/PropertyStringFilter/Matcher.ts
 com/vaadin/hilla/mappedtypes/Sort.ts
 com/vaadin/hilla/mappedtypes/Order.ts
@@ -106,6 +106,7 @@ com/liu/trachunom/dto/EntityDetailDtoModel.ts
 com/liu/trachunom/dto/EntityDtoModel.ts
 com/liu/trachunom/dto/EntityEvolutionDtoModel.ts
 com/liu/trachunom/dto/StructureDtoModel.ts
+com/liu/trachunom/entity/EntityEvolutionIdModel.ts
 com/liu/trachunom/dto/ExplanationDtoModel.ts
 com/liu/trachunom/entity/ExplanationModel.ts
 com/liu/trachunom/dto/LanguageDtoModel.ts
@@ -151,7 +152,6 @@ com/vaadin/hilla/mappedtypes/PageableModel.ts
 com/liu/trachunom/entity/ExampleWordIdModel.ts
 com/liu/trachunom/entity/MeaningExplanationIdModel.ts
 com/liu/trachunom/entity/EntityCompositionIdModel.ts
-com/liu/trachunom/entity/EntityEvolutionIdModel.ts
 com/vaadin/hilla/crud/filter/PropertyStringFilter/MatcherModel.ts
 com/vaadin/hilla/mappedtypes/SortModel.ts
 com/vaadin/hilla/mappedtypes/OrderModel.ts

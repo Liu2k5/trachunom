@@ -12,4 +12,6 @@ import lombok.NoArgsConstructor;
 public class PronunciationEvolutionDto {
     private Long fromPronunciationId;
     private Long toPronunciationId;
+    private String fromPronunciationString;
+    private String toPronunciationString;
 }

@@ -3,5 +3,6 @@ interface StructureDto {
     id?: number;
     characterString?: string;
     character?: CharacterDto_1;
+    characterWithPronunciationsString?: string;
 }
 export default StructureDto;

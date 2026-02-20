@@ -150,8 +150,8 @@ const ResultContent = ({ result, index }: { result: EntityX, index: number }) =>
     let qnguString;
 
     // useEffect(() => {
-    //     EntityService.getHnomString(result).then((hnom) => hnomString = hnom);
-    //     EntityService.getQnguString(result).then((qngu) => qnguString = qngu);
+    //     EntityService.getHnomStringByExample(result).then((hnom) => hnomString = hnom);
+    //     EntityService.getQnguStringByExample(result).then((qngu) => qnguString = qngu);
     // }, []);
 
     return (

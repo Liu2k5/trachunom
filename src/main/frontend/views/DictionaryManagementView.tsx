@@ -113,12 +113,13 @@ import ExampleDtoModel from "Frontend/generated/com/liu/trachunom/dto/ExampleDto
 import ExampleWordDto from "Frontend/generated/com/liu/trachunom/dto/ExampleWordDto";
 import ExampleDto from "Frontend/generated/com/liu/trachunom/dto/ExampleDto";
 import ExampleWordDtoModel from "Frontend/generated/com/liu/trachunom/dto/ExampleWordDtoModel";
+import {HnomStringByExampleIdComponent} from "Frontend/utils/entityUtils";
 
 export const config: ViewConfig = {
     menu: {order: 2, icon: 'la la-book'},
     title: 'Quản Lý Từ Điển',
     route: 'dictionary-management',
-    loginRequired: true,
+    // loginRequired: true,
 };
 
 interface TabProps {
@@ -840,6 +841,7 @@ const StructureTabContent = () => {
     }, []);
 
     const [structures, setStructures] = useState<Structure[] | undefined | null>(null);
+    const [structureDtos, setStructureDtos] = useState<StructureDto[] | undefined | null>(null);
 
     useEffect(() => {
         StructureService.findAll()
@@ -852,6 +854,14 @@ const StructureTabContent = () => {
             })
             .catch((error) => console.error('Error fetching structures:', error));
     }, [refreshTrigger]);
+
+    useEffect(() => {
+        if (structures) {
+            Promise.all(structures.map(structure => EntityMapper.toStructureDto(structure)))
+                .then(dtos => dtos.filter(dto => dto !== undefined))
+                .then(dtos => setStructureDtos(dtos));
+        }
+    }, [structures]);
 
     const [structureComponents, setStructureComponents] = useState<StructureComponent[] | undefined | null>(null);
     useEffect(() => {
@@ -1030,11 +1040,11 @@ const StructureTabContent = () => {
                                     <ComboBox
                                         {...field}
                                         label="Thành phần"
-                                        itemLabelPath="characterString"
+                                        itemLabelPath="characterWithPronunciationsString"
                                         itemValuePath="id"
-                                        items={structures || []}
+                                        items={structureDtos || []}
                                         renderer={item =>
-                                            <span>{item.item.id + ' - ' + item.item.characterString}</span>}
+                                            <span>{item.item.id + ' - ' + item.item.characterWithPronunciationsString}</span>}
                                     />
                                 );
                             },
@@ -1204,7 +1214,7 @@ const PronunciationTabContent = () => {
     }, []);
 
     const [pronunciations, setPronunciations] = useState<Pronunciation[] | undefined | null>(null);
-    useEffect(() => {
+    const pronunciationsTrigger = () => {
         PronunciationService.findAll()
             .then((list: (Pronunciation | undefined)[] | undefined) => {
                 const tempList: Pronunciation[] = [];
@@ -1214,7 +1224,8 @@ const PronunciationTabContent = () => {
                 setPronunciations(tempList);
             })
             .catch((error) => console.error('Error fetching pronunciations:', error));
-    }, []);
+    };
+    useEffect(pronunciationsTrigger, []);
 
     return (
         <div
@@ -1283,6 +1294,7 @@ const PronunciationTabContent = () => {
                     onSubmitSuccess={() => {
                         setSelectedPronunciationDto(null);
                         pronunciationGridRef.current?.refresh();
+                        pronunciationsTrigger();
                     }}
                     onSubmitError={error => window.alert('Lỗi khi lưu phát âm: ' + error.error.message)}
                     fieldOptions={{
@@ -1396,9 +1408,11 @@ const MeaningTabContent = () => {
 
     const [explanations, setExplanations] = useState<Explanation[]>([]);
     const [meaningExplanations, setMeaningExplanations] = useState<MeaningExplanation[]>([]);
+    const [meanings, setMeanings] = useState<Meaning[]>([]);
 
     useEffect(() => {
         ExplanationService.findAll().then(data => setExplanations((data || []).filter(e => e !== undefined) as Explanation[]));
+        MeaningService.findAll().then(data => setMeanings((data || []).filter(m => m !== undefined) as Meaning[]));
     }, [explanationTrigger]);
 
     // Load MeaningExplanations when selectedMeaning changes
@@ -1599,6 +1613,10 @@ const MeaningTabContent = () => {
                     selectedItems={[selectedMeaning]}
                     onActiveItemChanged={i => setSelectedMeaning(i.detail.value)}
                     columnOptions={{
+                        origin: {
+                            header: 'Nguồn gốc',
+                            path: 'origin.explanationsString',
+                        },
                         explanationsString: {
                             header: 'Nhóm giải nghĩa',
                             filterable: false,
@@ -1611,6 +1629,7 @@ const MeaningTabContent = () => {
                             renderer={deleteMeaningRenderer}
                         />
                     ]}
+                    hiddenColumns={['origin']}
                 >
                 </AutoGrid>
                 <AutoForm
@@ -1623,6 +1642,22 @@ const MeaningTabContent = () => {
                     }}
                     onSubmitError={error => window.alert('Lỗi lưu ý nghĩa: ' + error.error.message)}
                     hiddenFields={['explanationsString']}
+                    fieldOptions={{
+                        origin: {
+                            label: 'Ý nghĩa nguồn gốc',
+                            renderer: ({field}) => (
+                                <ComboBox
+                                    label='Ý nghĩa nguồn gốc'
+                                    itemLabelPath='explanationsString'
+                                    itemValuePath='id'
+                                    items={meanings || []}
+                                    {...field}
+                                    renderer={item =>
+                                        <span>{item.item.id + ' - ' + item.item.explanationsString}</span>}
+                                />
+                            )
+                        }
+                    }}
                 />
             </div>
             <div>
@@ -1724,6 +1759,7 @@ const EntityTabContent = () => {
     const [selectedEvolutionDto, setSelectedEvolutionDto] = useState<EntityEvolutionDto | undefined | null>(null);
 
     const [entities, setEntities] = useState<EntityX[]>([]);
+    const [entityDtos, setEntityDtos] = useState<EntityDto[]>([]);
     const [compositions, setCompositions] = useState<EntityComposition[]>([]);
     const [evolutions, setEvolutions] = useState<EntityEvolution[]>([]);
     const [structures, setStructures] = useState<StructureDto[]>([]);
@@ -1754,6 +1790,12 @@ const EntityTabContent = () => {
     useEffect(() => {
         EntityService.findAll().then(data => setEntities((data || []).filter(e => e !== undefined)));
     }, []);
+
+    useEffect(() => {
+        Promise.all(entities.map(entity => EntityMapper.toEntityDto(entity)))
+        .then(dtos => dtos.filter(entity => entity !== undefined))
+            .then(dtos => setEntityDtos(dtos as EntityDto[]));
+    }, [entities]);
 
     // Map selected composition to DTO
     useEffect(() => {
@@ -1946,7 +1988,7 @@ const EntityTabContent = () => {
         const handleDelete = async () => {
             if (item.id?.fromEntityId && item.id?.toEntityId) {
                 try {
-                    await EntityEvolutionEndpoint.delete(item.id.fromEntityId, item.id.toEntityId);
+                    await EntityEvolutionEndpoint.deleteByEachId(item.id.fromEntityId, item.id.toEntityId);
                     // Reload the filtered list
                     if (selectedEntity?.id) {
                         EntityEvolutionEndpoint.findByFromEntityId(selectedEntity.id)
@@ -2045,9 +2087,9 @@ const EntityTabContent = () => {
                                     label='Cấu tạo'
                                     items={structures}
                                     renderer={(item) =>
-                                        (<span>{item.item.id + ' - ' + (item.item.characterString || '[Không có ký tự]')}</span>)}
+                                        (<span>{item.item.id + ' - ' + (item.item.characterWithPronunciationsString || '[Không có ký tự]')}</span>)}
                                     itemValuePath='id'
-                                    itemLabelPath='characterString'
+                                    itemLabelPath='characterWithPronunciationsString'
                                     {...field}
                                 />
                             ),
@@ -2209,10 +2251,8 @@ const EntityTabContent = () => {
                         <AutoForm
                             service={{
                                 ...EntityEvolutionEndpoint,
-                                delete: async (item: EntityEvolutionDto) => {
-                                    if (item.fromEntityId && item.toEntityId) {
-                                        await EntityEvolutionEndpoint.delete(item.fromEntityId, item.toEntityId);
-                                    }
+                                save: async (item: EntityEvolutionDto) => {
+                                    return await EntityEvolutionEndpoint.saveByEachId(selectedEntity?.id, item.toEntityId, item.description);
                                 }
                             }}
                             model={EntityEvolutionDtoModel}
@@ -2239,12 +2279,12 @@ const EntityTabContent = () => {
                                     renderer: ({field}) => (
                                         <ComboBox
                                             label='Đến thực thể'
-                                            itemLabelPath='explanationsString'
+                                            itemLabelPath='qnguString'
                                             itemValuePath='id'
-                                            items={entities || []}
+                                            items={entityDtos || []}
                                             {...field}
                                             renderer={item =>
-                                        <span>{item.item.id + ' - ' + item.item.characterString + ' ' + item.item.pronunciationString + ' ' + item.item.meaning?.explanationsString}</span>}
+                                        <span>{item.item.id + ' - ' + item.item.hnomString + ' ' + item.item.qnguString + ' ' + item.item.explanationsString}</span>}
                                         />
                                     )
                                 }
@@ -2268,7 +2308,7 @@ const ExampleTabContent = () => {
     const [selectedExampleWordDto, setSelectedExampleWordDto] = useState<ExampleWordDto | undefined | null>(null);
     const exampleGridRef = useRef<any>(null);
     const exampleWordGridRef = useRef<any>(null);
-    const [exampleWords, setExampleWords] = useState<ExampleWord[]>([]);
+    const [exampleWordDtos, setExampleWordDtos] = useState<ExampleWordDto[]>([]);
     const [sources, setSources] = useState<Source[]>([]);
     const [entities, setEntities] = useState<EntityDto[]>([]);
 
@@ -2287,10 +2327,10 @@ const ExampleTabContent = () => {
         if (selectedExample?.id) {
             ExampleWordEndpoint.findByExampleId(selectedExample.id)
                 .then(data => data?.filter(exampleWord => exampleWord !== undefined))
-                .then(data => setExampleWords(data as ExampleWord[]))
+                .then(data => setExampleWordDtos(data as ExampleWordDto[]))
                 .catch(error => console.error('Error loading ExampleWords:', error));
         } else {
-            setExampleWords([]);
+            setExampleWordDtos([]);
         }
     };
 
@@ -2347,7 +2387,7 @@ const ExampleTabContent = () => {
         const handleDelete = async () => {
             if (item.exampleWordId?.exampleId && item.exampleWordId.entityId && item.exampleWordId.position) {
                 try {
-                    await ExampleWordEndpoint.delete(item.exampleWordId.exampleId, item.exampleWordId.entityId, item.exampleWordId.position);
+                    await ExampleWordEndpoint.deleteByEachId(item.exampleWordId.exampleId, item.exampleWordId.entityId, item.exampleWordId.position);
                     // Reload examples list
                     exampleGridRef.current?.refresh();
                     exampleWordsTrigger();
@@ -2379,6 +2419,21 @@ const ExampleTabContent = () => {
             </button>
         );
     };
+    const exampleWordDtoService = useMemo(() => ({
+        async list(request: any, token?: any) {
+            const exampleWords = await ExampleWordService.list(request, token);
+            return await Promise.all(
+                exampleWords.map(word => EntityMapper.toExampleWordDto(word))
+            );
+        },
+        async save(item: ExampleWordDto | undefined) {
+            if (!item) return undefined;
+            const exampleWord = await EntityMapper.toExampleWord(item);
+            const saved = await ExampleWordService.save(exampleWord);
+            return await EntityMapper.toExampleWordDto(saved);
+        }
+    }), []);
+
 
     return (
         <div
@@ -2399,6 +2454,10 @@ const ExampleTabContent = () => {
                         <GridColumn
                             header="Xóa"
                             renderer={deleteExampleRenderer}
+                        />,
+                        <GridColumn
+                            header='Nôm'
+                            renderer={({item}) => <HnomStringByExampleIdComponent exampleId={item.id}/>}
                         />
                     ]}
                     columnOptions={{
@@ -2435,12 +2494,12 @@ const ExampleTabContent = () => {
             </div>
             <div>
                 <AutoGrid
-                    service={ExampleWordService}
-                    model={ExampleWordModel}
+                    service={exampleWordDtoService}
+                    model={ExampleWordDtoModel}
                     ref={exampleWordGridRef}
-                    items={exampleWords}
-                    selectedItems={[selectedExampleWord]}
-                    onActiveItemChanged={(i) => setSelectedExampleWord(i.detail.value)}
+                    items={exampleWordDtos}
+                    selectedItems={[selectedExampleWordDto]}
+                    onActiveItemChanged={(i) => setSelectedExampleWordDto(i.detail.value)}
                     customColumns={[
                         <GridColumn
                             header='Xóa'
@@ -2448,24 +2507,19 @@ const ExampleTabContent = () => {
                         />
                     ]}
                     columnOptions={{
-                        exampleWordId: {
+                        position: {
                             header: 'Vị trí',
-                            path: 'exampleWordId.position',
+                            filterable: false,
                         },
                         entity: {
-                            path: 'entity.characterString',
+                            path: 'entity.hnomString',
                         },
                     }}
-                    hiddenColumns={['exampleId', 'example']}
+                    hiddenColumns={['exampleId', 'example', 'entityId',]}
                 />
                 <AutoForm
                     service={{
                         ...ExampleWordEndpoint,
-                        delete: async (item: ExampleWordDto) => {
-                            if (selectedExample?.id && item.entityId && item.position) {
-                                await ExampleWordEndpoint.delete(selectedExample.id, item.entityId, item.position);
-                            }
-                        },
                         save: async (item: ExampleWordDto): Promise<ExampleWordDto | undefined> => {
                             if (selectedExample?.id && item.entityId && item.position) {
                                 return await ExampleWordEndpoint.save(selectedExample.id, item.entityId, item.position);
