@@ -11,7 +11,7 @@ export default function IndexView() {
   const navigate = useNavigate();
 
   const handleNavigate = () => {
-    navigate('/dictionary-management');
+    navigate('/admin/dictionary-management');
   };
 
   return (

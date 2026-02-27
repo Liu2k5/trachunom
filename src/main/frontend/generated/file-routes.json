@@ -10,7 +10,7 @@
     "params": {}
   },
   {
-    "route": "dictionary-management",
+    "route": "/admin/dictionary-management",
     "menu": {
       "order": 2,
       "icon": "la la-book"
@@ -32,6 +32,15 @@
       "icon": "la la-home"
     },
     "title": "Tra Chữ Nôm",
+    "flowLayout": false,
+    "params": {}
+  },
+  {
+    "route": "login",
+    "menu": {
+      "exclude": true
+    },
+    "title": "Đăng nhập",
     "flowLayout": false,
     "params": {}
   },

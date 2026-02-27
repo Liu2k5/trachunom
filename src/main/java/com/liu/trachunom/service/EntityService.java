@@ -75,7 +75,7 @@ public class EntityService extends ListRepositoryService<EntityX, Long, EntityRe
             try {
                 return structureService.getCharacterStringById(entity.getStructure().getId());
             } catch (Exception e) {
-                return "an error occurred";
+                return "(trống)";
             }
         } else {
             StringBuilder hnomString = new StringBuilder();
@@ -89,7 +89,7 @@ public class EntityService extends ListRepositoryService<EntityX, Long, EntityRe
             if (!entity.isCompound()) {
                 return "[" + hnomString.toString() + "]";
             }
-            return hnomString.toString();
+            return hnomString.toString().isEmpty() ? "(trống)": hnomString.toString();
         }
     }
 
@@ -106,9 +106,9 @@ public class EntityService extends ListRepositoryService<EntityX, Long, EntityRe
                     qnguString.append(ec.getChildEntity().getPronunciation().getString());
                     qnguString.append(" ");
                 }
-                return qnguString.toString().trim();
+                return qnguString.toString().trim().isEmpty() ? "(trống)" : qnguString.toString().trim();
             }
-            return "";
+            return "(trống)";
         }
     }
 
@@ -173,4 +173,17 @@ public class EntityService extends ListRepositoryService<EntityX, Long, EntityRe
                 && entityX.getMeaning().getId().equals(entity.getMeaning().getId()))
                 .toList();
     }
+
+    public List<EntityX> findByPronunciation(Pronunciation entity) {
+        return entityRepository.findByPronunciation(entity);
+    }
+
+    public List<EntityX> findByStructure(Structure structure) {
+        return entityRepository.findByStructure(structure);
+    }
+
+    public List<EntityX> findByPronunciationId(Long pronunciationId) {
+        return entityRepository.findByPronunciation_Id(pronunciationId);
+    }
+
 }

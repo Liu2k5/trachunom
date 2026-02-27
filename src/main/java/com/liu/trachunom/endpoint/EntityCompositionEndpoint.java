@@ -5,6 +5,7 @@ import com.liu.trachunom.entity.EntityComposition;
 import com.liu.trachunom.entity.EntityCompositionId;
 import com.liu.trachunom.mapper.EntityMapper;
 import com.liu.trachunom.service.EntityCompositionService;
+import com.liu.trachunom.service.EntityService;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.BrowserCallable;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 public class EntityCompositionEndpoint {
     private final EntityCompositionService entityCompositionService;
     private final EntityMapper entityMapper;
+    private final EntityService entityService;
 
     public List<EntityCompositionDto> findByParentEntityId(Long parentEntityId) {
         return entityCompositionService.findByParentEntityId(parentEntityId).stream()
@@ -33,7 +35,25 @@ public class EntityCompositionEndpoint {
         return entityMapper.toEntityCompositionDto(composition);
     }
 
-    public void delete(Long parentEntityId, Long childEntityId, Integer position) {
+    public EntityCompositionDto saveByIds(Long parentEntityId, Long childEntityId, Integer position) {
+        EntityComposition composition = EntityComposition.builder()
+                .id(EntityCompositionId.builder()
+                        .parentEntityId(parentEntityId)
+                        .childEntityId(childEntityId)
+                        .position(position.longValue())
+                        .build())
+                .parentEntity(entityService.findById(parentEntityId))
+                .childEntity(entityService.findById(childEntityId))
+                .build();
+        entityCompositionService.save(composition);
+        return entityMapper.toEntityCompositionDto(composition);
+    }
+
+    public void delete(EntityCompositionId id) {
+        entityCompositionService.deleteById(id);
+    }
+
+    public void deleteByIds(Long parentEntityId, Long childEntityId, Integer position) {
         EntityCompositionId id = EntityCompositionId.builder()
                 .parentEntityId(parentEntityId)
                 .childEntityId(childEntityId)

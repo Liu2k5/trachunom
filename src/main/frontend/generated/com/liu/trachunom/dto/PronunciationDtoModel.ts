@@ -11,5 +11,8 @@ class PronunciationDtoModel<T extends PronunciationDto_1 = PronunciationDto_1> e
     get pronunciationString(): StringModel_1 {
         return this[_getPropertyModel_1]("pronunciationString", (parent, key) => new StringModel_1(parent, key, true, { meta: { javaType: "java.lang.String" } }));
     }
+    get characterWithPronunciationsString(): StringModel_1 {
+        return this[_getPropertyModel_1]("characterWithPronunciationsString", (parent, key) => new StringModel_1(parent, key, true, { meta: { javaType: "java.lang.String" } }));
+    }
 }
 export default PronunciationDtoModel;

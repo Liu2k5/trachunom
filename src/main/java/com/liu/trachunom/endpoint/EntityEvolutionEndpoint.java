@@ -35,7 +35,7 @@ public class EntityEvolutionEndpoint {
         return entityMapper.toEntityEvolutionDto(evolution);
     }
 
-    public EntityEvolutionDto saveByEachId(Long fromEntityId, Long toEntityId, String description) {
+    public EntityEvolutionDto saveByIds(Long fromEntityId, Long toEntityId, String description) {
         EntityEvolutionId evolutionId = EntityEvolutionId.builder()
                 .fromEntityId(fromEntityId)
                 .toEntityId(toEntityId)

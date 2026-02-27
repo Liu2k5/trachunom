@@ -114,13 +114,34 @@ import ExampleWordDto from "Frontend/generated/com/liu/trachunom/dto/ExampleWord
 import ExampleDto from "Frontend/generated/com/liu/trachunom/dto/ExampleDto";
 import ExampleWordDtoModel from "Frontend/generated/com/liu/trachunom/dto/ExampleWordDtoModel";
 import {HnomStringByExampleIdComponent} from "Frontend/utils/entityUtils";
+import PronunciationDto from "Frontend/generated/com/liu/trachunom/dto/PronunciationDto";
 
 export const config: ViewConfig = {
     menu: {order: 2, icon: 'la la-book'},
     title: 'Quản Lý Từ Điển',
-    route: 'dictionary-management',
-    // loginRequired: true,
+    route: '/admin/dictionary-management',
 };
+
+// Kiểm tra auth khi vào trang admin
+async function checkAuth() {
+    try {
+        const response = await fetch('/connect/AuthEndpoint/getAuthInfo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: '{}',
+            credentials: 'same-origin',
+        });
+        if (response.status === 401 || response.status === 403) {
+            window.location.href = '/login';
+        }
+        const data = await response.json();
+        if (!data?.loggedIn) {
+            window.location.href = '/login';
+        }
+    } catch {
+        window.location.href = '/login';
+    }
+}
 
 interface TabProps {
     label: string,
@@ -150,6 +171,10 @@ const Tab = ({label, active, onClick}: TabProps) => (
 
 export default function DictionaryManagementView() {
     const [activeTab, setActiveTab] = useState('basics');
+
+    useEffect(() => {
+        checkAuth();
+    }, []);
 
     const tabs = [
         {id: 'basics', label: 'Cơ bản'},
@@ -983,7 +1008,7 @@ const StructureTabContent = () => {
                         setRefreshTrigger(!refreshTrigger);
                     }}
                     onSubmitError={error => window.alert('Lỗi khi lưu cấu tạo: ' + error.error.message)}
-                    hiddenFields={['character',]}
+                    hiddenFields={['character', 'characterWithPronunciationsString']}
                 />
             </div>
 
@@ -1214,6 +1239,8 @@ const PronunciationTabContent = () => {
     }, []);
 
     const [pronunciations, setPronunciations] = useState<Pronunciation[] | undefined | null>(null);
+    const [pronunciationDtos, setPronunciationDtos] = useState<PronunciationDto[] | undefined | null>(null);
+
     const pronunciationsTrigger = () => {
         PronunciationService.findAll()
             .then((list: (Pronunciation | undefined)[] | undefined) => {
@@ -1226,6 +1253,13 @@ const PronunciationTabContent = () => {
             .catch((error) => console.error('Error fetching pronunciations:', error));
     };
     useEffect(pronunciationsTrigger, []);
+    useEffect(() => {
+        if (pronunciations) {
+            Promise.all(pronunciations?.map(pronunciation => EntityMapper.toPronunciationDto(pronunciation)))
+                .then(data => data.filter(dto => dto !== undefined))
+                .then(dtos => setPronunciationDtos(dtos));
+        }
+    }, [pronunciations]);
 
     return (
         <div
@@ -1315,7 +1349,7 @@ const PronunciationTabContent = () => {
                             },
                         },
                     }}
-                    hiddenFields={['pronunciationString']}
+                    hiddenFields={['pronunciationString', 'characterWithPronunciationsString']}
                 />
             </div>
             <div>
@@ -1360,11 +1394,11 @@ const PronunciationTabContent = () => {
                                     <ComboBox
                                         {...field}
                                         label="Phát âm gốc"
-                                        itemLabelPath="string"
+                                        itemLabelPath="characterWithPronunciationsString"
                                         itemValuePath="id"
-                                        items={pronunciations || []}
+                                        items={pronunciationDtos || []}
                                         renderer={item =>
-                                            <div>{item.item.id + ' - ' + item.item.string}</div>}
+                                            <div>{item.item.id + ' - ' + item.item.characterWithPronunciationsString}</div>}
                                     />
                                 );
                             },
@@ -1376,16 +1410,17 @@ const PronunciationTabContent = () => {
                                     <ComboBox
                                         {...field}
                                         label="Phát âm đích"
-                                        itemLabelPath="string"
+                                        itemLabelPath="characterWithPronunciationsString"
                                         itemValuePath="id"
-                                        items={pronunciations || []}
+                                        items={pronunciationDtos || []}
                                         renderer={item =>
-                                            <div>{item.item.id + ' - ' + item.item.string}</div>}
+                                            <div>{item.item.id + ' - ' + item.item.characterWithPronunciationsString}</div>}
                                     />
                                 );
                             }
                         }
                     }}
+                    hiddenFields={['fromPronunciationString', 'toPronunciationString']}
                 />
             </div>
         </div>
@@ -1394,6 +1429,7 @@ const PronunciationTabContent = () => {
 
 const MeaningTabContent = () => {
     const [explanationTrigger, setExplanationTrigger] = useState(false);
+    const [explanationGroupTrigger, setExplanationGroupTrigger] = useState(false);
 
     const explanationGridRef = useRef<any>(null);
     const meaningGridRef = useRef<any>(null);
@@ -1413,7 +1449,7 @@ const MeaningTabContent = () => {
     useEffect(() => {
         ExplanationService.findAll().then(data => setExplanations((data || []).filter(e => e !== undefined) as Explanation[]));
         MeaningService.findAll().then(data => setMeanings((data || []).filter(m => m !== undefined) as Meaning[]));
-    }, [explanationTrigger]);
+    }, [explanationTrigger, explanationGroupTrigger]);
 
     // Load MeaningExplanations when selectedMeaning changes
     useEffect(() => {
@@ -1544,6 +1580,7 @@ const MeaningTabContent = () => {
                         selectedMeaningExplanation?.id?.explanationId === item.id?.explanationId) {
                         setSelectedMeaningExplanation(null);
                     }
+                    setExplanationGroupTrigger(!explanationGroupTrigger);
                 } catch (error) {
                     console.error('Error deleting MeaningExplanation:', error);
                 }
@@ -1641,9 +1678,9 @@ const MeaningTabContent = () => {
                         meaningGridRef.current?.refresh();
                     }}
                     onSubmitError={error => window.alert('Lỗi lưu ý nghĩa: ' + error.error.message)}
-                    hiddenFields={['explanationsString']}
+                    hiddenFields={['explanationsString', 'origin']}
                     fieldOptions={{
-                        origin: {
+                        originId: {
                             label: 'Ý nghĩa nguồn gốc',
                             renderer: ({field}) => (
                                 <ComboBox
@@ -1715,6 +1752,7 @@ const MeaningTabContent = () => {
                                         .catch((error: any) => console.error('Error reloading MeaningExplanations:', error));
                                 }
                                 meaningGridRef.current?.refresh();
+                                setExplanationGroupTrigger(!explanationGroupTrigger);
                             }}
                             onSubmitError={error => window.alert('Lỗi lưu nhóm giải nghĩa: ' + error.error.message)}
                             visibleFields={['explanationId']}
@@ -1766,6 +1804,7 @@ const EntityTabContent = () => {
     const [meanings, setMeanings] = useState<Meaning[]>([]);
     const [languages, setLanguages] = useState<Language[]>([]);
     const [pronunciations, setPronunciations] = useState<Pronunciation[]>([]);
+    const [pronunciationDtos, setPronunciationDtos] = useState<PronunciationDto[]>([]);
 
     // Create stable service wrappers using useMemo
     const entityService = useMemo(() => ({
@@ -1869,6 +1908,13 @@ const EntityTabContent = () => {
     }, []);
 
     useEffect(() => {
+        Promise.all(pronunciations.map(pronunciation => EntityMapper.toPronunciationDto(pronunciation)))
+            .then(dtos => dtos.filter(dto => dto !== undefined))
+            .then(dtos => setPronunciationDtos(dtos))
+            .catch(error => console.error('Error mapping Pronunciations to DTOs:', error));
+    }, [pronunciations]);
+
+    useEffect(() => {
         MeaningService.findAll().then(meanings => {
             const tempMeanings: Meaning[] = [];
             meanings?.forEach(meaning => {
@@ -1944,7 +1990,7 @@ const EntityTabContent = () => {
         const handleDelete = async () => {
             if (item.id?.parentEntityId && item.id?.childEntityId !== undefined && item.id?.position !== undefined) {
                 try {
-                    await EntityCompositionEndpoint.delete(item.id.parentEntityId, item.id.childEntityId, Number(item.id.position));
+                    await EntityCompositionEndpoint.deleteByIds(item.id.parentEntityId, item.id.childEntityId, Number(item.id.position));
                     // Reload the filtered list
                     if (selectedEntity?.id) {
                         EntityCompositionEndpoint.findByParentEntityId(selectedEntity.id)
@@ -2111,11 +2157,11 @@ const EntityTabContent = () => {
                             renderer: ({field}) => (
                                 <ComboBox
                                     label='Phát âm'
-                                    items={pronunciations}
+                                    items={pronunciationDtos}
                                     renderer={(item) =>
-                                        (<span>{item.item.id + ' - ' + item.item.string}</span>)}
+                                        (<span>{item.item.id + ' - ' + item.item.characterWithPronunciationsString}</span>)}
                                     itemValuePath= 'id'
-                                    itemLabelPath= 'string'
+                                    itemLabelPath= 'characterWithPronunciationsString'
                                     {...field}
                                 />
                             ),
@@ -2168,10 +2214,10 @@ const EntityTabContent = () => {
                         <AutoForm
                             service={{
                                 ...EntityCompositionEndpoint,
-                                delete: async (item: EntityCompositionDto) => {
-                                    if (item.parentEntityId && item.childEntityId !== undefined && item.position !== undefined) {
-                                        await EntityCompositionEndpoint.delete(item.parentEntityId, item.childEntityId, item.position);
-                                    }
+                                save: async (item) => {
+                                    if (!item) return undefined;
+                                    const saved = await EntityCompositionEndpoint.saveByIds(selectedEntity?.id, item.childEntityId, item.position);
+                                    return saved;
                                 }
                             }}
                             model={EntityCompositionDtoModel}
@@ -2198,7 +2244,7 @@ const EntityTabContent = () => {
                                     renderer: ({field}) => (
                                         <ComboBox
                                             label='Thực thể con'
-                                            itemLabelPath='meaning.explanationsString'
+                                            itemLabelPath='pronunciationString'
                                             itemValuePath='id'
                                             items={entities || []}
                                             {...field}
@@ -2238,7 +2284,7 @@ const EntityTabContent = () => {
                                 fromEntity: { hidden: true },
                                 toEntity: {
                                     header: 'Thực thể đến',
-                                    path: 'toEntity.id',
+                                    path: 'toEntity.pronunciationString',
                                 },
                             }}
                             customColumns={[
@@ -2252,7 +2298,7 @@ const EntityTabContent = () => {
                             service={{
                                 ...EntityEvolutionEndpoint,
                                 save: async (item: EntityEvolutionDto) => {
-                                    return await EntityEvolutionEndpoint.saveByEachId(selectedEntity?.id, item.toEntityId, item.description);
+                                    return await EntityEvolutionEndpoint.saveByIds(selectedEntity?.id, item.toEntityId, item.description);
                                 }
                             }}
                             model={EntityEvolutionDtoModel}
@@ -2383,18 +2429,18 @@ const ExampleTabContent = () => {
                 </button>
             );
         };
-    const deleteExampleWordRenderer = ({item}: { item: ExampleWord }) => {
+    const deleteExampleWordRenderer = ({item}: { item: ExampleWordDto }) => {
         const handleDelete = async () => {
-            if (item.exampleWordId?.exampleId && item.exampleWordId.entityId && item.exampleWordId.position) {
+            if (selectedExampleDto?.id && item.entityId && item.position) {
                 try {
-                    await ExampleWordEndpoint.deleteByEachId(item.exampleWordId.exampleId, item.exampleWordId.entityId, item.exampleWordId.position);
+                    await ExampleWordEndpoint.deleteByEachId(selectedExampleDto?.id, item.entityId, item.position);
                     // Reload examples list
                     exampleGridRef.current?.refresh();
                     exampleWordsTrigger();
                     exampleWordGridRef.current?.refresh();
-                    if (selectedExampleWord?.exampleWordId?.exampleId === item.exampleWordId.exampleId &&
-                        selectedExampleWord?.exampleWordId?.entityId === item.exampleWordId.entityId &&
-                        selectedExampleWord?.exampleWordId?.position === item.exampleWordId.position) {
+                    if (selectedExampleDto?.id === item.exampleId &&
+                        selectedExampleWord?.exampleWordId?.entityId === item.entityId &&
+                        selectedExampleWord?.exampleWordId?.position === item.position) {
                         setSelectedExampleWord(null);
                     }
                 } catch (error) {

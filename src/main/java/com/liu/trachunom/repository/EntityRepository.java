@@ -19,6 +19,10 @@ public interface EntityRepository extends JpaRepository<EntityX, Long>, JpaSpeci
 
     List<EntityX> findByPronunciation(Pronunciation pronunciation);
 
+    List<EntityX> findByStructure(Structure structure);
+
+    List<EntityX> findByPronunciation_Id(Long pronunciationId);
+
 //    @EntityGraph(attributePaths = {"structure", "pronunciation", "meaning", "language"})
 //    @Override
 //    List<EntityX> findAll();

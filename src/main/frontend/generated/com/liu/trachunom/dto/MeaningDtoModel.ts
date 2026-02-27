@@ -7,6 +7,9 @@ class MeaningDtoModel<T extends MeaningDto_1 = MeaningDto_1> extends ObjectModel
     get id(): NumberModel_1 {
         return this[_getPropertyModel_1]("id", (parent, key) => new NumberModel_1(parent, key, true, { meta: { javaType: "java.lang.Long" } }));
     }
+    get originId(): NumberModel_1 {
+        return this[_getPropertyModel_1]("originId", (parent, key) => new NumberModel_1(parent, key, true, { meta: { javaType: "java.lang.Long" } }));
+    }
     get origin(): MeaningDtoModel_1 {
         return this[_getPropertyModel_1]("origin", (parent, key) => new MeaningDtoModel_1(parent, key, true));
     }

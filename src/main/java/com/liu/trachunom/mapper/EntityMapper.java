@@ -53,32 +53,26 @@ public class EntityMapper {
                 .build();
     }
 
-    public MeaningDto toMeaningDto(Meaning entity) {
-        if (entity == null) {
+    public MeaningDto toMeaningDto(Meaning meaning) {
+        if (meaning == null) {
             return null;
         }
 
         List<ExplanationDto> explanationDtos = null;
-        if (entity.getExplanations() != null) {
-            explanationDtos = entity.getExplanations().stream()
+        if (meaning.getExplanations() != null) {
+            explanationDtos = meaning.getExplanations().stream()
                     .map(this::toExplanationDto)
                     .collect(Collectors.toList());
         }
 
-        MeaningDto originDto = null;
-        if (entity.getOrigin() != null) {
-            // Chỉ map id và explanationsString của origin để tránh đệ quy vô hạn
-            originDto = MeaningDto.builder()
-                    .id(entity.getOrigin().getId())
-                    .explanationsString(entity.getOrigin().getExplanationsString())
-                    .build();
-        }
+        MeaningDto originDto = toMeaningDto(meaning.getOrigin());
 
         return MeaningDto.builder()
-                .id(entity.getId())
+                .id(meaning.getId())
+                .originId(meaning.getOrigin() != null ? meaning.getOrigin().getId() : null)
                 .origin(originDto)
                 .explanations(explanationDtos)
-                .explanationsString(entity.getExplanationsString())
+                .explanationsString(meaning.getExplanationsString())
                 .build();
     }
 
@@ -98,10 +92,21 @@ public class EntityMapper {
         if (entity == null) {
             return null;
         }
+
+        String pronunciationString = entity.getString();
+        StringBuilder stringBuilder = new StringBuilder();
+        entityService.findByPronunciation(entity).forEach(e -> {
+            stringBuilder.append(e != null
+                    ? entityService.getHnomStringById(e.getId())
+                    : "")
+                    .append(" ");
+        });
+
         return PronunciationDto.builder()
                 .id(entity.getId())
                 .quocNguId(entity.getQuocNgu() != null ? entity.getQuocNgu().getId() : null)
                 .pronunciationString(entity.getString())
+                .characterWithPronunciationsString(pronunciationString + " " + stringBuilder.toString().trim())
                 .build();
     }
 
@@ -115,22 +120,22 @@ public class EntityMapper {
                 .build();
     }
 
-    public StructureComponentDto toStructureComponentDto(StructureComponent entity) {
-        if (entity == null) {
+    public StructureComponentDto toStructureComponentDto(StructureComponent structureComponent) {
+        if (structureComponent == null) {
             return null;
         }
         return StructureComponentDto.builder()
 
-                .structureId(entity.getStructure() != null ? entity.getStructure().getId() : null)
-                .structureCharacterString(entity.getStructure() != null ?
-                        entity.getStructure().getCharacterString() : null)
-                .structureComponentId(entity.getStructureComponent() != null ? entity.getStructureComponent().getId() : null)
-                .structureComponentCharacterString(entity.getStructureComponent() != null ?
-                        entity.getStructureComponent().getCharacterString() : null)
-                .classificationId(entity.getStructureClassification() != null ? entity.getStructureClassification().getId() : null)
-                .classificationDescription(entity.getStructureClassification() != null ?
-                        entity.getStructureClassification().getDescription() : null)
-                .quantity(entity.getQuantity())
+                .structureId(structureComponent.getStructure() != null ? structureComponent.getStructure().getId() : null)
+                .structureCharacterString(structureComponent.getStructure() != null ?
+                        structureComponent.getStructure().getCharacterString() : null)
+                .structureComponentId(structureComponent.getStructureComponent() != null ? structureComponent.getStructureComponent().getId() : null)
+                .structureComponentCharacterString(structureComponent.getStructureComponent() != null ?
+                        structureService.getCharacterStringById(structureComponent.getStructureComponent().getId()) : null)
+                .classificationId(structureComponent.getStructureClassification() != null ? structureComponent.getStructureClassification().getId() : null)
+                .classificationDescription(structureComponent.getStructureClassification() != null ?
+                        structureComponent.getStructureClassification().getDescription() : null)
+                .quantity(structureComponent.getQuantity())
                 .build();
     }
 
@@ -149,12 +154,18 @@ public class EntityMapper {
             return null;
         }
 
-        String characterString = structure.getCharacter() != null ? structure.getCharacterString() : null;
+        String characterString = "";
+        if (structure.getCharacter() != null) {
+            characterString = structure.getCharacterString();
+        } else {
+            characterString = structureService.getCharacterStringById(structure.getId());
+        }
+
         StringBuilder stringBuilder = new StringBuilder();
-        entityService.findByCharacter(structure.getCharacter()).forEach(entity -> {
-            stringBuilder.append(entity != null
-                    ? entityService.getQnguStringById(entity.getId())
-                    : entity.getPronunciationString())
+        entityService.findByStructure(structure).forEach(e -> {
+            stringBuilder.append(e != null
+                    ? entityService.getQnguStringById(e.getId())
+                    : "")
                     .append(" ");
         });
 
@@ -554,8 +565,8 @@ public class EntityMapper {
         }
 
         Meaning origin = null;
-        if (meaningDto.getOrigin() != null && meaningDto.getOrigin().getId() != null) {
-            origin = meaningService.findById(meaningDto.getOrigin().getId());
+        if (meaningDto.getOriginId() != null) {
+            origin = meaningService.findById(meaningDto.getOriginId());
         }
 
         return Meaning.builder()

@@ -44,7 +44,7 @@ export default function SearchView() {
   return (
     <div
       style={{
-        width: '100%',
+        width: 'auto',
         minHeight: '100vh',
         background: '#f5f5f5',
         padding: '20px',

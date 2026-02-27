@@ -12,8 +12,8 @@ interface EntityX {
     compound: boolean;
     attested: boolean;
     standardised: boolean;
-    pronunciationString?: string;
     explanationsString?: string;
+    pronunciationString?: string;
     characterString?: string;
     structureId?: string;
 }

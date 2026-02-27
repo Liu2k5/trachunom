@@ -13,7 +13,13 @@ import EntityEvolutionDto from "Frontend/generated/com/liu/trachunom/dto/EntityE
 import EntityDto from "Frontend/generated/com/liu/trachunom/dto/EntityDto";
 import EntityX from "Frontend/generated/com/liu/trachunom/entity/EntityX";
 import {EntityService} from "Frontend/generated/endpoints";
-import {DrawEvolution, DrawPronunciationEvolution, DrawStructure, HnomQnguComponent} from 'Frontend/utils/entityUtils';
+import {
+    DrawEvolution,
+    DrawMeaningEvolution,
+    DrawPronunciationEvolution,
+    DrawStructure,
+    HnomQnguComponent
+} from 'Frontend/utils/entityUtils';
 
 export const config: ViewConfig = {
     title: 'Chi Tiết Thực Thể',
@@ -197,6 +203,26 @@ export default function EntityDetailView() {
                         }
                     </div>
 
+                    {/* Structure */}
+                    {entity.structure && (
+                        <section style={{marginBottom: '30px'}}>
+                            <h2
+                                style={{
+                                    color: '#667eea',
+                                    fontSize: '20px',
+                                    marginBottom: '15px',
+                                    borderLeft: '4px solid #667eea',
+                                    paddingLeft: '12px',
+                                }}
+                            >
+                                Cấu tạo
+                            </h2>
+                            <div style={{width: '100%',}}>
+                                <DrawStructure structure={entity.structure}/>
+                            </div>
+                        </section>
+                    )}
+
                     {/* Pronunciation */}
                     {entity.pronunciation && (
                         <section style={{marginBottom: '30px'}}>
@@ -233,52 +259,7 @@ export default function EntityDetailView() {
                             >
                                 Ý nghĩa
                             </h2>
-                            <div style={{paddingLeft: '16px'}}>
-                                {entity.meaning.explanations.map((explanation, idx) =>
-                                    explanation ? (
-                                        <div
-                                            key={explanation.id ?? idx}
-                                            style={{
-                                                marginBottom: '20px',
-                                                padding: '15px',
-                                                background: '#f9f9f9',
-                                                borderRadius: '6px',
-                                            }}
-                                        >
-                                            <div
-                                                style={{
-                                                    fontSize: '16px',
-                                                    color: '#333',
-                                                    marginBottom: '10px',
-                                                    fontWeight: '500',
-                                                }}
-                                            >
-                                                {idx + 1}. {explanation.description ?? ''}
-                                            </div>
-                                        </div>
-                                    ) : null
-                                )}
-                            </div>
-                        </section>
-                    )}
-
-                    {/* Structure */}
-                    {entity.structure && (
-                        <section style={{marginBottom: '30px'}}>
-                            <h2
-                                style={{
-                                    color: '#667eea',
-                                    fontSize: '20px',
-                                    marginBottom: '15px',
-                                    borderLeft: '4px solid #667eea',
-                                    paddingLeft: '12px',
-                                }}
-                            >
-                                Cấu tạo
-                            </h2>
-                            <div style={{width: '100%',}}>
-                                <DrawStructure structure={entity.structure}/>
-                            </div>
+                            <DrawMeaningEvolution meaning={entity.meaning}/>
                         </section>
                     )}
 
@@ -396,9 +377,11 @@ export default function EntityDetailView() {
                                                 <div
                                                     style={{
                                                         display: 'flex',
+                                                        flexWrap: 'wrap',
                                                         gap: '10px',
                                                         marginBottom: '10px',
                                                         fontFamily: 'sans-serif',
+                                                        width: 'fit-content',
                                                     }}>
                                                     {
                                                         example?.exampleWords ? (
@@ -413,8 +396,6 @@ export default function EntityDetailView() {
                                                             )
                                                         ) : <div>khong co example</div>
                                                     }
-                                                </div>
-                                                <div>
                                                     <p
                                                         title={example ? example.sourceDescription : ''}
                                                         style={{

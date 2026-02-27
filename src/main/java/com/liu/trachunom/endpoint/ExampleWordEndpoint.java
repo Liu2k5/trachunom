@@ -48,10 +48,7 @@ public class ExampleWordEndpoint {
     }
 
     public void deleteByEachId(Long exampleId, Long entityId, Long position) {
-        ExampleWordId id = new ExampleWordId();
-        id.setExampleId(exampleId);
-        id.setEntityId(entityId);
-        id.setPosition(position);
+        ExampleWordId id = ExampleWordId.builder().exampleId(exampleId).entityId(entityId).position(position).build();
         delete(id);
     }
 

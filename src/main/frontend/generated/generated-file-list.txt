@@ -1,3 +1,4 @@
+AuthEndpoint.ts
 CharacterEndpoint.ts
 EntityCompositionEndpoint.ts
 EntityDetailEndpoint.ts
@@ -38,8 +39,10 @@ StyleService.ts
 TradSimpStandardService.ts
 ExampleEndpoint.ts
 ExampleWordEndpoint.ts
+com/liu/trachunom/endpoint/AuthEndpoint/AuthInfo.ts
 com/liu/trachunom/dto/CharacterDto.ts
 com/liu/trachunom/entity/CharacterX.ts
+com/liu/trachunom/entity/EntityCompositionId.ts
 com/liu/trachunom/dto/EntityCompositionDto.ts
 com/liu/trachunom/dto/EntityDetailDto.ts
 com/liu/trachunom/dto/EntityDto.ts
@@ -91,7 +94,6 @@ com/vaadin/hilla/crud/filter/PropertyStringFilter.ts
 com/vaadin/hilla/mappedtypes/Pageable.ts
 com/liu/trachunom/entity/ExampleWordId.ts
 com/liu/trachunom/entity/MeaningExplanationId.ts
-com/liu/trachunom/entity/EntityCompositionId.ts
 com/vaadin/hilla/crud/filter/PropertyStringFilter/Matcher.ts
 com/vaadin/hilla/mappedtypes/Sort.ts
 com/vaadin/hilla/mappedtypes/Order.ts
@@ -99,8 +101,10 @@ org/springframework/data/domain/Sort/Direction.ts
 org/springframework/data/domain/Sort/NullHandling.ts
 connect-client.default.ts
 endpoints.ts
+com/liu/trachunom/endpoint/AuthEndpoint/AuthInfoModel.ts
 com/liu/trachunom/dto/CharacterDtoModel.ts
 com/liu/trachunom/entity/CharacterXModel.ts
+com/liu/trachunom/entity/EntityCompositionIdModel.ts
 com/liu/trachunom/dto/EntityCompositionDtoModel.ts
 com/liu/trachunom/dto/EntityDetailDtoModel.ts
 com/liu/trachunom/dto/EntityDtoModel.ts
@@ -151,7 +155,6 @@ com/vaadin/hilla/crud/filter/PropertyStringFilterModel.ts
 com/vaadin/hilla/mappedtypes/PageableModel.ts
 com/liu/trachunom/entity/ExampleWordIdModel.ts
 com/liu/trachunom/entity/MeaningExplanationIdModel.ts
-com/liu/trachunom/entity/EntityCompositionIdModel.ts
 com/vaadin/hilla/crud/filter/PropertyStringFilter/MatcherModel.ts
 com/vaadin/hilla/mappedtypes/SortModel.ts
 com/vaadin/hilla/mappedtypes/OrderModel.ts

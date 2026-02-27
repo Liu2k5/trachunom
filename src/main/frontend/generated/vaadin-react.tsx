@@ -1,4 +1,4 @@
-import { routes } from "Frontend/generated/routes.js";
+import { routes } from "Frontend/routes.js";
 import { registerGlobalClickHandler } from "Frontend/generated/flow/Flow.js";
 
 (window as any).Vaadin ??= {};

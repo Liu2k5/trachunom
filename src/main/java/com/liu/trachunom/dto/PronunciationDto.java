@@ -13,5 +13,6 @@ public class PronunciationDto {
     private Long id;
     private Long quocNguId;
     private String pronunciationString;
+    private String characterWithPronunciationsString;
 }
 

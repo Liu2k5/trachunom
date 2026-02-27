@@ -18,6 +18,7 @@ import * as StructureEndpoint from "Frontend/generated/StructureEndpoint";
 import PronunciationEvolution from "Frontend/generated/com/liu/trachunom/entity/PronunciationEvolution";
 import Pronunciation from "Frontend/generated/com/liu/trachunom/entity/Pronunciation";
 import PronunciationEvolutionDto from "Frontend/generated/com/liu/trachunom/dto/PronunciationEvolutionDto";
+import Meaning from "Frontend/generated/com/liu/trachunom/entity/Meaning";
 
 export {
     HnomQngu as HnomQnguComponent,
@@ -25,6 +26,7 @@ export {
     DrawEvolution as DrawEvolution,
     DrawStructure as DrawStructure,
     DrawPronunciationEvolution as DrawPronunciationEvolution,
+    DrawMeaningEvolution as DrawMeaningEvolution,
 };
 
 const HnomQngu = ({entityId, markedId}: {entityId: number | undefined, markedId: number}): JSX.Element => {
@@ -64,7 +66,7 @@ const HnomQngu = ({entityId, markedId}: {entityId: number | undefined, markedId:
                     {qnguString}
                 </p>
             </div>
-            <div style={{width: 'fit-content'}}>
+            <div>
                 <p style={{fontSize: '1.5em', margin: '0px'}}>
                     {hnomString}
                 </p>
@@ -73,13 +75,20 @@ const HnomQngu = ({entityId, markedId}: {entityId: number | undefined, markedId:
     );
 
     return entity?.attested ? (
-        <a
-            href={'/entity/' + entity.id}
-            style={{textDecoration: 'none', color: 'black'}}
-            title={entity.explanationsString}
+        <div
+        style={{
+            width: 'max-content',
+            // minWidth: '30px',
+        }}
         >
-            {content}
-        </a>
+            <a
+                href={'/entity/' + entity.id}
+                style={{textDecoration: 'none', color: 'black'}}
+                title={entity.explanationsString}
+            >
+                {content}
+            </a>
+        </div>
     ) : (
         <div style={{color: 'grey'}}>
             {content}
@@ -269,8 +278,8 @@ function StructureRow({component}: { component: StructureComponentDto; }): JSX.E
                         fontFamily: "sans-serif",
                         fontSize: "18px",
                     }}
-                       href={"/search?query=" + component.structureComponentCharacterString}>
-                        {component.structureComponentCharacterString || ''}
+                       href={"/search?query=" + component.structureComponentCharacterString + (component.quantity ? (component?.quantity > 1 ? "×" + component.quantity : "") : "")}>
+                        {component.structureComponentCharacterString + (component.quantity ? (component?.quantity > 1 ? "×" + component.quantity : "") : "") || ''}
                     </a>
                 </div>
                 <div>
@@ -305,7 +314,8 @@ function DrawPronunciationEvolution({pronunciationId}: {pronunciationId: number 
     >
         {ancestors}
         <div style={{
-            height: '20px',
+            padding: '10px',
+            gap: '10px',
             borderLeft: '2px solid black',
             margin: '0 auto',
             color: 'blue',
@@ -393,5 +403,53 @@ function DrawPronunciationDescendants({pronunciationId}: {pronunciationId: numbe
                 </div>
             ))}
         </div>
+    );
+}
+
+function DrawMeaningEvolution({meaning}: {meaning: Meaning | undefined}): JSX.Element {
+    if (!meaning) {
+        return <div></div>;
+    }
+
+    return (
+        <>
+            <div style={{paddingLeft: '16px'}}>
+                {meaning?.explanations?.map((explanation, idx) =>
+                    explanation ? (
+                        <div
+                            key={explanation.id ?? idx}
+                            style={{
+                                marginBottom: '20px',
+                                padding: '15px',
+                                background: '#f9f9f9',
+                                borderRadius: '6px',
+                            }}
+                        >
+                            <div
+                                style={{
+                                    fontSize: '16px',
+                                    color: '#333',
+                                    marginBottom: '10px',
+                                    fontWeight: '500',
+                                }}
+                            >
+                                {idx + 1}. {explanation.description ?? ''}
+                            </div>
+                        </div>
+                    ) : null
+                )}
+            </div>
+            {meaning.origin &&
+                <div
+                    style={{
+                        textAlign: 'center',
+                        fontSizw: '14px',
+                    }}
+                >
+                    ↑
+                </div>
+            }
+            <DrawMeaningEvolution meaning={meaning?.origin}/>
+        </>
     );
 }

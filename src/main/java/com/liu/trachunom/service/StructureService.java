@@ -45,6 +45,8 @@ public class StructureService extends ListRepositoryService<Structure, Long, Str
             for (StructureComponent component : components) {
                 if (component.getStructureComponent().getCharacter() != null) {
                     characterString.append(component.getStructureComponent().getCharacter().getString());
+                } else {
+                    characterString.append(getCharacterStringById(component.getStructureComponent().getId()));
                 }
             }
             return "[" + characterString.toString() + "]";
