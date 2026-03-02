@@ -2,10 +2,10 @@ import {ViewConfig} from '@vaadin/hilla-file-router/types.js';
 import {useEffect, useRef, useState, useMemo} from 'react';
 import {AutoForm, AutoGrid} from "@vaadin/hilla-react-crud";
 import {ComboBox, GridColumn} from "@vaadin/react-components";
-import RadicalModel from 'Frontend/generated/com/liu/trachunom/entity/RadicalModel';
+import RadicalModel from 'Frontend/generated/com/liu/trachunom/entity/character/RadicalModel';
 import RadicalDtoModel from "Frontend/generated/com/liu/trachunom/dto/RadicalDtoModel";
 import RadicalDto from "Frontend/generated/com/liu/trachunom/dto/RadicalDto";
-import Radical from 'Frontend/generated/com/liu/trachunom/entity/Radical';
+import Radical from 'Frontend/generated/com/liu/trachunom/entity/character/Radical';
 import * as RadicalEndpoint from 'Frontend/generated/RadicalEndpoint';
 import * as RadicalService from 'Frontend/generated/RadicalService';
 import * as SourceEndpoint from 'Frontend/generated/SourceEndpoint';
@@ -35,25 +35,25 @@ import Language from "Frontend/generated/com/liu/trachunom/entity/Language";
 import StyleModel from "Frontend/generated/com/liu/trachunom/entity/StyleModel";
 import StyleDtoModel from "Frontend/generated/com/liu/trachunom/dto/StyleDtoModel";
 import Style from "Frontend/generated/com/liu/trachunom/entity/Style";
-import CharacterModel from "Frontend/generated/com/liu/trachunom/entity/CharacterXModel";
+import CharacterModel from "Frontend/generated/com/liu/trachunom/entity/character/CharacterXModel";
 import CharacterDtoModel from "Frontend/generated/com/liu/trachunom/dto/CharacterDtoModel";
-import Character from "Frontend/generated/com/liu/trachunom/entity/CharacterX";
-import TradSimpStandardModel from "Frontend/generated/com/liu/trachunom/entity/TradSimpStandardModel";
+import Character from "Frontend/generated/com/liu/trachunom/entity/character/CharacterX";
+import TradSimpStandardModel from "Frontend/generated/com/liu/trachunom/entity/character/TradSimpStandardModel";
 import TradSimpStandardDtoModel from "Frontend/generated/com/liu/trachunom/dto/TradSimpStandardDtoModel";
-import TradSimpStandard from "Frontend/generated/com/liu/trachunom/entity/TradSimpStandard";
-import Structure from "Frontend/generated/com/liu/trachunom/entity/Structure";
+import TradSimpStandard from "Frontend/generated/com/liu/trachunom/entity/character/TradSimpStandard";
+import Structure from "Frontend/generated/com/liu/trachunom/entity/structure/Structure";
 import StructureDto from "Frontend/generated/com/liu/trachunom/dto/StructureDto";
-import StructureComponent from "Frontend/generated/com/liu/trachunom/entity/StructureComponent";
+import StructureComponent from "Frontend/generated/com/liu/trachunom/entity/structure/StructureComponent";
 import StructureComponentDto from "Frontend/generated/com/liu/trachunom/dto/StructureComponentDto";
-import StructureComponentModel from "Frontend/generated/com/liu/trachunom/entity/StructureComponentModel";
+import StructureComponentModel from "Frontend/generated/com/liu/trachunom/entity/structure/StructureComponentModel";
 import StructureComponentDtoModel from "Frontend/generated/com/liu/trachunom/dto/StructureComponentDtoModel";
-import StructureModel from "Frontend/generated/com/liu/trachunom/entity/StructureModel";
+import StructureModel from "Frontend/generated/com/liu/trachunom/entity/structure/StructureModel";
 import StructureDtoModel from "Frontend/generated/com/liu/trachunom/dto/StructureDtoModel";
-import StructureClassification from "Frontend/generated/com/liu/trachunom/entity/StructureClassification";
+import StructureClassification from "Frontend/generated/com/liu/trachunom/entity/structure/StructureClassification";
 import StructureClassificationDto from "Frontend/generated/com/liu/trachunom/dto/StructureClassificationDto";
-import PronunciationModel from "Frontend/generated/com/liu/trachunom/entity/PronunciationModel";
+import PronunciationModel from "Frontend/generated/com/liu/trachunom/entity/pronunciation/PronunciationModel";
 import PronunciationDtoModel from "Frontend/generated/com/liu/trachunom/dto/PronunciationDtoModel";
-import Pronunciation from "Frontend/generated/com/liu/trachunom/entity/Pronunciation";
+import Pronunciation from "Frontend/generated/com/liu/trachunom/entity/pronunciation/Pronunciation";
 import * as PronunciationEndpoint from 'Frontend/generated/PronunciationEndpoint';
 import * as PronunciationService from 'Frontend/generated/PronunciationService';
 import {
@@ -64,49 +64,48 @@ import {
     QuocNguEndpoint,
     QuocNguService
 } from "Frontend/generated/endpoints";
-import QuocNguModel from "Frontend/generated/com/liu/trachunom/entity/QuocNguModel";
+import QuocNguModel from "Frontend/generated/com/liu/trachunom/entity/pronunciation/QuocNguModel";
 import QuocNguDtoModel from "Frontend/generated/com/liu/trachunom/dto/QuocNguDtoModel";
-import QuocNgu from "Frontend/generated/com/liu/trachunom/entity/QuocNgu";
-import PronunciationEvolutionModel from "Frontend/generated/com/liu/trachunom/entity/PronunciationEvolutionModel";
+import QuocNgu from "Frontend/generated/com/liu/trachunom/entity/pronunciation/QuocNgu";
+import PronunciationEvolutionModel from "Frontend/generated/com/liu/trachunom/entity/pronunciation/PronunciationEvolutionModel";
 import PronunciationEvolutionDtoModel from "Frontend/generated/com/liu/trachunom/dto/PronunciationEvolutionDtoModel";
-import PronunciationEvolution from "Frontend/generated/com/liu/trachunom/entity/PronunciationEvolution";
-import ExplanationModel from "Frontend/generated/com/liu/trachunom/entity/ExplanationModel";
+import PronunciationEvolution from "Frontend/generated/com/liu/trachunom/entity/pronunciation/PronunciationEvolution";
+import ExplanationModel from "Frontend/generated/com/liu/trachunom/entity/meaning/ExplanationModel";
 import ExplanationDtoModel from "Frontend/generated/com/liu/trachunom/dto/ExplanationDtoModel";
-import Explanation from "Frontend/generated/com/liu/trachunom/entity/Explanation";
+import Explanation from "Frontend/generated/com/liu/trachunom/entity/meaning/Explanation";
 import ExplanationDto from "Frontend/generated/com/liu/trachunom/dto/ExplanationDto";
-import Meaning from "Frontend/generated/com/liu/trachunom/entity/Meaning";
-import MeaningModel from "Frontend/generated/com/liu/trachunom/entity/MeaningModel";
+import Meaning from "Frontend/generated/com/liu/trachunom/entity/meaning/Meaning";
+import MeaningModel from "Frontend/generated/com/liu/trachunom/entity/meaning/MeaningModel";
 import MeaningDtoModel from "Frontend/generated/com/liu/trachunom/dto/MeaningDtoModel";
 import MeaningDto from "Frontend/generated/com/liu/trachunom/dto/MeaningDto";
 import * as ExplanationService from 'Frontend/generated/ExplanationService';
 import * as ExplanationEndpoint from 'Frontend/generated/ExplanationEndpoint';
 import * as MeaningService from 'Frontend/generated/MeaningService';
 import * as MeaningEndpoint from 'Frontend/generated/MeaningEndpoint';
-import MeaningExplanation from "Frontend/generated/com/liu/trachunom/entity/MeaningExplanation";
-import MeaningExplanationModel from "Frontend/generated/com/liu/trachunom/entity/MeaningExplanationModel";
+import MeaningExplanation from "Frontend/generated/com/liu/trachunom/entity/meaning/MeaningExplanation";
+import MeaningExplanationModel from "Frontend/generated/com/liu/trachunom/entity/meaning/MeaningExplanationModel";
 import MeaningExplanationDto from "Frontend/generated/com/liu/trachunom/dto/MeaningExplanationDto";
 import MeaningExplanationDtoModel from "Frontend/generated/com/liu/trachunom/dto/MeaningExplanationDtoModel";
 import * as MeaningExplanationService from 'Frontend/generated/MeaningExplanationService';
 import * as MeaningExplanationEndpoint from 'Frontend/generated/MeaningExplanationEndpoint';
-import EntityX from "Frontend/generated/com/liu/trachunom/entity/EntityX";
+import EntityX from "Frontend/generated/com/liu/trachunom/entity/entity/EntityX";
 import EntityDto from "Frontend/generated/com/liu/trachunom/dto/EntityDto";
 import EntityDtoModel from "Frontend/generated/com/liu/trachunom/dto/EntityDtoModel";
 import * as EntityEndpoint from 'Frontend/generated/EntityEndpoint';
-import EntityComposition from "Frontend/generated/com/liu/trachunom/entity/EntityComposition";
-import EntityCompositionModel from "Frontend/generated/com/liu/trachunom/entity/EntityCompositionModel";
+import EntityComposition from "Frontend/generated/com/liu/trachunom/entity/entity/EntityComposition";
+import EntityCompositionModel from "Frontend/generated/com/liu/trachunom/entity/entity/EntityCompositionModel";
 import EntityCompositionDto from "Frontend/generated/com/liu/trachunom/dto/EntityCompositionDto";
 import EntityCompositionDtoModel from "Frontend/generated/com/liu/trachunom/dto/EntityCompositionDtoModel";
 import * as EntityCompositionEndpoint from 'Frontend/generated/EntityCompositionEndpoint';
-import EntityEvolution from "Frontend/generated/com/liu/trachunom/entity/EntityEvolution";
-import EntityEvolutionModel from "Frontend/generated/com/liu/trachunom/entity/EntityEvolutionModel";
+import EntityEvolution from "Frontend/generated/com/liu/trachunom/entity/entity/EntityEvolution";
+import EntityEvolutionModel from "Frontend/generated/com/liu/trachunom/entity/entity/EntityEvolutionModel";
 import EntityEvolutionDto from "Frontend/generated/com/liu/trachunom/dto/EntityEvolutionDto";
 import EntityEvolutionDtoModel from "Frontend/generated/com/liu/trachunom/dto/EntityEvolutionDtoModel";
 import * as EntityEvolutionEndpoint from 'Frontend/generated/EntityEvolutionEndpoint';
-import EntityXModel from "Frontend/generated/com/liu/trachunom/entity/EntityXModel";
-import Example from "Frontend/generated/com/liu/trachunom/entity/Example";
-import ExampleModel from "Frontend/generated/com/liu/trachunom/entity/ExampleModel";
-import ExampleWord from "Frontend/generated/com/liu/trachunom/entity/ExampleWord";
-import ExampleWordModel from "Frontend/generated/com/liu/trachunom/entity/ExampleWordModel";
+import EntityXModel from "Frontend/generated/com/liu/trachunom/entity/entity/EntityXModel";
+import Example from "Frontend/generated/com/liu/trachunom/entity/example/Example";
+import ExampleModel from "Frontend/generated/com/liu/trachunom/entity/example/ExampleModel";
+import ExampleWord from "Frontend/generated/com/liu/trachunom/entity/example/ExampleWord";
 import * as ExampleEndpoint from 'Frontend/generated/ExampleEndpoint';
 import * as ExampleWordEndpoint from 'Frontend/generated/ExampleWordEndpoint';
 import ExampleDtoModel from "Frontend/generated/com/liu/trachunom/dto/ExampleDtoModel";
@@ -120,28 +119,8 @@ export const config: ViewConfig = {
     menu: {order: 2, icon: 'la la-book'},
     title: 'Quản Lý Từ Điển',
     route: '/admin/dictionary-management',
+    loginRequired: true,
 };
-
-// Kiểm tra auth khi vào trang admin
-async function checkAuth() {
-    try {
-        const response = await fetch('/connect/AuthEndpoint/getAuthInfo', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: '{}',
-            credentials: 'same-origin',
-        });
-        if (response.status === 401 || response.status === 403) {
-            window.location.href = '/login';
-        }
-        const data = await response.json();
-        if (!data?.loggedIn) {
-            window.location.href = '/login';
-        }
-    } catch {
-        window.location.href = '/login';
-    }
-}
 
 interface TabProps {
     label: string,
@@ -171,10 +150,6 @@ const Tab = ({label, active, onClick}: TabProps) => (
 
 export default function DictionaryManagementView() {
     const [activeTab, setActiveTab] = useState('basics');
-
-    useEffect(() => {
-        checkAuth();
-    }, []);
 
     const tabs = [
         {id: 'basics', label: 'Cơ bản'},
@@ -832,6 +807,11 @@ const StructureTabContent = () => {
             .catch(error => console.error('Error mapping Structure to DTO:', error));
     }, [selectedStructure, refreshTrigger]);
 
+    // lam moi form cua entity component khi chuyen sang structure khac, tranh viec form con du lieu cu khi chuyen sang structure moi
+    useEffect(() => {
+        setSelectedStructureComponent(null);
+    }, [selectedStructure]);
+
     useEffect(() => {
         if (selectedStructureComponent) {
             // Editing existing component
@@ -1226,7 +1206,7 @@ const PronunciationTabContent = () => {
     };
 
     const [quocNgus, setQuocNgus] = useState<QuocNgu[] | undefined | null>(null);
-    useEffect(() => {
+    const refreshQuocNgusTrigger = () => {
         QuocNguService.findAll()
             .then((list: (QuocNgu | undefined)[] | undefined) => {
                 const tempList: QuocNgu[] = [];
@@ -1236,7 +1216,8 @@ const PronunciationTabContent = () => {
                 setQuocNgus(tempList);
             })
             .catch(error => console.error('Error fetching quoc ngus:', error));
-    }, []);
+    };
+    useEffect(refreshQuocNgusTrigger, []);
 
     const [pronunciations, setPronunciations] = useState<Pronunciation[] | undefined | null>(null);
     const [pronunciationDtos, setPronunciationDtos] = useState<PronunciationDto[] | undefined | null>(null);
@@ -1293,6 +1274,7 @@ const PronunciationTabContent = () => {
                     onSubmitSuccess={() => {
                         setSelectedQuocNguDto(null);
                         quocNguGridRef.current?.refresh();
+                        refreshQuocNgusTrigger();
                     }}
                     onSubmitError={error => window.alert('Lỗi khi lưu quốc ngữ: ' + error.error.message)}
                     fieldOptions={{
@@ -1807,11 +1789,6 @@ const EntityTabContent = () => {
     const [pronunciationDtos, setPronunciationDtos] = useState<PronunciationDto[]>([]);
 
     // Create stable service wrappers using useMemo
-    const entityService = useMemo(() => ({
-        ...EntityEndpoint,
-        list: async () => entities
-    }), [entities]);
-
     const compositionService = useMemo(() => ({
         ...EntityCompositionEndpoint,
         list: async () => compositions
@@ -1826,9 +1803,10 @@ const EntityTabContent = () => {
         EntityMapper.toEntityDto(selectedEntity ?? undefined).then(dto => setSelectedEntityDto(dto))
     }, [selectedEntity]);
 
-    useEffect(() => {
+    const refreshEntitiesTrigger = () => {
         EntityService.findAll().then(data => setEntities((data || []).filter(e => e !== undefined)));
-    }, []);
+    };
+    useEffect(refreshEntitiesTrigger, []);
 
     useEffect(() => {
         Promise.all(entities.map(entity => EntityMapper.toEntityDto(entity)))
@@ -2121,8 +2099,9 @@ const EntityTabContent = () => {
                     item={selectedEntityDto}
                     onSubmitSuccess={() => {
                         setSelectedEntity(null);
-                        EntityService.findAll().then(data => setEntities((data || []).filter(e => e !== undefined)));
+                        refreshEntitiesTrigger();
                         entityGridRef.current?.refresh();
+                        //o day
                     }}
                     onSubmitError={error => window.alert('Lỗi lưu thực thể: ' + error.error.message)}
                     hiddenFields={['hnomString', 'qnguString', 'explanationsString']}
@@ -2163,6 +2142,14 @@ const EntityTabContent = () => {
                                     itemValuePath= 'id'
                                     itemLabelPath= 'characterWithPronunciationsString'
                                     {...field}
+                                    onValueChanged={(e) => {
+                                        MeaningService.findAllWithPronunciationId(Number(e.detail.value))
+                                            .then(data => data?.filter(meaning => meaning !== undefined))
+                                            .then(data => {
+                                                if (data) setMeanings(data);
+                                            })
+                                            .catch(e => console.error('Error fetching meanings for pronunciation:', e));
+                                    }}
                                 />
                             ),
                         },

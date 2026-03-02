@@ -1,6 +1,6 @@
 package com.liu.trachunom.repository;
 
-import com.liu.trachunom.entity.Explanation;
+import com.liu.trachunom.entity.meaning.Explanation;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;

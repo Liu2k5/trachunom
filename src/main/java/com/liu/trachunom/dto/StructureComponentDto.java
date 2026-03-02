@@ -1,6 +1,5 @@
 package com.liu.trachunom.dto;
 
-import com.liu.trachunom.entity.StructureComponentId;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,6 +20,6 @@ public class StructureComponentDto {
 //    private StructureClassificationDto structureClassification;
     private Long classificationId;
     private String classificationDescription;
-    private Integer quantity;
+    private int quantity;
 }
 

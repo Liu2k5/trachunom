@@ -22,6 +22,7 @@ export default function AboutView() {
       <div
         style={{
           maxWidth: '800px',
+            width: 'auto',
           margin: '0 auto',
           background: 'white',
           borderRadius: '16px',

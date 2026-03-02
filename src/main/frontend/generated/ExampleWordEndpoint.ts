@@ -1,6 +1,6 @@
 import { EndpointRequestInit as EndpointRequestInit_1 } from "@vaadin/hilla-frontend";
 import type ExampleWordDto_1 from "./com/liu/trachunom/dto/ExampleWordDto.js";
-import type ExampleWordId_1 from "./com/liu/trachunom/entity/ExampleWordId.js";
+import type ExampleWordId_1 from "./com/liu/trachunom/entity/example/ExampleWordId.js";
 import client_1 from "./connect-client.default.js";
 async function delete_1(id: ExampleWordId_1 | undefined, init?: EndpointRequestInit_1): Promise<void> { return client_1.call("ExampleWordEndpoint", "delete", { id }, init); }
 async function deleteByEachId_1(exampleId: number | undefined, entityId: number | undefined, position: number | undefined, init?: EndpointRequestInit_1): Promise<void> { return client_1.call("ExampleWordEndpoint", "deleteByEachId", { exampleId, entityId, position }, init); }

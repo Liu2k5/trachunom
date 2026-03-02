@@ -1,15 +1,12 @@
 package com.liu.trachunom.service;
 
 
-import com.liu.trachunom.entity.EntityComposition;
-import com.liu.trachunom.entity.EntityEvolution;
-import com.liu.trachunom.entity.EntityX;
+import com.liu.trachunom.entity.entity.EntityX;
+import com.liu.trachunom.service.entity.EntityCompositionService;
+import com.liu.trachunom.service.entity.EntityService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-
-import javax.swing.text.html.parser.Entity;
-import java.util.List;
 
 import static com.helger.commons.mock.CommonsAssert.assertEquals;
 

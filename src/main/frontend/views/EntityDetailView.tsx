@@ -2,17 +2,8 @@ import {ViewConfig} from '@vaadin/hilla-file-router/types.js';
 import {useParams, useNavigate} from 'react-router';
 import {useEffect, useState} from 'react';
 import type EntityDetailDto from 'Frontend/generated/com/liu/trachunom/dto/EntityDetailDto';
-import type StructureDto from "Frontend/generated/com/liu/trachunom/dto/StructureDto";
 import {getEntityDetail} from 'Frontend/generated/EntityDetailEndpoint';
-import {getStructureDtoByStructureId} from 'Frontend/generated/EntityDetailEndpoint';
-import {getEntityEvolutionsByToEntityId} from 'Frontend/generated/EntityDetailEndpoint';
-import {getGridTemplateColumnsByStructureId} from 'Frontend/generated/EntityDetailEndpoint';
-import * as StructureEndpoint from 'Frontend/generated/StructureEndpoint';
-import StructureComponentDto from "Frontend/generated/com/liu/trachunom/dto/StructureComponentDto";
 import EntityEvolutionDto from "Frontend/generated/com/liu/trachunom/dto/EntityEvolutionDto";
-import EntityDto from "Frontend/generated/com/liu/trachunom/dto/EntityDto";
-import EntityX from "Frontend/generated/com/liu/trachunom/entity/EntityX";
-import {EntityService} from "Frontend/generated/endpoints";
 import {
     DrawEvolution,
     DrawMeaningEvolution,
@@ -149,7 +140,7 @@ export default function EntityDetailView() {
                                 <>
                                     <div
                                         style={{
-                                            fontSize: '80px',
+                                            fontSize: '50px',
                                             fontWeight: 'bold',
                                             color: '#667eea',
                                             marginBottom: '20px',
@@ -238,9 +229,9 @@ export default function EntityDetailView() {
                                 Phát âm
                             </h2>
                             <div style={{paddingLeft: '16px'}}>
-                                <p style={{fontSize: '18px', color: '#333'}}>
+                                <div style={{fontSize: '18px', color: '#333'}}>
                                     <DrawPronunciationEvolution pronunciationId={entity.pronunciation.id}/>
-                                </p>
+                                </div>
                             </div>
                         </section>
                     )}
@@ -366,50 +357,42 @@ export default function EntityDetailView() {
                                 Ví dụ
                             </h2>
                             {entity?.examples ? (
-                                    entity.examples.map(example =>
-                                        <>
-                                            <div style={{
+                                    entity.examples.map((example, index) =>
+                                        <div
+                                            key={index}
+                                            style={{
                                                 display: 'flex',
+                                                flexWrap: 'wrap',
                                                 gap: '10px',
-                                                marginBottom: '20px',
-                                                alignItems: 'end',
+                                                marginBottom: '10px',
+                                                fontFamily: 'sans-serif',
+                                                width: 'fit-content',
                                             }}>
-                                                <div
-                                                    style={{
-                                                        display: 'flex',
-                                                        flexWrap: 'wrap',
-                                                        gap: '10px',
-                                                        marginBottom: '10px',
-                                                        fontFamily: 'sans-serif',
-                                                        width: 'fit-content',
-                                                    }}>
-                                                    {
-                                                        example?.exampleWords ? (
-                                                            example.exampleWords.map(word => {
-                                                                    if (word?.entity) {
-                                                                        return (
-                                                                            <HnomQnguComponent entityId={word.entity.id} markedId={entity.id ?? 0}/>
-                                                                        );
-                                                                    }
-                                                                    return undefined;
-                                                                }
-                                                            )
-                                                        ) : <div>khong co example</div>
-                                                    }
-                                                    <p
-                                                        title={example ? example.sourceDescription : ''}
-                                                        style={{
-                                                            fontFamily: 'sans-serif',
-                                                            fontStyle: 'italic',
-                                                            color: '#666',
-                                                            fontSize: '0.8em',
-                                                        }}
-                                                    >
-                                                        {example ? example.sourceName : ''}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </>
+                                            {
+                                                example?.exampleWords ? (
+                                                    example.exampleWords.map((word, index) => {
+                                                            if (word?.entity) {
+                                                                return (
+                                                                    <HnomQnguComponent entityId={word.entity.id} markedId={entity.id ?? 0} key={index}/>
+                                                                );
+                                                            }
+                                                            return undefined;
+                                                        }
+                                                    )
+                                                ) : <div>khong co example</div>
+                                            }
+                                            <p
+                                                title={example ? example.sourceDescription : ''}
+                                                style={{
+                                                    fontFamily: 'sans-serif',
+                                                    fontStyle: 'italic',
+                                                    color: '#666',
+                                                    fontSize: '0.8em',
+                                                }}
+                                            >
+                                                {example ? example.sourceName : ''}
+                                            </p>
+                                        </div>
                                     )
                                 )
                                 : (

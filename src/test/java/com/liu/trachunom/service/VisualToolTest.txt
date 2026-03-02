@@ -1,6 +1,6 @@
 package com.liu.trachunom.service;
 
-import com.liu.trachunom.entity.StructureComponent;
+import com.liu.trachunom.entity.structure.StructureComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

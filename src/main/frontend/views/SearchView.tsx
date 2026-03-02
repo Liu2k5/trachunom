@@ -2,9 +2,7 @@ import { ViewConfig } from '@vaadin/hilla-file-router/types.js';
 import {useEffect, useState} from 'react';
 import { useSearchParams } from 'react-router';
 import { findByQuery } from 'Frontend/generated/SearchEndpoint';
-import {color} from "@vaadin/vaadin-lumo-styles";
-import {EntityService} from "Frontend/generated/endpoints";
-import EntityX from "Frontend/generated/com/liu/trachunom/entity/EntityX";
+import EntityX from "Frontend/generated/com/liu/trachunom/entity/entity/EntityX";
 import {HnomQnguComponent} from "Frontend/utils/entityUtils";
 
 export const config: ViewConfig = {
@@ -76,6 +74,7 @@ export default function SearchView() {
             border: '1px solid #ccc',
             borderRadius: '4px',
             outline: 'none',
+              width: '100%',
           }}
         />
         <button
@@ -121,7 +120,7 @@ export default function SearchView() {
             {searchResults.length > 0 ? (
               <div>
                 {/* Display search results here */}
-                {searchResults.map((result, index) => <ResultContent result={result} index={index}/>)}
+                {searchResults.map((result, index) => <ResultContent result={result} index={index} key={index}/>)}
               </div>
             ) : (
               <p style={{ color: '#666', fontSize: '16px' }}>
@@ -146,16 +145,8 @@ export default function SearchView() {
 
 
 const ResultContent = ({ result, index }: { result: EntityX, index: number }) => {
-    let hnomString;
-    let qnguString;
-
-    // useEffect(() => {
-    //     EntityService.getHnomStringByExample(result).then((hnom) => hnomString = hnom);
-    //     EntityService.getQnguStringByExample(result).then((qngu) => qnguString = qngu);
-    // }, []);
-
     return (
-        <a
+        <div
             key={index}
             style={{
                 padding: '15px',
@@ -163,7 +154,7 @@ const ResultContent = ({ result, index }: { result: EntityX, index: number }) =>
                 textDecoration: 'none',
                 color: '#333',
             }}
-            href={"/entity/" + result.id}
+            // href={"/entity/" + result.id}
         >
             <div>
                         <span style={{
@@ -190,6 +181,6 @@ const ResultContent = ({ result, index }: { result: EntityX, index: number }) =>
             <div>
                 <span>{result.explanationsString}</span>
             </div>
-        </a>
+        </div>
     );
 };

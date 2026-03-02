@@ -1,5 +1,5 @@
 import { EndpointRequestInit as EndpointRequestInit_1 } from "@vaadin/hilla-frontend";
-import type Pronunciation_1 from "./com/liu/trachunom/entity/Pronunciation.js";
+import type Pronunciation_1 from "./com/liu/trachunom/entity/pronunciation/Pronunciation.js";
 import type Filter_1 from "./com/vaadin/hilla/crud/filter/Filter.js";
 import type Pageable_1 from "./com/vaadin/hilla/mappedtypes/Pageable.js";
 import client_1 from "./connect-client.default.js";

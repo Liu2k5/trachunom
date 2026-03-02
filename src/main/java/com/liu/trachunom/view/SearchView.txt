@@ -1,8 +1,8 @@
 package com.liu.trachunom.view;
 
-import com.liu.trachunom.entity.EntityX;
-import com.liu.trachunom.service.CharacterService;
-import com.liu.trachunom.service.EntityService;
+import com.liu.trachunom.entity.entity.EntityX;
+import com.liu.trachunom.service.character.CharacterService;
+import com.liu.trachunom.service.entity.EntityService;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;

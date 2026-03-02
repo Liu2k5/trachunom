@@ -1,6 +1,6 @@
 import { EndpointRequestInit as EndpointRequestInit_1 } from "@vaadin/hilla-frontend";
 import type EntityEvolutionDto_1 from "./com/liu/trachunom/dto/EntityEvolutionDto.js";
-import type EntityEvolutionId_1 from "./com/liu/trachunom/entity/EntityEvolutionId.js";
+import type EntityEvolutionId_1 from "./com/liu/trachunom/entity/entity/EntityEvolutionId.js";
 import client_1 from "./connect-client.default.js";
 async function delete_1(id: EntityEvolutionId_1 | undefined, init?: EndpointRequestInit_1): Promise<void> { return client_1.call("EntityEvolutionEndpoint", "delete", { id }, init); }
 async function deleteByEachId_1(fromEntityId: number | undefined, toEntityId: number | undefined, init?: EndpointRequestInit_1): Promise<void> { return client_1.call("EntityEvolutionEndpoint", "deleteByEachId", { fromEntityId, toEntityId }, init); }

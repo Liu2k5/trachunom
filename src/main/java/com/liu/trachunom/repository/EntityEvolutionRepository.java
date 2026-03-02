@@ -1,7 +1,7 @@
 package com.liu.trachunom.repository;
 
-import com.liu.trachunom.entity.EntityEvolution;
-import com.liu.trachunom.entity.EntityEvolutionId;
+import com.liu.trachunom.entity.entity.EntityEvolution;
+import com.liu.trachunom.entity.entity.EntityEvolutionId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

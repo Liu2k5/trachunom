@@ -5,6 +5,6 @@ interface StructureComponentDto {
     structureComponentCharacterString?: string;
     classificationId?: number;
     classificationDescription?: string;
-    quantity?: number;
+    quantity: number;
 }
 export default StructureComponentDto;

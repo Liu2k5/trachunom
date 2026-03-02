@@ -1,7 +1,7 @@
 import { EndpointRequestInit as EndpointRequestInit_1 } from "@vaadin/hilla-frontend";
-import type Meaning_1 from "./com/liu/trachunom/entity/Meaning.js";
-import type MeaningExplanation_1 from "./com/liu/trachunom/entity/MeaningExplanation.js";
-import type MeaningExplanationId_1 from "./com/liu/trachunom/entity/MeaningExplanationId.js";
+import type Meaning_1 from "./com/liu/trachunom/entity/meaning/Meaning.js";
+import type MeaningExplanation_1 from "./com/liu/trachunom/entity/meaning/MeaningExplanation.js";
+import type MeaningExplanationId_1 from "./com/liu/trachunom/entity/meaning/MeaningExplanationId.js";
 import type Filter_1 from "./com/vaadin/hilla/crud/filter/Filter.js";
 import type Pageable_1 from "./com/vaadin/hilla/mappedtypes/Pageable.js";
 import client_1 from "./connect-client.default.js";

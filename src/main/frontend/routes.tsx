@@ -4,11 +4,6 @@ import fileRoutes from 'Frontend/generated/file-routes';
 
 export const { router, routes } = new RouterConfigurationBuilder()
     .withFileRoutes(fileRoutes)
+    .protect('/login')
     .withFallback(Flow)
     .build();
-
-// Set routesConfig cho Flow fallback
-(window as any).Vaadin ??= {};
-(window as any).Vaadin.routesConfig = routes;
-
-export { router as default };

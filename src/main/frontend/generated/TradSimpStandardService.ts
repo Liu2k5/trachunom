@@ -1,6 +1,6 @@
 import { EndpointRequestInit as EndpointRequestInit_1 } from "@vaadin/hilla-frontend";
-import type TradSimpStandard_1 from "./com/liu/trachunom/entity/TradSimpStandard.js";
-import type TradSimpStandardId_1 from "./com/liu/trachunom/entity/TradSimpStandardId.js";
+import type TradSimpStandard_1 from "./com/liu/trachunom/entity/character/TradSimpStandard.js";
+import type TradSimpStandardId_1 from "./com/liu/trachunom/entity/character/TradSimpStandardId.js";
 import type Filter_1 from "./com/vaadin/hilla/crud/filter/Filter.js";
 import type Pageable_1 from "./com/vaadin/hilla/mappedtypes/Pageable.js";
 import client_1 from "./connect-client.default.js";

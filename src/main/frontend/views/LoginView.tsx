@@ -17,35 +17,30 @@ export default function LoginView() {
         const password = (form.elements.namedItem('password') as HTMLInputElement).value;
         setError('');
 
-        // Lấy CSRF token từ cookie nếu có
-        const csrfToken = document.cookie
-            .split(';')
-            .map(c => c.trim())
-            .find(c => c.startsWith('XSRF-TOKEN='))
-            ?.split('=')[1];
-
         const body = new URLSearchParams();
         body.append('username', username);
         body.append('password', password);
 
-        const headers: Record<string, string> = {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        };
-        if (csrfToken) {
-            headers['X-XSRF-TOKEN'] = csrfToken;
-        }
+        try {
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: body.toString(),
+                credentials: 'same-origin',
+                redirect: 'manual',
+            });
 
-        const response = await fetch('/login', {
-            method: 'POST',
-            headers,
-            body: body.toString(),
-            credentials: 'same-origin',
-        });
-
-        if (response.ok || response.redirected) {
-            window.location.href = '/';
-        } else {
-            setError('Tên đăng nhập hoặc mật khẩu không đúng');
+            // Spring Security trả về 302 khi đăng nhập thành công
+            // type === 'opaqueredirect' khi redirect: 'manual' và có redirect
+            if (response.type === 'opaqueredirect' || response.ok) {
+                window.location.href = '/';
+            } else {
+                setError('Tên đăng nhập hoặc mật khẩu không đúng');
+            }
+        } catch (err) {
+            setError('Có lỗi xảy ra, vui lòng thử lại');
         }
     };
 
@@ -58,7 +53,9 @@ export default function LoginView() {
             <div style={{
                 background: 'white', borderRadius: '16px',
                 boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-                padding: '40px 60px', maxWidth: '400px', width: '100%', textAlign: 'center',
+                padding: '40px 60px',
+                boxSizing: 'border-box',
+                maxWidth: '400px', width: '100%', textAlign: 'center',
             }}>
                 <h1 style={{ color: '#667eea', marginBottom: '10px', fontSize: '2rem', fontWeight: 'bold' }}>
                     Đăng nhập

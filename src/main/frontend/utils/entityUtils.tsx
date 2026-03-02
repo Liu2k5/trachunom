@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import EntityX from "Frontend/generated/com/liu/trachunom/entity/EntityX";
+import EntityX from "Frontend/generated/com/liu/trachunom/entity/entity/EntityX";
 import {
     EntityMapper,
     EntityService,
@@ -15,10 +15,9 @@ import {
 import type StructureDto from "Frontend/generated/com/liu/trachunom/dto/StructureDto";
 import StructureComponentDto from "Frontend/generated/com/liu/trachunom/dto/StructureComponentDto";
 import * as StructureEndpoint from "Frontend/generated/StructureEndpoint";
-import PronunciationEvolution from "Frontend/generated/com/liu/trachunom/entity/PronunciationEvolution";
-import Pronunciation from "Frontend/generated/com/liu/trachunom/entity/Pronunciation";
-import PronunciationEvolutionDto from "Frontend/generated/com/liu/trachunom/dto/PronunciationEvolutionDto";
-import Meaning from "Frontend/generated/com/liu/trachunom/entity/Meaning";
+import PronunciationEvolution from "Frontend/generated/com/liu/trachunom/entity/pronunciation/PronunciationEvolution";
+import Pronunciation from "Frontend/generated/com/liu/trachunom/entity/pronunciation/Pronunciation";
+import Meaning from "Frontend/generated/com/liu/trachunom/entity/meaning/Meaning";
 
 export {
     HnomQngu as HnomQnguComponent,
@@ -58,19 +57,15 @@ const HnomQngu = ({entityId, markedId}: {entityId: number | undefined, markedId:
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: entity?.id === markedId ? 'blue' : 'black',
+                color: entity?.id === markedId ? 'blue' : (entity?.attested ? 'black' : 'grey'),
             }}
         >
-            <div>
-                <p style={{fontSize: '0.8em', margin: '0px'}}>
-                    {qnguString}
-                </p>
-            </div>
-            <div>
-                <p style={{fontSize: '1.5em', margin: '0px'}}>
-                    {hnomString}
-                </p>
-            </div>
+            <p style={{fontSize: '0.8em', margin: '0px', lineHeight: '1em'}}>
+                {qnguString}
+            </p>
+            <p style={{fontSize: '1.5em', margin: '0px', lineHeight: '1em'}}>
+                {hnomString}
+            </p>
         </div>
     );
 
@@ -324,7 +319,7 @@ function DrawPronunciationEvolution({pronunciationId}: {pronunciationId: number 
         </div>
         {descendants}
     </div>
-};
+}
 
 function DrawPronunciationAncestors({pronunciationId}: {pronunciationId: number | undefined}): JSX.Element {
     const [ancestors, setAncestors] = useState<PronunciationEvolution[] | null>(null);
@@ -355,16 +350,18 @@ function DrawPronunciationAncestors({pronunciationId}: {pronunciationId: number 
             }}
         >
             {ancestors.map((ancestor, index) => (
-                <div>
+                <div
+                    key={index}
+                >
                     <DrawPronunciationAncestors pronunciationId={ancestor.fromPronunciation?.id}/>
-                    <div key={index}>
+                    <div>
                         {ancestor.fromPronunciation?.string} →
                     </div>
                 </div>
             ))}
         </div>
     );
-};
+}
 
 function DrawPronunciationDescendants({pronunciationId}: {pronunciationId: number | undefined}): JSX.Element {
     const [descendants, setDescendants] = useState<PronunciationEvolution[] | null>(null);
@@ -395,8 +392,10 @@ function DrawPronunciationDescendants({pronunciationId}: {pronunciationId: numbe
             }}
         >
             {descendants.map((descendant, index) => (
-                <div>
-                    <div key={index}>
+                <div
+                    key={index}
+                >
+                    <div>
                         → {descendant.toPronunciation?.string}
                     </div>
                     <DrawPronunciationDescendants pronunciationId={descendant.toPronunciation?.id}/>

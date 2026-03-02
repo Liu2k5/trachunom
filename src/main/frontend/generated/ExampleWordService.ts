@@ -1,6 +1,6 @@
 import { EndpointRequestInit as EndpointRequestInit_1 } from "@vaadin/hilla-frontend";
-import type ExampleWord_1 from "./com/liu/trachunom/entity/ExampleWord.js";
-import type ExampleWordId_1 from "./com/liu/trachunom/entity/ExampleWordId.js";
+import type ExampleWord_1 from "./com/liu/trachunom/entity/example/ExampleWord.js";
+import type ExampleWordId_1 from "./com/liu/trachunom/entity/example/ExampleWordId.js";
 import type Filter_1 from "./com/vaadin/hilla/crud/filter/Filter.js";
 import type Pageable_1 from "./com/vaadin/hilla/mappedtypes/Pageable.js";
 import client_1 from "./connect-client.default.js";

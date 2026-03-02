@@ -1,6 +1,6 @@
 import { EndpointRequestInit as EndpointRequestInit_1 } from "@vaadin/hilla-frontend";
 import type EntityCompositionDto_1 from "./com/liu/trachunom/dto/EntityCompositionDto.js";
-import type EntityCompositionId_1 from "./com/liu/trachunom/entity/EntityCompositionId.js";
+import type EntityCompositionId_1 from "./com/liu/trachunom/entity/entity/EntityCompositionId.js";
 import client_1 from "./connect-client.default.js";
 async function delete_1(id: EntityCompositionId_1 | undefined, init?: EndpointRequestInit_1): Promise<void> { return client_1.call("EntityCompositionEndpoint", "delete", { id }, init); }
 async function deleteByIds_1(parentEntityId: number | undefined, childEntityId: number | undefined, position: number | undefined, init?: EndpointRequestInit_1): Promise<void> { return client_1.call("EntityCompositionEndpoint", "deleteByIds", { parentEntityId, childEntityId, position }, init); }
