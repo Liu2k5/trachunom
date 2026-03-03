@@ -1,3 +1,4 @@
+import type EntityX_1 from "../entity/entity/EntityX.js";
 import type EntityCompositionDto_1 from "./EntityCompositionDto.js";
 import type EntityDto_1 from "./EntityDto.js";
 import type EntityEvolutionDto_1 from "./EntityEvolutionDto.js";
@@ -25,5 +26,9 @@ interface EntityDetailDto {
     variances?: Array<EntityDto_1 | undefined>;
     examples?: Array<ExampleDto_1 | undefined>;
     compositionComponents?: Array<EntityDto_1 | undefined>;
+    beingSemanticComponents?: Array<EntityDto_1 | undefined>;
+    beingPhoneticComponents?: Array<EntityDto_1 | undefined>;
+    havingSameSemanticComponents?: Record<string, Array<EntityX_1 | undefined> | undefined>;
+    havingSamePhoneticComponents?: Record<string, Array<EntityX_1 | undefined> | undefined>;
 }
 export default EntityDetailDto;

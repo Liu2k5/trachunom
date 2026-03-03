@@ -11,5 +11,11 @@ class SourceDtoModel<T extends SourceDto_1 = SourceDto_1> extends ObjectModel_1<
     get description(): StringModel_1 {
         return this[_getPropertyModel_1]("description", (parent, key) => new StringModel_1(parent, key, true, { meta: { javaType: "java.lang.String" } }));
     }
+    get startYear(): NumberModel_1 {
+        return this[_getPropertyModel_1]("startYear", (parent, key) => new NumberModel_1(parent, key, true, { meta: { javaType: "java.lang.Integer" } }));
+    }
+    get endYear(): NumberModel_1 {
+        return this[_getPropertyModel_1]("endYear", (parent, key) => new NumberModel_1(parent, key, true, { meta: { javaType: "java.lang.Integer" } }));
+    }
 }
 export default SourceDtoModel;

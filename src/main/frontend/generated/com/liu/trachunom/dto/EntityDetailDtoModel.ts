@@ -1,4 +1,5 @@
 import { _getPropertyModel as _getPropertyModel_1, ArrayModel as ArrayModel_1, BooleanModel as BooleanModel_1, makeObjectEmptyValueCreator as makeObjectEmptyValueCreator_1, NumberModel as NumberModel_1, ObjectModel as ObjectModel_1, StringModel as StringModel_1 } from "@vaadin/hilla-lit-form";
+import type EntityX_1 from "../entity/entity/EntityX.js";
 import EntityCompositionDtoModel_1 from "./EntityCompositionDtoModel.js";
 import type EntityDetailDto_1 from "./EntityDetailDto.js";
 import EntityDtoModel_1 from "./EntityDtoModel.js";
@@ -63,6 +64,18 @@ class EntityDetailDtoModel<T extends EntityDetailDto_1 = EntityDetailDto_1> exte
     }
     get compositionComponents(): ArrayModel_1<EntityDtoModel_1> {
         return this[_getPropertyModel_1]("compositionComponents", (parent, key) => new ArrayModel_1(parent, key, true, (parent, key) => new EntityDtoModel_1(parent, key, true), { meta: { javaType: "java.util.List" } }));
+    }
+    get beingSemanticComponents(): ArrayModel_1<EntityDtoModel_1> {
+        return this[_getPropertyModel_1]("beingSemanticComponents", (parent, key) => new ArrayModel_1(parent, key, true, (parent, key) => new EntityDtoModel_1(parent, key, true), { meta: { javaType: "java.util.List" } }));
+    }
+    get beingPhoneticComponents(): ArrayModel_1<EntityDtoModel_1> {
+        return this[_getPropertyModel_1]("beingPhoneticComponents", (parent, key) => new ArrayModel_1(parent, key, true, (parent, key) => new EntityDtoModel_1(parent, key, true), { meta: { javaType: "java.util.List" } }));
+    }
+    get havingSameSemanticComponents(): ObjectModel_1<Record<string, ReadonlyArray<EntityX_1 | undefined> | undefined>> {
+        return this[_getPropertyModel_1]("havingSameSemanticComponents", (parent, key) => new ObjectModel_1(parent, key, true, { meta: { javaType: "java.util.Map" } }));
+    }
+    get havingSamePhoneticComponents(): ObjectModel_1<Record<string, ReadonlyArray<EntityX_1 | undefined> | undefined>> {
+        return this[_getPropertyModel_1]("havingSamePhoneticComponents", (parent, key) => new ObjectModel_1(parent, key, true, { meta: { javaType: "java.util.Map" } }));
     }
 }
 export default EntityDetailDtoModel;
