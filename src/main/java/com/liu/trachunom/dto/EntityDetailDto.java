@@ -1,11 +1,14 @@
 package com.liu.trachunom.dto;
 
+import com.liu.trachunom.entity.entity.EntityX;
+import com.liu.trachunom.entity.structure.Structure;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
@@ -34,5 +37,9 @@ public class EntityDetailDto {
     private List<EntityDto> variances;
     private List<ExampleDto> examples;
     private List<EntityDto> compositionComponents;
+    private List<EntityDto> beingSemanticComponents;
+    private List<EntityDto> beingPhoneticComponents;
+    private Map<String, List<EntityX>> havingSameSemanticComponents;
+    private Map<String, List<EntityX>> havingSamePhoneticComponents;
 }
 

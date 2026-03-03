@@ -169,6 +169,7 @@ export default function DictionaryManagementView() {
                 width: '100%',
                 minHeight: '100vh',
                 background: '#f5f5f5',
+                fontFamily: 'sans-serif',
             }}
         >
             {/* Header */}
@@ -2143,10 +2144,14 @@ const EntityTabContent = () => {
                                     itemLabelPath= 'characterWithPronunciationsString'
                                     {...field}
                                     onValueChanged={(e) => {
-                                        MeaningService.findAllWithPronunciationId(Number(e.detail.value))
+                                        MeaningService.findByPronunciationId(Number(e.detail.value))
                                             .then(data => data?.filter(meaning => meaning !== undefined))
                                             .then(data => {
-                                                if (data) setMeanings(data);
+                                                if (data) {
+                                                    var tempMeanings = data;
+                                                    tempMeanings.push(...meanings);
+                                                    setMeanings(tempMeanings);
+                                                }
                                             })
                                             .catch(e => console.error('Error fetching meanings for pronunciation:', e));
                                     }}

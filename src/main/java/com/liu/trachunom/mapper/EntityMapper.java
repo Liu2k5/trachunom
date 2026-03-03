@@ -236,8 +236,8 @@ public class EntityMapper {
                 .compound(entity.isCompound())
                 .attested(entity.isAttested())
                 .standardised(entity.isStandardised())
-                .hnomString(entityService.getHnomStringById(entity.getId()))
-                .qnguString(entityService.getQnguStringById(entity.getId()))
+                .hnomString(entity.getId() == null ? "lazy load?" : entityService.getHnomStringById(entity.getId()))
+                .qnguString(entity.getId() == null ? "lazy load?" : entityService.getQnguStringById(entity.getId()))
                 .explanationsString(explanationsString)
                 .build();
     }
@@ -352,6 +352,8 @@ public class EntityMapper {
                 .id(source.getId())
                 .name(source.getName())
                 .description(source.getDescription())
+                .startYear(source.getStartYear())
+                .endYear(source.getEndYear())
                 .build();
     }
 
@@ -363,6 +365,8 @@ public class EntityMapper {
                 .id(sourceDto.getId())
                 .name(sourceDto.getName())
                 .description(sourceDto.getDescription())
+                .startYear(sourceDto.getStartYear())
+                .endYear(sourceDto.getEndYear())
                 .build();
     }
 

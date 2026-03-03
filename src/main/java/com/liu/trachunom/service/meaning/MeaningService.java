@@ -70,17 +70,13 @@ public class MeaningService extends ListRepositoryService<Meaning, Long, Meaning
                 .toList();
     }
 
-    public List<Meaning> findAllWithPronunciationId(Long id) {
+    public List<Meaning> findByPronunciationId(Long id) {
         Pronunciation pronunciation = pronunciationRepository.findById(id).orElse(null);
         if (pronunciation == null) return List.of();
 
         List<EntityX> relatedEntities = entityRepository.findByPronunciation(pronunciation);
-        List<Meaning> meanings = relatedEntities.stream()
+        return relatedEntities.stream()
                 .map(EntityX::getMeaning)
-                .collect(Collectors.toList());
-        meanings.addAll(meaningRepository.findAll());
-        return meanings
-                .stream()
                 .distinct()
                 .toList();
     }

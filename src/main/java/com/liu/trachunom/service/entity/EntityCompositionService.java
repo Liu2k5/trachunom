@@ -4,6 +4,7 @@ import com.liu.trachunom.entity.entity.EntityComposition;
 import com.liu.trachunom.entity.entity.EntityCompositionId;
 import com.liu.trachunom.repository.EntityCompositionRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,8 +14,12 @@ import java.util.List;
 public class EntityCompositionService {
     private final EntityCompositionRepository entityCompositionRepository;
 
+    public List<EntityComposition> findAll() {
+        return entityCompositionRepository.findAll();
+    }
+
     public List<EntityComposition> findByParentEntityId(Long id) {
-        return entityCompositionRepository.findByIdParentEntityId(id);
+        return entityCompositionRepository.findByParentEntityId(id);
     }
 
     public void save(EntityComposition composition) {

@@ -8,6 +8,7 @@ import com.liu.trachunom.entity.pronunciation.Pronunciation;
 import com.liu.trachunom.entity.structure.Structure;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -26,7 +27,17 @@ public interface EntityRepository extends JpaRepository<EntityX, Long>, JpaSpeci
 
     List<EntityX> findByPronunciation_Id(Long pronunciationId);
 
-//    @EntityGraph(attributePaths = {"structure", "pronunciation", "meaning", "language"})
 //    @Override
+//    @Query("SELECT e FROM EntityX e " +
+//            "JOIN FETCH e.structure s " +
+//            "JOIN FETCH e.pronunciation p " +
+//            "JOIN FETCH e.meaning m " +
+//            "JOIN FETCH m.explanations me")
 //    List<EntityX> findAll();
+
+    // EntityRepository.java
+//    @Override
+//    @Query("SELECT COUNT(e.id) FROM EntityX e")
+//    long count();
+
 }

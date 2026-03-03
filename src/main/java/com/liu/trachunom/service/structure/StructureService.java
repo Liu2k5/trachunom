@@ -7,6 +7,7 @@ import com.liu.trachunom.service.character.CharacterService;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.BrowserCallable;
 import com.vaadin.hilla.crud.ListRepositoryService;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Service;
 
 import com.liu.trachunom.entity.structure.Structure;

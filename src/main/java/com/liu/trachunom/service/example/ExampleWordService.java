@@ -7,6 +7,7 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.BrowserCallable;
 import com.vaadin.hilla.crud.ListRepositoryService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,6 +45,10 @@ public class ExampleWordService extends ListRepositoryService<ExampleWord, Examp
 
     public List<ExampleWord> findByExampleId(Long exampleId) {
         return exampleWordRepository.findByExample_IdOrderByExampleWordId_Position(exampleId);
+    }
+
+    public List<ExampleWord> findByEntityId(Long entityId) {
+        return exampleWordRepository.findByEntityId(entityId);
     }
 }
 

@@ -75,7 +75,7 @@ public class StructureClassificationService extends ListRepositoryService<Struct
             return false;
         }
     }
-    public boolean isIdeographicClassification(StructureClassification structureClassification) {
+    public boolean isSemanticClassification(StructureClassification structureClassification) {
         if (structureClassification == null || structureClassification.getDescription() == null) {
             return false;
         }

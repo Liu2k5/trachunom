@@ -5,12 +5,15 @@ import type EntityDetailDto from 'Frontend/generated/com/liu/trachunom/dto/Entit
 import {getEntityDetail} from 'Frontend/generated/EntityDetailEndpoint';
 import EntityEvolutionDto from "Frontend/generated/com/liu/trachunom/dto/EntityEvolutionDto";
 import {
+    DrawEntityYear,
     DrawEvolution,
     DrawMeaningEvolution,
     DrawPronunciationEvolution,
     DrawStructure,
     HnomQnguComponent
 } from 'Frontend/utils/entityUtils';
+import {EntityService} from "Frontend/generated/endpoints";
+import {SearchBar} from "Frontend/views/SearchBar";
 
 export const config: ViewConfig = {
     title: 'Chi Tiết Thực Thể',
@@ -66,6 +69,7 @@ export default function EntityDetailView() {
                     background: '#f5f5f5',
                 }}
             >
+                <SearchBar/>
                 <div style={{textAlign: 'center'}}>
                     <h2 style={{color: '#666'}}>Không tìm thấy thực thể</h2>
                     <button
@@ -94,8 +98,10 @@ export default function EntityDetailView() {
                 minHeight: '100vh',
                 background: '#f5f5f5',
                 padding: '20px',
+                fontFamily: 'sans-serif',
             }}
         >
+            <SearchBar/>
             <div
                 style={{
                     maxWidth: '1000px',
@@ -127,114 +133,151 @@ export default function EntityDetailView() {
                         padding: '40px',
                     }}
                 >
-                    {/* Character display */}
                     <div
                         style={{
-                            textAlign: 'center',
-                            marginBottom: '40px',
-                            paddingBottom: '30px',
+                            display: 'flex',
+                            flexWrap: 'wrap',
                             borderBottom: '2px solid #f0f0f0',
+                            height: 'fit-content',
                         }}
                     >
-                        {!entity.compound ? (
+                        {/* Character display */}
+                        <div
+                            style={{
+                                textAlign: 'center',
+                                marginBottom: '40px',
+                                paddingBottom: '30px',
+                                minWidth: '300px',
+                                flex: '1'
+                            }}
+                        >
+                            {!entity.compound ? (
+                                    <>
+                                        <div
+                                            style={{
+                                                fontSize: '80px',
+                                                fontWeight: 'bold',
+                                                color: '#667eea',
+                                                margin: '0.5em 0px 0px',
+                                                fontFamily: 'serif',
+                                                display: 'flex',
+                                                justifyContent: 'center',
+                                                gap: '20px',
+                                            }}
+                                        >
+                                            <HnomQnguComponent entityId={entity.id} markedId={0}/>
+                                        </div>
+                                        {entity.structure?.character && (
+                                            <div>
+                                                <p>Unicode: U+{(entity.structure?.character?.characterString?.charCodeAt(0))?.toString(16).toUpperCase()}</p>
+                                                <p>Bộ {entity.structure?.character?.radicalString}
+                                                    + {entity.structure?.character?.additionalStrokeNumber} nét,
+                                                    tổng {entity.structure?.character?.totalStrokeNumber}
+                                                </p>
+                                            </div>
+                                        )}
+                                    </>
+                                )
+                                :
                                 <>
                                     <div
                                         style={{
-                                            fontSize: '50px',
+                                            fontSize: '80px',
                                             fontWeight: 'bold',
                                             color: '#667eea',
-                                            marginBottom: '20px',
+                                            margin: '0.5em 0px 0px',
                                             fontFamily: 'serif',
                                             display: 'flex',
                                             justifyContent: 'center',
                                             gap: '20px',
                                         }}
                                     >
-                                        <HnomQnguComponent entityId={entity.id} markedId={0}/>
+                                        {entity.compositionComponents?.map((component, index) => (
+                                            <div key={index}>
+                                                {component ? (
+                                                    <HnomQnguComponent entityId={component.id} markedId={0}/>
+                                                ) : (
+                                                    <div style={{color: 'grey'}}>không có</div>
+                                                )}
+                                            </div>
+                                        ))}
                                     </div>
-                                    {entity.structure?.character && (
-                                        <div>
-                                            <p>Unicode: U+{(entity.structure?.character?.characterString?.charCodeAt(0))?.toString(16).toUpperCase()}</p>
-                                            <p>Bộ {entity.structure?.character?.radicalString}
-                                                + {entity.structure?.character?.additionalStrokeNumber} nét,
-                                                tổng {entity.structure?.character?.totalStrokeNumber}
-                                            </p>
-                                        </div>
-                                    )}
+                                    <div>
+                                        <p>{entity.pronunciation?.pronunciationString}</p>
+                                    </div>
                                 </>
-                            )
-                            :
-                            <>
-                                <div
-                                    style={{
-                                        fontSize: '80px',
-                                        fontWeight: 'bold',
-                                        color: '#667eea',
-                                        marginBottom: '20px',
-                                        fontFamily: 'serif',
-                                        display: 'flex',
-                                        justifyContent: 'center',
-                                        gap: '20px',
-                                    }}
-                                >
-                                    {entity.compositionComponents?.map((component, index) => (
-                                        <div key={index}>
-                                            {component ? (
-                                                <HnomQnguComponent entityId={component.id} markedId={0}/>
-                                            ) : (
-                                                <div style={{color: 'grey'}}>không có</div>
-                                            )}
+                            }
+                        </div>
+
+                        <div
+                            style={{
+                                minWidth: '300px',
+                                flex: '1',
+                            }}
+                        >
+                            {/* Structure */}
+                            {entity.structure && (
+                                <section style={{marginBottom: '30px'}}>
+                                    <h2
+                                        style={{
+                                            color: '#667eea',
+                                            fontSize: '20px',
+                                            marginBottom: '15px',
+                                            borderLeft: '4px solid #667eea',
+                                            paddingLeft: '12px',
+                                        }}
+                                    >
+                                        Cấu tạo
+                                    </h2>
+                                    <div style={{width: '100%',}}>
+                                        <DrawStructure structure={entity.structure}/>
+                                    </div>
+                                </section>
+                            )}
+                            {/* Pronunciation */}
+                            {entity.pronunciation && (
+                                <section style={{marginBottom: '30px'}}>
+                                    <h2
+                                        style={{
+                                            color: '#667eea',
+                                            fontSize: '20px',
+                                            marginBottom: '15px',
+                                            borderLeft: '4px solid #667eea',
+                                            paddingLeft: '12px',
+                                        }}
+                                    >
+                                        Phát âm
+                                    </h2>
+                                    <div style={{paddingLeft: '16px'}}>
+                                        <div style={{fontSize: '18px', color: '#333'}}>
+                                            <DrawPronunciationEvolution pronunciationId={entity.pronunciation.id}/>
                                         </div>
-                                    ))}
-                                </div>
-                                <div>
-                                    <p>{entity.pronunciation?.pronunciationString}</p>
-                                </div>
-                            </>
-                        }
+                                    </div>
+                                </section>
+                            )}
+                            {/* Years */}
+                            {
+                                <section style={{marginBottom: '30px'}}>
+                                    <h2
+                                        style={{
+                                            color: '#667eea',
+                                            fontSize: '20px',
+                                            marginBottom: '15px',
+                                            borderLeft: '4px solid #667eea',
+                                            paddingLeft: '12px',
+                                        }}
+                                    >
+                                        Niên đại
+                                    </h2>
+                                    <div style={{paddingLeft: '16px'}}>
+                                        <div style={{fontSize: '18px', color: '#333'}}>
+                                            <DrawEntityYear entityId={entity.id} />
+                                        </div>
+                                    </div>
+                                </section>
+                            }
+                        </div>
                     </div>
-
-                    {/* Structure */}
-                    {entity.structure && (
-                        <section style={{marginBottom: '30px'}}>
-                            <h2
-                                style={{
-                                    color: '#667eea',
-                                    fontSize: '20px',
-                                    marginBottom: '15px',
-                                    borderLeft: '4px solid #667eea',
-                                    paddingLeft: '12px',
-                                }}
-                            >
-                                Cấu tạo
-                            </h2>
-                            <div style={{width: '100%',}}>
-                                <DrawStructure structure={entity.structure}/>
-                            </div>
-                        </section>
-                    )}
-
-                    {/* Pronunciation */}
-                    {entity.pronunciation && (
-                        <section style={{marginBottom: '30px'}}>
-                            <h2
-                                style={{
-                                    color: '#667eea',
-                                    fontSize: '20px',
-                                    marginBottom: '15px',
-                                    borderLeft: '4px solid #667eea',
-                                    paddingLeft: '12px',
-                                }}
-                            >
-                                Phát âm
-                            </h2>
-                            <div style={{paddingLeft: '16px'}}>
-                                <div style={{fontSize: '18px', color: '#333'}}>
-                                    <DrawPronunciationEvolution pronunciationId={entity.pronunciation.id}/>
-                                </div>
-                            </div>
-                        </section>
-                    )}
 
                     {/* Meanings */}
                     {entity.meaning?.explanations && entity.meaning.explanations.length > 0 && (
@@ -292,14 +335,14 @@ export default function EntityDetailView() {
                             >
                                 Biến thể
                             </h2>
-                            <div style={{paddingLeft: '16px'}}>
+                            <div style={{paddingLeft: '16px', display: 'flex', gap: '10px'}}>
                                 {entity.variances.map(variance =>
                                     variance ? (
                                         <div
                                             key={variance.id}
                                             style={{
                                                 marginBottom: '10px',
-                                                fontSize: '18px',
+                                                fontSize: '30px',
                                             }}
                                         >
                                             <HnomQnguComponent entityId={variance.id} markedId={0}/>
@@ -311,7 +354,7 @@ export default function EntityDetailView() {
                     )}
 
                     {/* Synonyms */}
-                    {entity.synonyms && entity.synonyms.length > 0 && (
+                    {entity.variances && entity.variances.length > 0 && (
                         <section style={{marginBottom: '30px'}}>
                             <h2
                                 style={{
@@ -324,20 +367,188 @@ export default function EntityDetailView() {
                             >
                                 Từ đồng nghĩa
                             </h2>
-                            <div style={{paddingLeft: '16px'}}>
+                            <div style={{paddingLeft: '16px', display: 'flex', gap: '10px'}}>
                                 {entity.synonyms?.map(synonym =>
                                     synonym ? (
                                         <div
                                             key={synonym.id}
                                             style={{
                                                 marginBottom: '10px',
-                                                fontSize: '18px',
+                                                fontSize: '30px',
                                             }}
                                         >
                                             <HnomQnguComponent entityId={synonym.id} markedId={0}/>
                                         </div>
                                     ) : null
                                 )}
+                            </div>
+                        </section>
+                    )}
+
+                    {/* Being semantic component */}
+                    {entity.beingSemanticComponents && entity.beingSemanticComponents.length > 0 && (
+                        <section>
+                            <h2
+                                style={{
+                                    color: '#667eea',
+                                    fontSize: '20px',
+                                    marginBottom: '15px',
+                                    borderLeft: '4px solid #667eea',
+                                    paddingLeft: '12px',
+                                }}
+                            >
+                                Làm hình bàng
+                            </h2>
+                            <div style={{paddingLeft: '16px', display: 'flex', gap: '10px'}}>
+                                {entity.beingSemanticComponents?.map(fetchedEntity => (
+                                    <div
+                                        key={fetchedEntity?.id}
+                                        style={{
+                                            marginBottom: '10px',
+                                            fontSize: '30px',
+                                        }}
+                                    >
+                                        <HnomQnguComponent entityId={fetchedEntity?.id} markedId={0}/>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
+                    {/* Being phonetic component */}
+                    {entity.beingPhoneticComponents && entity.beingPhoneticComponents.length > 0 && (
+                        <section>
+                            <h2
+                                style={{
+                                    color: '#667eea',
+                                    fontSize: '20px',
+                                    marginBottom: '15px',
+                                    borderLeft: '4px solid #667eea',
+                                    paddingLeft: '12px',
+                                }}
+                            >
+                                Làm thanh bàng
+                            </h2>
+                            <div style={{paddingLeft: '16px', display: 'flex', gap: '10px'}}>
+                                {entity.beingPhoneticComponents?.map(fetchedEntity => (
+                                    <div
+                                        key={fetchedEntity?.id}
+                                        style={{
+                                            marginBottom: '10px',
+                                            fontSize: '30px',
+                                        }}
+                                    >
+                                        <HnomQnguComponent entityId={fetchedEntity?.id} markedId={0}/>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
+                    {/* Having same semantic component */}
+                    {entity.havingSameSemanticComponents && (
+                        <section>
+                            <h2
+                                style={{
+                                    color: '#667eea',
+                                    fontSize: '20px',
+                                    marginBottom: '15px',
+                                    borderLeft: '4px solid #667eea',
+                                    paddingLeft: '12px',
+                                }}
+                            >
+                                Cùng hình bàng
+                            </h2>
+                            <div style={{paddingLeft: '16px', gap: '10px'}}>
+                                {Object.entries(entity.havingSameSemanticComponents)?.map(([key, fetchedEntity]) => (
+                                    <>
+                                        <div
+                                            style={{
+                                                display: 'flex',
+                                                wrap: 'wrap',
+                                                alignItems: 'start',
+                                            }}
+                                        >
+                                            <h1
+                                                style={{
+                                                    margin: '0px',
+                                                    lineHeight: '1',
+                                                    color: '#667eea',
+                                                    fontSize: '30px',
+                                                    marginRight: '20px',
+                                                }}
+                                            >{key}</h1>
+                                            <div
+                                                key={key}
+                                                style={{
+                                                    margin: '0px',
+                                                    fontSize: '30px',
+                                                    display: 'flex',
+                                                    gap: '10px',
+                                                    flexWrap: 'wrap',
+                                                }}
+                                            >
+                                                {fetchedEntity?.map(entity => (
+                                                    <HnomQnguComponent entityId={entity?.id} markedId={0}/>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </>
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
+                    {/* Having same phonetic component */}
+                    {entity.havingSamePhoneticComponents && (
+                        <section>
+                            <h2
+                                style={{
+                                    color: '#667eea',
+                                    fontSize: '20px',
+                                    marginBottom: '15px',
+                                    borderLeft: '4px solid #667eea',
+                                    paddingLeft: '12px',
+                                }}
+                            >
+                                Cùng thanh bàng
+                            </h2>
+                            <div style={{paddingLeft: '16px', display: 'flex', gap: '10px'}}>
+                                {Object.entries(entity.havingSamePhoneticComponents)?.map(([key, fetchedEntity]) => (
+                                    <>
+                                        <div
+                                            style={{
+                                                display: 'flex',
+                                                wrap: 'wrap',
+                                                alignItems: 'start',
+                                            }}
+                                        >
+                                            <h1
+                                                style={{
+                                                    margin: '0px',
+                                                    lineHeight: '1',
+                                                    color: '#667eea',
+                                                    fontSize: '30px',
+                                                    marginRight: '20px',
+                                                }}
+                                            >{key}</h1>
+                                            <div
+                                                key={key}
+                                                style={{
+                                                    margin: '0px',
+                                                    fontSize: '30px',
+                                                    display: 'flex',
+                                                    gap: '10px',
+                                                    flexWrap: 'wrap',
+                                                }}
+                                            >
+                                                {fetchedEntity?.map(entity => (
+                                                    <HnomQnguComponent entityId={entity?.id} markedId={0}/>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </>
+                                ))}
                             </div>
                         </section>
                     )}
@@ -364,9 +575,9 @@ export default function EntityDetailView() {
                                                 display: 'flex',
                                                 flexWrap: 'wrap',
                                                 gap: '10px',
-                                                marginBottom: '10px',
+                                                marginBottom: '40px',
                                                 fontFamily: 'sans-serif',
-                                                width: 'fit-content',
+                                                fontSize: '30px'
                                             }}>
                                             {
                                                 example?.exampleWords ? (
@@ -387,7 +598,7 @@ export default function EntityDetailView() {
                                                     fontFamily: 'sans-serif',
                                                     fontStyle: 'italic',
                                                     color: '#666',
-                                                    fontSize: '0.8em',
+                                                    fontSize: '0.7em',
                                                 }}
                                             >
                                                 {example ? example.sourceName : ''}

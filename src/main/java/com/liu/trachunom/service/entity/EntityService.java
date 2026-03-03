@@ -7,18 +7,22 @@ import com.liu.trachunom.entity.meaning.Explanation;
 import com.liu.trachunom.entity.meaning.Meaning;
 import com.liu.trachunom.entity.pronunciation.Pronunciation;
 import com.liu.trachunom.entity.structure.Structure;
+import com.liu.trachunom.entity.structure.StructureComponent;
+import com.liu.trachunom.repository.StructureComponentRepository;
 import com.liu.trachunom.service.meaning.MeaningService;
+import com.liu.trachunom.service.structure.StructureClassificationService;
 import com.liu.trachunom.service.structure.StructureService;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.BrowserCallable;
 import com.vaadin.hilla.crud.ListRepositoryService;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Service;
 
 import com.liu.trachunom.repository.EntityRepository;
 
 import lombok.RequiredArgsConstructor;
 
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,6 +34,8 @@ public class EntityService extends ListRepositoryService<EntityX, Long, EntityRe
     private final EntityCompositionService entityCompositionService;
     private final MeaningService meaningService;
     private final StructureService structureService;
+    private final StructureComponentRepository structureComponentRepository;
+    private final StructureClassificationService structureClassificationService;
 
     public EntityX findById(Long id) {
         return entityRepository.findById(id).orElse(null);
@@ -116,28 +122,28 @@ public class EntityService extends ListRepositoryService<EntityX, Long, EntityRe
 
     public List<EntityX> findByQuery(String query) {
         List<EntityX> results =
-        entityRepository.findAll().stream()
+        findAll().stream()
             .filter(entity ->
                 getHnomStringById(entity.getId()).equals(query) || getQnguStringById(entity.getId()).equalsIgnoreCase(query)
             )
             .collect(Collectors.toList());
         results
         .addAll(
-            entityRepository.findAll().stream()
+            findAll().stream()
             .filter(entity ->
                 getQnguStringById(entity.getId()).contains(query) ||
                 getHnomStringById(entity.getId()).toLowerCase().contains(query.toLowerCase()))
             .toList()
         );
-        results
-        .addAll(
-        entityRepository.findAll().stream()
-                .filter(entity -> entity.getMeaning() != null)
-                .filter(entity ->
-                        entity.getMeaning().getExplanations().stream()
-                        .anyMatch(explanation -> explanation.getDescription().toLowerCase().contains(query.toLowerCase())))
-                .toList()
-        );
+//        results
+//        .addAll(
+//        findAll().stream()
+//                .filter(entity -> entity.getMeaning() != null)
+//                .filter(entity ->
+//                        entity.getMeaning().getExplanations().stream()
+//                        .anyMatch(explanation -> explanation.getDescription().toLowerCase().contains(query.toLowerCase())))
+//                .toList()
+//        );
         return results.stream().distinct().limit(50).collect(Collectors.toList());
     }
 
@@ -151,8 +157,6 @@ public class EntityService extends ListRepositoryService<EntityX, Long, EntityRe
                 .filter(entityX -> meanings.contains(entityX.getMeaning())
                         && !entityX.getId().equals(entity.getId())
                         && !entityX.getPronunciationString().equals(entity.getPronunciationString())
-//                        && !entityX.getMeaning().getId().equals(entity.getMeaning().getId())
-                        // so sanh pronunciation + meaning de tranh di the
                         && entityX.isAttested())
                 .toList();
     }
@@ -195,5 +199,92 @@ public class EntityService extends ListRepositoryService<EntityX, Long, EntityRe
     public List<EntityX> findByPronunciationId(Long pronunciationId) {
         return entityRepository.findByPronunciation_Id(pronunciationId);
     }
+
+    public List<EntityX> findBeingSematicOrPhoneticComponentByEntityId(Long entityId, boolean isSemantic) {
+        EntityX entity = findById(entityId);
+        if (
+                entity == null ||
+                entity.isCompound() ||
+                entity.getStructure() == null ||
+                entity.getStructure().getCharacter() == null
+        ) return List.of();
+
+        List<StructureComponent> structureComponents =
+                structureComponentRepository.findByStructureComponent(entity.getStructure()).stream()
+                        .filter(sc -> {
+                            return isSemantic ? structureClassificationService.isSemanticClassification(sc.getStructureClassification()) :
+                            structureClassificationService.isPhoneticClassification(sc.getStructureClassification());
+                        })
+                        .toList();
+        return structureComponents.stream()
+                .map(StructureComponent::getStructure)
+                .map(entityRepository::findByStructure)
+                .filter(entities -> !entities.isEmpty())
+//                .flatMap(Collection::stream)
+                .map(List::getFirst) // Assuming one entity per structure, adjust if necessary
+                .filter(e -> !e.getId().equals(entityId))
+                .distinct()
+                .toList();
+    }
+
+    public Map<String, List<EntityX>> findHavingSameSemanticOrPhoneticComponentByEntityId(Long entityId, boolean isSemantic) {
+        EntityX entity = findById(entityId);
+        if (
+                entity == null ||
+                entity.isCompound() ||
+                entity.getStructure() == null ||
+                entity.getStructure().getCharacter() == null
+        ) return Map.of();
+
+        // get structure components belonging to the structure of the entity, filter by semantic or phonetic classification
+        List<StructureComponent> structureComponents = structureComponentRepository.findByStructure(entity.getStructure()).stream()
+                .filter(sc -> {
+                    return isSemantic ? structureClassificationService.isSemanticClassification(sc.getStructureClassification()) :
+                            structureClassificationService.isPhoneticClassification(sc.getStructureClassification());
+                })
+                .collect(Collectors.toList());
+
+        // allow to find entities having the same phonetic component recursively
+        if (!isSemantic) {
+            List<StructureComponent> temp = new ArrayList<>(structureComponents);
+            Queue<StructureComponent> queue = new LinkedList<>(temp);
+            queue.addAll(structureComponents);
+            while (!queue.isEmpty()) {
+                StructureComponent sc = queue.poll();
+                List<StructureComponent> relatedComponents = structureComponentRepository.findByStructure(sc.getStructureComponent()).stream()
+                        .filter(s -> {
+                            return structureClassificationService.isPhoneticClassification(s.getStructureClassification());
+                        })
+                        .toList();
+                for (StructureComponent related : relatedComponents) {
+                    if (!temp.contains(related)) {
+                        temp.add(related);
+                        queue.add(related);
+                    }
+                }
+            }
+            structureComponents = temp;
+        }
+        structureComponents = structureComponents.stream().distinct().toList();
+
+        // fetch entities having the same semantic or phonetic component, group by the component structure
+        Map<String, List<EntityX>> result = new HashMap<>();
+        for (StructureComponent sc : structureComponents) {
+            List<StructureComponent> relatedComponents = structureComponentRepository.findByStructureComponent(sc.getStructureComponent());
+            List<EntityX> relatedEntities = relatedComponents.stream()
+                    .map(StructureComponent::getStructure)
+                    .map(entityRepository::findByStructure)
+                    .filter(entities -> !entities.isEmpty())
+                    .map(List::getFirst) // Assuming one entity per structure, adjust if necessary
+                    .filter(e -> !e.getId().equals(entityId))
+                    .distinct()
+                    .toList();
+            if (!relatedEntities.isEmpty()) {
+                result.put(sc.getStructureComponent().getCharacter().getString(), relatedEntities);
+            }
+        }
+        return result;
+    }
+
 
 }

@@ -65,6 +65,21 @@ public class EntityDetailEndpoint {
                         .map(EntityComposition::getChildEntity)
                         .map(entityMapper::toEntityDto)
                         .collect(Collectors.toList()))
+                .beingSemanticComponents(
+                        entityService.findBeingSematicOrPhoneticComponentByEntityId(id, true)
+                        .stream()
+                        .map(entityMapper::toEntityDto)
+                        .collect(Collectors.toList()))
+                .beingPhoneticComponents(
+                        entityService.findBeingSematicOrPhoneticComponentByEntityId(id, false)
+                        .stream()
+                        .map(entityMapper::toEntityDto)
+                        .collect(Collectors.toList())
+                )
+                .havingSameSemanticComponents(
+                        entityService.findHavingSameSemanticOrPhoneticComponentByEntityId(id, true))
+                .havingSamePhoneticComponents(
+                        entityService.findHavingSameSemanticOrPhoneticComponentByEntityId(id, false))
                 .build();
 
         // Get compositions for compound entities

@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router';
 import { findByQuery } from 'Frontend/generated/SearchEndpoint';
 import EntityX from "Frontend/generated/com/liu/trachunom/entity/entity/EntityX";
 import {HnomQnguComponent} from "Frontend/utils/entityUtils";
+import {SearchBar} from "Frontend/views/SearchBar";
 
 export const config: ViewConfig = {
   menu: { order: 1, icon: 'la la-search' },
@@ -12,32 +13,17 @@ export const config: ViewConfig = {
 };
 
 export default function SearchView() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('query') || '');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchParams] = useSearchParams();
+  const [searchResults, setSearchResults] = useState<EntityX[]>([]);
 
-  const handleSearch = async () => {
-    if (searchQuery.trim()) {
-      setSearchParams({ query: searchQuery.trim() });
-        try {
-            const results = await findByQuery(searchQuery);
-            setSearchResults(results || []);
-        } catch (error) {
-            console.error('Search error:', error);
-            setSearchResults([]);
-        }
+  useEffect(() => {
+    const query = searchParams.get('query');
+    if (query) {
+      findByQuery(query).then((results) => setSearchResults((results ?? []).filter((r): r is EntityX => r != null)));
+    } else {
+      setSearchResults([]);
     }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
-  };
-
-    useEffect(() => {
-        handleSearch();
-    }, []);
+  }, [searchParams]);
 
   return (
     <div
@@ -46,59 +32,10 @@ export default function SearchView() {
         minHeight: '100vh',
         background: '#f5f5f5',
         padding: '20px',
+      fontFamily: 'sans-serif',
       }}
     >
-      {/* Search Bar */}
-      <div
-        style={{
-          maxWidth: '1000px',
-          margin: '0 auto 20px',
-          background: 'white',
-          borderRadius: '8px',
-          boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-          padding: '20px',
-          display: 'flex',
-          gap: '10px',
-        }}
-      >
-        <input
-          type="text"
-          placeholder="Nhập ký tự chữ Nôm..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          onKeyPress={handleKeyPress}
-          style={{
-            flex: 1,
-            fontSize: '16px',
-            padding: '10px 15px',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            outline: 'none',
-              width: '100%',
-          }}
-        />
-        <button
-          onClick={handleSearch}
-          style={{
-            padding: '10px 30px',
-            fontSize: '16px',
-            background: '#667eea',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontWeight: '500',
-          }}
-          onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
-            e.currentTarget.style.background = '#5568d3';
-          }}
-          onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
-            e.currentTarget.style.background = '#667eea';
-          }}
-        >
-          Tìm Kiếm
-        </button>
-      </div>
+        <SearchBar/>
 
       {/* Content Area */}
       <div
@@ -158,9 +95,9 @@ const ResultContent = ({ result, index }: { result: EntityX, index: number }) =>
         >
             <div>
                         <span style={{
-                            fontSize: '24px',
+                            fontSize: '30px',
                             display: 'inline-flex',
-                            alignItems: 'end',
+                            alignItems: 'start',
                         }}>
                             <span style={{
                                 color: 'white',

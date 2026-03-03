@@ -1,7 +1,12 @@
 package com.liu.trachunom.service;
 
 import com.liu.trachunom.entity.Source;
+import com.liu.trachunom.entity.entity.EntityX;
+import com.liu.trachunom.entity.example.Example;
+import com.liu.trachunom.entity.example.ExampleWord;
 import com.liu.trachunom.repository.SourceRepository;
+import com.liu.trachunom.service.entity.EntityService;
+import com.liu.trachunom.service.example.ExampleWordService;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.BrowserCallable;
 import com.vaadin.hilla.crud.ListRepositoryService;
@@ -17,6 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SourceService extends ListRepositoryService<Source, Long, SourceRepository> {
     private final SourceRepository sourceRepository;
+    private final ExampleWordService exampleWordService;
 
     public Source findById(Long id) {
         return sourceRepository.findById(id).orElse(null);
@@ -44,8 +50,13 @@ public class SourceService extends ListRepositoryService<Source, Long, SourceRep
         sourceRepository.deleteById(id);
     }
 
-    public boolean existsByName(String string) {
-        return sourceRepository.existsByName(string);
+    public List<Source> findByEntityId(Long entityId) {
+        List<ExampleWord> exampleWords = exampleWordService.findByEntityId(entityId);
+        return exampleWords.stream()
+                .map(ExampleWord::getExample)
+                .map(Example::getSource)
+                .distinct()
+                .toList();
     }
 }
 

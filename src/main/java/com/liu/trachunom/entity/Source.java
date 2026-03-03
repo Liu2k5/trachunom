@@ -32,4 +32,10 @@ public class Source {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "start_year")
+    private Integer startYear;
+
+    @Column(name = "end_year")
+    private Integer endYear;
+
 }

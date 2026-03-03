@@ -1,11 +1,10 @@
 import {useEffect, useState} from 'react';
 import EntityX from "Frontend/generated/com/liu/trachunom/entity/entity/EntityX";
 import {
-    EntityMapper,
     EntityService,
     ExampleService,
     PronunciationEvolutionService,
-    PronunciationService
+    PronunciationService, SourceService
 } from "Frontend/generated/endpoints";
 import EntityEvolutionDto from "Frontend/generated/com/liu/trachunom/dto/EntityEvolutionDto";
 import {
@@ -18,6 +17,8 @@ import * as StructureEndpoint from "Frontend/generated/StructureEndpoint";
 import PronunciationEvolution from "Frontend/generated/com/liu/trachunom/entity/pronunciation/PronunciationEvolution";
 import Pronunciation from "Frontend/generated/com/liu/trachunom/entity/pronunciation/Pronunciation";
 import Meaning from "Frontend/generated/com/liu/trachunom/entity/meaning/Meaning";
+import Source from "Frontend/generated/com/liu/trachunom/entity/Source";
+import {color} from "@vaadin/vaadin-lumo-styles";
 
 export {
     HnomQngu as HnomQnguComponent,
@@ -26,6 +27,7 @@ export {
     DrawStructure as DrawStructure,
     DrawPronunciationEvolution as DrawPronunciationEvolution,
     DrawMeaningEvolution as DrawMeaningEvolution,
+    DrawEntityYear as DrawEntityYear,
 };
 
 const HnomQngu = ({entityId, markedId}: {entityId: number | undefined, markedId: number}): JSX.Element => {
@@ -58,12 +60,14 @@ const HnomQngu = ({entityId, markedId}: {entityId: number | undefined, markedId:
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: entity?.id === markedId ? 'blue' : (entity?.attested ? 'black' : 'grey'),
+                position: 'relative',
+                margin: '0px 0px 1em'
             }}
         >
-            <p style={{fontSize: '0.8em', margin: '0px', lineHeight: '1em'}}>
+            <p style={{fontSize: '0.4em', margin: '0px', lineHeight: '1em', position: 'absolute', top: '-1em'}}>
                 {qnguString}
             </p>
-            <p style={{fontSize: '1.5em', margin: '0px', lineHeight: '1em'}}>
+            <p style={{fontSize: '1em', margin: '0px', lineHeight: '1em'}}>
                 {hnomString}
             </p>
         </div>
@@ -329,7 +333,7 @@ function DrawPronunciationAncestors({pronunciationId}: {pronunciationId: number 
             return;
         }
 
-        let fetchedAncestors = PronunciationEvolutionService.findByToPronunciationId(pronunciationId ?? undefined)
+        PronunciationEvolutionService.findByToPronunciationId(pronunciationId ?? undefined)
             .then(data => data?.filter(evolution => evolution !== undefined))
             .then(data => setAncestors(data ?? null))
             .catch(error => console.error('Error fetching pronunciation evolutions:', error));
@@ -452,3 +456,78 @@ function DrawMeaningEvolution({meaning}: {meaning: Meaning | undefined}): JSX.El
         </>
     );
 }
+
+const colors = [
+    '000000', '000055', '0000AA', '0000FF', '005500', '005555', '0055AA', '0055FF',
+    '00AA00', '00AA55', '00AAAA', '00AAFF', '00FF00', '00FF55', '00FFAA', '00FFFF',
+    '550000', '550055', '5500AA', '5500FF', '555500', '555555', '5555AA', '5555FF',
+    '55AA00', '55AA55', '55AAAA', '55AAFF', '55FF00', '55FF55', '55FFAA', '55FFFF',
+    'AA0000', 'AA0055', 'AA00AA', 'AA00FF', 'AA5500', 'AA5555', 'AA55AA', 'AA55FF',
+    'AAAA00', 'AAAA55', 'AAAAAA', 'AAAAFF', 'AAFF00', 'AAFF55', 'AALFAA', 'AAFFFF',
+    'FF0000', 'FF0055', 'FF00AA', 'FF00FF', 'FF5500', 'FF5555', 'FF55AA', 'FF55FF',
+    'FFAA00', 'FFAA55', 'FFAAAA', 'FFAAFF', 'FFFF00', 'FFFF55', 'FFFFAA', 'FFFFFF'
+];
+
+function DrawEntityYear({entityId}: {entityId: number | undefined}): JSX.Element {
+    const startYear = 1000;
+    const endYear = 2000;
+    const [sources, setSources] = useState<Source[] | null>(null);
+    useEffect(() => {
+        SourceService.findByEntityId(entityId ?? undefined)
+            .then(data => data?.filter(source => source !== undefined))
+            .then(data => setSources(data ?? null))
+            .catch(error => console.error('Error fetching sources:', error));
+    }, [entityId]);
+    return (
+        <div
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+            }}
+        >
+            {startYear}
+            <div
+                style={{
+                    display: 'flex',
+                    width: '100%',
+                    position: 'relative',
+                }}
+            >
+                <div
+                    style={{
+                        height: '20px',
+                        width: '100%',
+                        backgroundColor: 'lightgrey',
+                        border: '2px solid black',
+                        borderRadius: '10px',
+                        boxSizing: 'border-box',
+                    }}
+                />
+                {sources?.map((source, index) => {
+                    const fromPercentage = ((source.startYear ?? startYear) - startYear) / (endYear - startYear);
+                    const toPercentage = ((source.endYear ?? endYear) - startYear) / (endYear - startYear);
+                    let colorValue = '#' + colors[Math.round(Math.random() * colors.length)];
+                    return (
+                        <div
+                            key={index}
+                            style={{
+                                position: 'absolute',
+                                left: `calc(${fromPercentage * 100}%)`,
+                                width: `calc(${(toPercentage - fromPercentage) * 100}%)`,
+                                height: '20px',
+                                backgroundColor: colorValue,
+                                border: '2px solid black',
+                                borderRadius: '10px',
+                                boxSizing: 'border-box',
+                            }}
+                            title={source.name + '(' + (source.startYear ?? '?') + ' - ' + (source.endYear ?? '?') + ')'}
+                        />
+                    );
+                }
+                )}
+            </div>
+            {endYear}
+        </div>
+    );
+};
