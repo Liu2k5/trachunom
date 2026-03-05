@@ -56,13 +56,7 @@ public class EntityService extends ListRepositoryService<EntityX, Long, EntityRe
     public List<EntityX> findAll() {
         return entityRepository.findAll().stream()
                 .sorted((o1, o2) -> {
-                    if (o1.isStandardised() && !o2.isStandardised()) {
-                        return -1;
-                    }
-                    if (!o1.isStandardised() && o2.isStandardised()) {
-                        return 1;
-                    }
-                    return o1.getId().compareTo(o2.getId());
+                    return o1.getPronunciationString().compareTo(o2.getPronunciationString());
                 })
                 .toList();
     }

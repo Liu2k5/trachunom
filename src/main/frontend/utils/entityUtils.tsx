@@ -270,14 +270,16 @@ function StructureRow({component}: { component: StructureComponentDto; }): JSX.E
                     alignItems: "center",
                     height: "40px",
                 }}>
-                    <a style={{
-                        textDecoration: "none",
-                        color: "white",
-                        fontWeight: "bold",
-                        fontFamily: "sans-serif",
-                        fontSize: "18px",
-                    }}
-                       href={"/search?query=" + component.structureComponentCharacterString + (component.quantity ? (component?.quantity > 1 ? "×" + component.quantity : "") : "")}>
+                    <a
+                        style={{
+                            textDecoration: "none",
+                            color: "white",
+                            fontWeight: "bold",
+                            fontFamily: "sans-serif",
+                            fontSize: "18px",
+                        }}
+                       href={"/search?query=" + component.structureComponentCharacterString}
+                    >
                         {component.structureComponentCharacterString + (component.quantity ? (component?.quantity > 1 ? "×" + component.quantity : "") : "") || ''}
                     </a>
                 </div>
@@ -521,7 +523,7 @@ function DrawEntityYear({entityId}: {entityId: number | undefined}): JSX.Element
                                 borderRadius: '10px',
                                 boxSizing: 'border-box',
                             }}
-                            title={source.name + '(' + (source.startYear ?? '?') + ' - ' + (source.endYear ?? '?') + ')'}
+                            title={source.name + ' (' + (source.startYear ?? '?') + ' - ' + (source.endYear ?? '?') + ')'}
                         />
                     );
                 }

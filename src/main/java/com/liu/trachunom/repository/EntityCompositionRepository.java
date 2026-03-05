@@ -18,6 +18,8 @@ public interface EntityCompositionRepository extends JpaRepository<EntityComposi
 //    @Query("SELECT ec FROM EntityComposition ec JOIN FETCH ec.parentEntity pe JOIN FETCH ec.childEntity ce")
     List<EntityComposition> findAll();
 
+    List<EntityComposition> findByChildEntityId(Long id);
+
 //    @Override
 //    @Query("SELECT COUNT(ec.id.parentEntityId) FROM EntityComposition ec")
 //    long count();

@@ -69,23 +69,25 @@ export default function EntityDetailView() {
                     background: '#f5f5f5',
                 }}
             >
-                <SearchBar/>
-                <div style={{textAlign: 'center'}}>
-                    <h2 style={{color: '#666'}}>Không tìm thấy thực thể</h2>
-                    <button
-                        onClick={() => navigate('/search')}
-                        style={{
-                            marginTop: '20px',
-                            padding: '10px 20px',
-                            background: '#667eea',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                        }}
-                    >
-                        Quay lại tìm kiếm
-                    </button>
+                <div>
+                    <SearchBar/>
+                    <div style={{textAlign: 'center'}}>
+                        <h2 style={{color: '#666'}}>Không tìm thấy thực thể</h2>
+                        <button
+                            onClick={() => navigate('/search')}
+                            style={{
+                                marginTop: '20px',
+                                padding: '10px 20px',
+                                background: '#667eea',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                            }}
+                        >
+                            Quay lại tìm kiếm
+                        </button>
+                    </div>
                 </div>
             </div>
         );
@@ -101,7 +103,6 @@ export default function EntityDetailView() {
                 fontFamily: 'sans-serif',
             }}
         >
-            <SearchBar/>
             <div
                 style={{
                     maxWidth: '1000px',
@@ -123,6 +124,7 @@ export default function EntityDetailView() {
                 >
                     ← Quay lại
                 </button>
+                <SearchBar/>
 
                 {/* Main content */}
                 <div
@@ -147,7 +149,7 @@ export default function EntityDetailView() {
                                 textAlign: 'center',
                                 marginBottom: '40px',
                                 paddingBottom: '30px',
-                                minWidth: '300px',
+                                minWidth: '200px',
                                 flex: '1'
                             }}
                         >
@@ -211,7 +213,7 @@ export default function EntityDetailView() {
 
                         <div
                             style={{
-                                minWidth: '300px',
+                                minWidth: '200px',
                                 flex: '1',
                             }}
                         >
@@ -474,7 +476,7 @@ export default function EntityDetailView() {
                                                     margin: '0px',
                                                     lineHeight: '1',
                                                     color: '#667eea',
-                                                    fontSize: '30px',
+                                                    fontSize: '20px',
                                                     marginRight: '20px',
                                                 }}
                                             >{key}</h1>
@@ -482,7 +484,7 @@ export default function EntityDetailView() {
                                                 key={key}
                                                 style={{
                                                     margin: '0px',
-                                                    fontSize: '30px',
+                                                    fontSize: '20px',
                                                     display: 'flex',
                                                     gap: '10px',
                                                     flexWrap: 'wrap',
@@ -513,7 +515,7 @@ export default function EntityDetailView() {
                             >
                                 Cùng thanh bàng
                             </h2>
-                            <div style={{paddingLeft: '16px', display: 'flex', gap: '10px'}}>
+                            <div style={{paddingLeft: '16px', gap: '10px'}}>
                                 {Object.entries(entity.havingSamePhoneticComponents)?.map(([key, fetchedEntity]) => (
                                     <>
                                         <div
@@ -528,7 +530,7 @@ export default function EntityDetailView() {
                                                     margin: '0px',
                                                     lineHeight: '1',
                                                     color: '#667eea',
-                                                    fontSize: '30px',
+                                                    fontSize: '20px',
                                                     marginRight: '20px',
                                                 }}
                                             >{key}</h1>
@@ -536,7 +538,7 @@ export default function EntityDetailView() {
                                                 key={key}
                                                 style={{
                                                     margin: '0px',
-                                                    fontSize: '30px',
+                                                    fontSize: '20px',
                                                     display: 'flex',
                                                     gap: '10px',
                                                     flexWrap: 'wrap',
