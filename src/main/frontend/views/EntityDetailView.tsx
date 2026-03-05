@@ -600,7 +600,7 @@ export default function EntityDetailView() {
                                                     fontFamily: 'sans-serif',
                                                     fontStyle: 'italic',
                                                     color: '#666',
-                                                    fontSize: '0.7em',
+                                                    fontSize: '0.5em',
                                                 }}
                                             >
                                                 {example ? example.sourceName : ''}

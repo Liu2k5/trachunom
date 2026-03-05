@@ -43,6 +43,15 @@ public class EntityService extends ListRepositoryService<EntityX, Long, EntityRe
 
     public void save(EntityX entity) {
         entityRepository.save(entity);
+        if (entity.isStandardised()) {
+            List<EntityX> variances = findVariances(entity);
+            for (EntityX variance : variances) {
+                if (!variance.getId().equals(entity.getId())) {
+                    variance.setStandardised(false);
+                    entityRepository.save(variance);
+                }
+            }
+        }
     }
 
     public List<EntityX> findByCharacter(CharacterX character) {
