@@ -1779,7 +1779,6 @@ const EntityTabContent = () => {
     const [selectedEvolution, setSelectedEvolution] = useState<EntityEvolution | undefined | null>(null);
     const [selectedEvolutionDto, setSelectedEvolutionDto] = useState<EntityEvolutionDto | undefined | null>(null);
 
-    const [entities, setEntities] = useState<EntityX[]>([]);
     const [entityDtos, setEntityDtos] = useState<EntityDto[]>([]);
     const [compositions, setCompositions] = useState<EntityComposition[]>([]);
     const [evolutions, setEvolutions] = useState<EntityEvolution[]>([]);
@@ -1805,15 +1804,15 @@ const EntityTabContent = () => {
     }, [selectedEntity]);
 
     const refreshEntitiesTrigger = () => {
-        EntityService.findAll().then(data => setEntities((data || []).filter(e => e !== undefined)));
+        EntityService.findAll()
+            .then(data => data?.filter(entity => entity !== undefined))
+            .then(data => data?.map(entity => EntityMapper.toEntityDto(entity)))
+            .then(promises => Promise.all(promises || []))
+            .then(dtos => dtos.filter(dto => dto !== undefined))
+            .then(dtos => setEntityDtos(dtos as EntityDto[]))
+;
     };
     useEffect(refreshEntitiesTrigger, []);
-
-    useEffect(() => {
-        Promise.all(entities.map(entity => EntityMapper.toEntityDto(entity)))
-        .then(dtos => dtos.filter(entity => entity !== undefined))
-            .then(dtos => setEntityDtos(dtos as EntityDto[]));
-    }, [entities]);
 
     // Map selected composition to DTO
     useEffect(() => {
@@ -2238,10 +2237,10 @@ const EntityTabContent = () => {
                                             label='Thực thể con'
                                             itemLabelPath='pronunciationString'
                                             itemValuePath='id'
-                                            items={entities || []}
+                                            items={entityDtos || []}
                                             {...field}
                                             renderer={item =>
-                                        <span>{item.item.id + ' - ' + item.item.characterString + ' ' + item.item.pronunciationString + ' ' + item.item.meaning?.explanationsString}</span>}
+                                        <span>{item.item.id + ' - ' + item.item.hnomString + ' ' + item.item.qnguString + ' ' + item.item.explanationsString}</span>}
                                         />
                                     )
                                 },

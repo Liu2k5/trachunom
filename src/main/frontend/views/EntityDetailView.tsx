@@ -356,7 +356,7 @@ export default function EntityDetailView() {
                     )}
 
                     {/* Synonyms */}
-                    {entity.variances && entity.variances.length > 0 && (
+                    {entity.synonyms && entity.synonyms.length > 0 && (
                         <section style={{marginBottom: '30px'}}>
                             <h2
                                 style={{

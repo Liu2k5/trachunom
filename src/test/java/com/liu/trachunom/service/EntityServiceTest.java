@@ -8,7 +8,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.List;
+
 import static com.helger.commons.mock.CommonsAssert.assertEquals;
+import static reactor.core.publisher.Mono.when;
 
 @SpringBootTest
 public class EntityServiceTest {
@@ -37,4 +40,12 @@ public class EntityServiceTest {
         EntityX example = entityService.findById(29L);
         assertEquals("[阿貶]", entityService.getHnomStringById(example.getId()));
     }
+
+//    @Test
+//    public void test4() {
+//        EntityX entity = entityService.findById(407L);
+//        List<EntityX> synoyms = entityService.findSynonyms(entity);
+//        when(meaningService.findAll()).then(return )
+//        System.out.println(synoyms.size());
+//    }
 }
