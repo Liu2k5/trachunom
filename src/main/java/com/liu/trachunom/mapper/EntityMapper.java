@@ -56,7 +56,6 @@ public class EntityMapper {
     private final RadicalService radicalService;
     private final CharacterService characterService;
     private final StructureService structureService;
-    private final StructureComponentService structureComponentService;
     private final StructureClassificationService structureClassificationService;
     private final QuocNguService quocNguService;
     private final PronunciationService pronunciationService;
@@ -764,6 +763,66 @@ public class EntityMapper {
                 .id(exampleDto.getId())
                 .source(exampleDto.getSourceId() != null ? sourceService.findById(exampleDto.getSourceId()) : null)
                 .build();
+    }
+
+    public List<PronunciationDto> toPronunciationDtoList(List<Pronunciation> pronunciations) {
+        if (pronunciations == null) {
+            return new ArrayList<>();
+        }
+        return pronunciations.stream()
+                .map(this::toPronunciationDto)
+                .collect(Collectors.toList());
+    }
+
+    public List<MeaningExplanationDto> toMeaningExplanationDtoList(List<MeaningExplanation> meaningExplanations) {
+        if (meaningExplanations == null) {
+            return new ArrayList<>();
+        }
+        return meaningExplanations.stream()
+                .map(this::toMeaningExplanationDto)
+                .collect(Collectors.toList());
+    }
+
+    public List<EntityComposition> toEntityCompositionList(List<EntityCompositionDto> compositionDtos) {
+        if (compositionDtos == null) {
+            return new ArrayList<>();
+        }
+        return compositionDtos.stream()
+                .map(this::toEntityComposition)
+                .collect(Collectors.toList());
+    }
+
+    public List<EntityEvolution> toEntityEvolutionList(List<EntityEvolutionDto> evolutionDtos) {
+        if (evolutionDtos == null) {
+            return new ArrayList<>();
+        }
+        return evolutionDtos.stream()
+                .map(this::toEntityEvolution)
+                .collect(Collectors.toList());
+    }
+
+    public List<EntityEvolution> toEntityEvolutionList(List<EntityEvolutionDto> evolutionDtos, EntityX fromEntity) {
+        if (evolutionDtos == null) {
+            return new ArrayList<>();
+        }
+        return evolutionDtos.stream()
+                .map(dto -> {
+                    EntityEvolution evolution = toEntityEvolution(dto);
+                    if (evolution != null) {
+                        evolution.setFromEntity(fromEntity);
+                    }
+                    return evolution;
+                })
+                .collect(Collectors.toList());
+    }
+
+    public List<ExampleWordDto> toExampleWordDtoList(List<ExampleWord> exampleWords) {
+        if (exampleWords == null) {
+            return new ArrayList<>();
+        }
+        return exampleWords.stream()
+                .map(this::toExampleWordDto)
+                .collect(Collectors.toList());
     }
 }
 

@@ -863,8 +863,15 @@ const StructureTabContent = () => {
 
     useEffect(() => {
         if (structures) {
-            Promise.all(structures.map(structure => EntityMapper.toStructureDto(structure)))
-                .then(dtos => dtos.filter(dto => dto !== undefined))
+            EntityMapper.toStructureDtoList(structures)
+                .then(dtos => dtos?.filter(dto => dto !== null))
+                .then(dtos => {
+                    const tempList: StructureDto[] = [];
+                    dtos?.forEach((dto) => {
+                        if (dto) tempList.push(dto);
+                    });
+                    return tempList;
+                })
                 .then(dtos => setStructureDtos(dtos));
         }
     }, [structures]);
@@ -1234,11 +1241,12 @@ const PronunciationTabContent = () => {
             })
             .catch((error) => console.error('Error fetching pronunciations:', error));
     };
+
     useEffect(pronunciationsTrigger, []);
     useEffect(() => {
         if (pronunciations) {
-            Promise.all(pronunciations?.map(pronunciation => EntityMapper.toPronunciationDto(pronunciation)))
-                .then(data => data.filter(dto => dto !== undefined))
+            EntityMapper.toPronunciationDtoList(pronunciations)
+                .then(data => data?.filter(dto => dto !== undefined))
                 .then(dtos => setPronunciationDtos(dtos));
         }
     }, [pronunciations]);
@@ -1439,10 +1447,9 @@ const MeaningTabContent = () => {
         if (selectedMeaning?.id) {
             MeaningExplanationEndpoint.findByMeaningId(selectedMeaning.id)
                 .then(async (dtos: any) => {
-                    const mapped = await Promise.all(
-                        (dtos || []).map((dto: any) => EntityMapper.toMeaningExplanation(dto))
-                    );
-                    setMeaningExplanations(mapped.filter(me => me !== undefined) as MeaningExplanation[]);
+                    const mapped = await EntityMapper.toMeaningExplanationDtoList(dtos)
+                        .then(data => data?.filter(me => me !== undefined) as MeaningExplanation[]);
+                    setMeaningExplanations(mapped);
                 })
                 .catch((error: any) => console.error('Error loading MeaningExplanations:', error));
         } else {
@@ -1552,10 +1559,9 @@ const MeaningTabContent = () => {
                     if (selectedMeaning?.id) {
                         MeaningExplanationEndpoint.findByMeaningId(selectedMeaning.id)
                             .then(async (dtos: any) => {
-                                const mapped = await Promise.all(
-                                    (dtos || []).map((dto: any) => EntityMapper.toMeaningExplanation(dto))
-                                );
-                                setMeaningExplanations(mapped.filter(me => me !== undefined) as MeaningExplanation[]);
+                                EntityMapper.toMeaningExplanationDtoList(dtos)
+                                    .then(data => data?.filter(me => me !== undefined) as MeaningExplanation[])
+                                    .then(data => setMeaningExplanations(data));
                             })
                             .catch((error: any) => console.error('Error reloading MeaningExplanations:', error));
                     }
@@ -1726,11 +1732,10 @@ const MeaningTabContent = () => {
                                 // Reload the filtered list
                                 if (selectedMeaning?.id) {
                                     MeaningExplanationEndpoint.findByMeaningId(selectedMeaning.id)
-                                        .then(async (dtos: any) => {
-                                            const mapped = await Promise.all(
-                                                (dtos || []).map((dto: any) => EntityMapper.toMeaningExplanation(dto))
-                                            );
-                                            setMeaningExplanations(mapped.filter(me => me !== undefined) as MeaningExplanation[]);
+                                        .then((dtos: any) => {
+                                            EntityMapper.toMeaningExplanationDtoList(dtos)
+                                                .then(data => data?.filter(me => me !== undefined))
+                                                .then(data => setMeaningExplanations(data as MeaningExplanation[]));
                                         })
                                         .catch((error: any) => console.error('Error reloading MeaningExplanations:', error));
                                 }
@@ -1784,6 +1789,7 @@ const EntityTabContent = () => {
     const [evolutions, setEvolutions] = useState<EntityEvolution[]>([]);
     const [structures, setStructures] = useState<StructureDto[]>([]);
     const [meanings, setMeanings] = useState<Meaning[]>([]);
+    const [meaningsWithSuggests, setMeaningsWithSuggests] = useState<Meaning[]>([]);
     const [languages, setLanguages] = useState<Language[]>([]);
     const [pronunciations, setPronunciations] = useState<Pronunciation[]>([]);
     const [pronunciationDtos, setPronunciationDtos] = useState<PronunciationDto[]>([]);
@@ -1806,11 +1812,10 @@ const EntityTabContent = () => {
     const refreshEntitiesTrigger = () => {
         EntityService.findAll()
             .then(data => data?.filter(entity => entity !== undefined))
-            .then(data => data?.map(entity => EntityMapper.toEntityDto(entity)))
+            .then(data => EntityMapper.toEntityDtoList(data))
             .then(promises => Promise.all(promises || []))
             .then(dtos => dtos.filter(dto => dto !== undefined))
-            .then(dtos => setEntityDtos(dtos as EntityDto[]))
-;
+            .then(dtos => setEntityDtos(dtos as EntityDto[]));
     };
     useEffect(refreshEntitiesTrigger, []);
 
@@ -1831,10 +1836,9 @@ const EntityTabContent = () => {
         if (selectedEntity?.id) {
             EntityCompositionEndpoint.findByParentEntityId(selectedEntity.id)
                 .then(async (dtos: any) => {
-                    const mapped = await Promise.all(
-                        (dtos || []).map((dto: any) => EntityMapper.toEntityComposition(dto))
-                    );
-                    setCompositions(mapped.filter(c => c !== undefined) as EntityComposition[]);
+                    EntityMapper.toEntityCompositionList(dtos)
+                        .then(data => data?.filter(c => c !== undefined))
+                        .then(data => setCompositions(data as EntityComposition[]));
                 })
                 .catch((error: any) => console.error('Error loading EntityCompositions:', error));
         } else {
@@ -1847,10 +1851,9 @@ const EntityTabContent = () => {
         if (selectedEntity?.id) {
             EntityEvolutionEndpoint.findByFromEntityId(selectedEntity.id)
                 .then(async (dtos: any) => {
-                    const mapped = await Promise.all(
-                        (dtos || []).map((dto: any) => EntityMapper.toEntityEvolution(dto))
-                    );
-                    setEvolutions(mapped.filter(e => e !== undefined) as EntityEvolution[]);
+                    EntityMapper.toEntityEvolutionList(dtos)
+                        .then(data => data?.filter(e => e !== undefined) as EntityEvolution[])
+                        .then(data => setEvolutions(data));
                 })
                 .catch((error: any) => console.error('Error loading EntityEvolutions:', error));
         } else {
@@ -1886,8 +1889,9 @@ const EntityTabContent = () => {
     }, []);
 
     useEffect(() => {
-        Promise.all(pronunciations.map(pronunciation => EntityMapper.toPronunciationDto(pronunciation)))
-            .then(dtos => dtos.filter(dto => dto !== undefined))
+        EntityMapper.toPronunciationDtoList(pronunciations)
+            .then(dtos => dtos?.filter(dto => dto !== undefined))
+            .then(dtos => dtos as PronunciationDto[])
             .then(dtos => setPronunciationDtos(dtos))
             .catch(error => console.error('Error mapping Pronunciations to DTOs:', error));
     }, [pronunciations]);
@@ -1973,10 +1977,9 @@ const EntityTabContent = () => {
                     if (selectedEntity?.id) {
                         EntityCompositionEndpoint.findByParentEntityId(selectedEntity.id)
                             .then(async (dtos: any) => {
-                                const mapped = await Promise.all(
-                                    (dtos || []).map((dto: any) => EntityMapper.toEntityComposition(dto))
-                                );
-                                setCompositions(mapped.filter(c => c !== undefined) as EntityComposition[]);
+                                EntityMapper.toEntityCompositionList(dtos)
+                                    .then(data => data?.filter(c => c !== undefined) as EntityComposition[])
+                                    .then(data => setCompositions(data));
                             })
                             .catch((error: any) => console.error('Error reloading EntityCompositions:', error));
                     }
@@ -2017,10 +2020,9 @@ const EntityTabContent = () => {
                     if (selectedEntity?.id) {
                         EntityEvolutionEndpoint.findByFromEntityId(selectedEntity.id)
                             .then(async (dtos: any) => {
-                                const mapped = await Promise.all(
-                                    (dtos || []).map((dto: any) => EntityMapper.toEntityEvolution(dto))
-                                );
-                                setEvolutions(mapped.filter(e => e !== undefined) as EntityEvolution[]);
+                                EntityMapper.toEntityEvolutionList(dtos)
+                                    .then(data => data?.filter(e => e !== undefined) as EntityEvolution[])
+                                    .then(data => setEvolutions(data));
                             })
                             .catch((error: any) => console.error('Error reloading EntityEvolutions:', error));
                     }
@@ -2147,9 +2149,9 @@ const EntityTabContent = () => {
                                             .then(data => data?.filter(meaning => meaning !== undefined))
                                             .then(data => {
                                                 if (data) {
-                                                    var tempMeanings = data;
+                                                    let tempMeanings = data;
                                                     tempMeanings.push(...meanings);
-                                                    setMeanings(tempMeanings);
+                                                    setMeaningsWithSuggests(tempMeanings);
                                                 }
                                             })
                                             .catch(e => console.error('Error fetching meanings for pronunciation:', e));
@@ -2161,7 +2163,7 @@ const EntityTabContent = () => {
                             renderer: ({field}) => (
                                 <ComboBox
                                     label='Ý nghĩa'
-                                    items={meanings}
+                                    items={meaningsWithSuggests}
                                     renderer={(item) =>
                                         (<span>{item.item.id + ' - ' + item.item.explanationsString}</span>)}
                                     itemValuePath='id'
@@ -2207,8 +2209,7 @@ const EntityTabContent = () => {
                                 ...EntityCompositionEndpoint,
                                 save: async (item) => {
                                     if (!item) return undefined;
-                                    const saved = await EntityCompositionEndpoint.saveByIds(selectedEntity?.id, item.childEntityId, item.position);
-                                    return saved;
+                                    return await EntityCompositionEndpoint.saveByIds(selectedEntity?.id, item.childEntityId, item.position);
                                 }
                             }}
                             model={EntityCompositionDtoModel}
@@ -2219,10 +2220,9 @@ const EntityTabContent = () => {
                                 if (selectedEntity?.id) {
                                     EntityCompositionEndpoint.findByParentEntityId(selectedEntity.id)
                                         .then(async (dtos: any) => {
-                                            const mapped = await Promise.all(
-                                                (dtos || []).map((dto: any) => EntityMapper.toEntityComposition(dto))
-                                            );
-                                            setCompositions(mapped.filter(c => c !== undefined) as EntityComposition[]);
+                                            EntityMapper.toEntityCompositionList(dtos)
+                                                .then(dtos => dtos?.filter(c => c !== undefined))
+                                                .then(c => setCompositions(c as EntityComposition[]));
                                         })
                                         .catch((error: any) => console.error('Error reloading EntityCompositions:', error));
                                 }
@@ -2235,7 +2235,7 @@ const EntityTabContent = () => {
                                     renderer: ({field}) => (
                                         <ComboBox
                                             label='Thực thể con'
-                                            itemLabelPath='pronunciationString'
+                                            itemLabelPath='qnguString'
                                             itemValuePath='id'
                                             items={entityDtos || []}
                                             {...field}
@@ -2300,10 +2300,9 @@ const EntityTabContent = () => {
                                 if (selectedEntity?.id) {
                                     EntityEvolutionEndpoint.findByFromEntityId(selectedEntity.id)
                                         .then(async (dtos: any) => {
-                                            const mapped = await Promise.all(
-                                                (dtos || []).map((dto: any) => EntityMapper.toEntityEvolution(dto))
-                                            );
-                                            setEvolutions(mapped.filter(e => e !== undefined) as EntityEvolution[]);
+                                            EntityMapper.toEntityEvolutionList(dtos)
+                                                .then(data => data?.filter(e => e !== undefined))
+                                                .then(data => setEvolutions(data as EntityEvolution[]));
                                         })
                                         .catch((error: any) => console.error('Error reloading EntityEvolutions:', error));
                                 }
@@ -2459,9 +2458,8 @@ const ExampleTabContent = () => {
     const exampleWordDtoService = useMemo(() => ({
         async list(request: any, token?: any) {
             const exampleWords = await ExampleWordService.list(request, token);
-            return await Promise.all(
-                exampleWords.map(word => EntityMapper.toExampleWordDto(word))
-            );
+            return EntityMapper.toExampleWordDtoList(exampleWords).then(data => data?.filter(ew => ew !== undefined))
+                .then(data => data as ExampleWordDto[]);
         },
         async save(item: ExampleWordDto | undefined) {
             if (!item) return undefined;
