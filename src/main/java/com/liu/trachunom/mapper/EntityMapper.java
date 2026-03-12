@@ -33,7 +33,6 @@ import com.liu.trachunom.service.meaning.MeaningService;
 import com.liu.trachunom.service.pronunciation.PronunciationService;
 import com.liu.trachunom.service.pronunciation.QuocNguService;
 import com.liu.trachunom.service.structure.StructureClassificationService;
-import com.liu.trachunom.service.structure.StructureComponentService;
 import com.liu.trachunom.service.structure.StructureService;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.BrowserCallable;
@@ -634,8 +633,8 @@ public class EntityMapper {
             return null;
         }
         return MeaningExplanationDto.builder()
-                .meaningId(meaningExplanation.getId().getMeaningId())
-                .explanationId(meaningExplanation.getId().getExplanationId())
+                .meaningId(meaningExplanation.getId() == null ? null : meaningExplanation.getId().getMeaningId())
+                .explanationId(meaningExplanation.getId() == null ? null : meaningExplanation.getId().getExplanationId())
                 .build();
     }
 
@@ -798,21 +797,6 @@ public class EntityMapper {
         }
         return evolutionDtos.stream()
                 .map(this::toEntityEvolution)
-                .collect(Collectors.toList());
-    }
-
-    public List<EntityEvolution> toEntityEvolutionList(List<EntityEvolutionDto> evolutionDtos, EntityX fromEntity) {
-        if (evolutionDtos == null) {
-            return new ArrayList<>();
-        }
-        return evolutionDtos.stream()
-                .map(dto -> {
-                    EntityEvolution evolution = toEntityEvolution(dto);
-                    if (evolution != null) {
-                        evolution.setFromEntity(fromEntity);
-                    }
-                    return evolution;
-                })
                 .collect(Collectors.toList());
     }
 

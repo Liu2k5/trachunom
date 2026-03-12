@@ -1445,11 +1445,10 @@ const MeaningTabContent = () => {
     // Load MeaningExplanations when selectedMeaning changes
     useEffect(() => {
         if (selectedMeaning?.id) {
-            MeaningExplanationEndpoint.findByMeaningId(selectedMeaning.id)
-                .then(async (dtos: any) => {
-                    const mapped = await EntityMapper.toMeaningExplanationDtoList(dtos)
-                        .then(data => data?.filter(me => me !== undefined) as MeaningExplanation[]);
-                    setMeaningExplanations(mapped);
+            MeaningExplanationService.findByMeaning(selectedMeaning)
+                .then(data => data?.filter(me => me !== undefined))
+                .then(data => {
+                    if (data) setMeaningExplanations(data);
                 })
                 .catch((error: any) => console.error('Error loading MeaningExplanations:', error));
         } else {
