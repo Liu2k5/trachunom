@@ -30,6 +30,7 @@ import com.liu.trachunom.service.example.ExampleService;
 import com.liu.trachunom.service.example.ExampleWordService;
 import com.liu.trachunom.service.meaning.ExplanationService;
 import com.liu.trachunom.service.meaning.MeaningService;
+import com.liu.trachunom.service.pronunciation.PronunciationEvolutionService;
 import com.liu.trachunom.service.pronunciation.PronunciationService;
 import com.liu.trachunom.service.pronunciation.QuocNguService;
 import com.liu.trachunom.service.structure.StructureClassificationService;
@@ -62,6 +63,7 @@ public class EntityMapper {
     private final ExplanationService explanationService;
     private final LanguageService languageService;
     private final SourceService sourceService;
+    private final PronunciationEvolutionService pronunciationEvolutionService;
 
     public LanguageDto toLanguageDto(Language entity) {
         if (entity == null) {
@@ -124,19 +126,38 @@ public class EntityMapper {
         }
 
         String pronunciationString = entity.getString();
-        StringBuilder stringBuilder = new StringBuilder();
+        if (pronunciationString.trim().isEmpty()) {
+            List<PronunciationEvolution> evolutions = pronunciationEvolutionService.findByFromPronunciation(entity);
+            StringBuilder stringBuilder = new StringBuilder();
+
+            if (evolutions.isEmpty()) {
+                stringBuilder.append(" ");
+            } else {
+                stringBuilder.append("*");
+                final boolean[] first = {true};
+                evolutions.forEach(e -> {
+                    String toPronunciationString = e.getToPronunciation().getString();
+                    stringBuilder.append(first[0] ? " " : "-").append(toPronunciationString);
+                    first[0] = false;
+                });
+            }
+            pronunciationString = stringBuilder.toString();
+        }
+
+        StringBuilder stringBuilder1 = new StringBuilder();
         entityService.findByPronunciation(entity).forEach(e -> {
-            stringBuilder.append(e != null
+            stringBuilder1.append(e != null
                     ? entityService.getHnomStringById(e.getId())
                     : "")
                     .append(" ");
         });
 
+
         return PronunciationDto.builder()
                 .id(entity.getId())
                 .quocNguId(entity.getQuocNgu() != null ? entity.getQuocNgu().getId() : null)
-                .pronunciationString(entity.getString())
-                .characterWithPronunciationsString(pronunciationString + " " + stringBuilder.toString().trim())
+                .pronunciationString(pronunciationString)
+                .characterWithPronunciationsString(pronunciationString + " " + stringBuilder1.toString().trim())
                 .build();
     }
 
@@ -568,11 +589,14 @@ public class EntityMapper {
         if (pronunciationEvolution == null) {
             return null;
         }
+        PronunciationDto fromDto = toPronunciationDto(pronunciationService.findById(pronunciationEvolution.getId().getFromPronunciationId()));
+        PronunciationDto toDto = toPronunciationDto(pronunciationService.findById(pronunciationEvolution.getId().getToPronunciationId()));
+
         return PronunciationEvolutionDto.builder()
                 .fromPronunciationId(pronunciationEvolution.getId().getFromPronunciationId())
                 .toPronunciationId(pronunciationEvolution.getId().getToPronunciationId())
-                .fromPronunciationString(pronunciationEvolution.getFromPronunciation().getString())
-                .toPronunciationId(pronunciationEvolution.getId().getToPronunciationId())
+                .fromPronunciationString(fromDto.getPronunciationString())
+                .toPronunciationString(toDto.getPronunciationString())
                 .build();
     }
 
@@ -806,6 +830,15 @@ public class EntityMapper {
         }
         return exampleWords.stream()
                 .map(this::toExampleWordDto)
+                .collect(Collectors.toList());
+    }
+
+    public List<PronunciationEvolutionDto> toPronunciationEvolutionDtoList(List<PronunciationEvolution> pronunciationEvolutions) {
+        if (pronunciationEvolutions == null) {
+            return new ArrayList<>();
+        }
+        return pronunciationEvolutions.stream()
+                .map(this::toPronunciationEvolutionDto)
                 .collect(Collectors.toList());
     }
 }

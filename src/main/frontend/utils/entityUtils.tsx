@@ -1,6 +1,7 @@
 import {useEffect, useState} from 'react';
 import EntityX from "Frontend/generated/com/liu/trachunom/entity/entity/EntityX";
 import {
+    EntityMapper,
     EntityService,
     ExampleService,
     PronunciationEvolutionService,
@@ -19,6 +20,7 @@ import Pronunciation from "Frontend/generated/com/liu/trachunom/entity/pronuncia
 import Meaning from "Frontend/generated/com/liu/trachunom/entity/meaning/Meaning";
 import Source from "Frontend/generated/com/liu/trachunom/entity/Source";
 import {color} from "@vaadin/vaadin-lumo-styles";
+import PronunciationEvolutionDto from "Frontend/generated/com/liu/trachunom/dto/PronunciationEvolutionDto";
 
 export {
     HnomQngu as HnomQnguComponent,
@@ -328,7 +330,7 @@ function DrawPronunciationEvolution({pronunciationId}: {pronunciationId: number 
 }
 
 function DrawPronunciationAncestors({pronunciationId}: {pronunciationId: number | undefined}): JSX.Element {
-    const [ancestors, setAncestors] = useState<PronunciationEvolution[] | null>(null);
+    const [ancestors, setAncestors] = useState<PronunciationEvolutionDto[] | null>(null);
     useEffect(() => {
         if (!pronunciationId) {
             setAncestors(null);
@@ -337,6 +339,8 @@ function DrawPronunciationAncestors({pronunciationId}: {pronunciationId: number 
 
         PronunciationEvolutionService.findByToPronunciationId(pronunciationId ?? undefined)
             .then(data => data?.filter(evolution => evolution !== undefined))
+            .then(data => EntityMapper.toPronunciationEvolutionDtoList(data ?? []))
+            .then(data => data?.filter(dto => dto !== undefined))
             .then(data => setAncestors(data ?? null))
             .catch(error => console.error('Error fetching pronunciation evolutions:', error));
     }, [pronunciationId]);
@@ -347,21 +351,26 @@ function DrawPronunciationAncestors({pronunciationId}: {pronunciationId: number 
 
     return (
         <div
-            style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '10px',
-                padding: '10px',
-                borderLeft: '2px solid black',
-            }}
+
         >
             {ancestors.map((ancestor, index) => (
                 <div
                     key={index}
+                    style={{
+                        display: 'flex',
+                    }}
                 >
-                    <DrawPronunciationAncestors pronunciationId={ancestor.fromPronunciation?.id}/>
-                    <div>
-                        {ancestor.fromPronunciation?.string} →
+                    <DrawPronunciationAncestors pronunciationId={ancestor.fromPronunciationId}/>
+                    <div
+                        style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '10px',
+                            padding: '10px',
+                            borderLeft: '2px solid black',
+                        }}
+                    >
+                        {ancestor.fromPronunciationString} →
                     </div>
                 </div>
             ))}
@@ -370,7 +379,7 @@ function DrawPronunciationAncestors({pronunciationId}: {pronunciationId: number 
 }
 
 function DrawPronunciationDescendants({pronunciationId}: {pronunciationId: number | undefined}): JSX.Element {
-    const [descendants, setDescendants] = useState<PronunciationEvolution[] | null>(null);
+    const [descendants, setDescendants] = useState<PronunciationEvolutionDto[] | null>(null);
     useEffect(() => {
         if (!pronunciationId) {
             setDescendants(null);
@@ -379,6 +388,8 @@ function DrawPronunciationDescendants({pronunciationId}: {pronunciationId: numbe
 
         PronunciationEvolutionService.findByFromPronunciationId(pronunciationId ?? undefined)
             .then(data => data?.filter(evolution => evolution !== undefined))
+            .then(data => EntityMapper.toPronunciationEvolutionDtoList(data ?? []))
+            .then(data => data?.filter(dto => dto !== undefined))
             .then(data => setDescendants(data ?? null))
             .catch(error => console.error('Error fetching pronunciation evolutions:', error));
     }, [pronunciationId]);
@@ -402,9 +413,9 @@ function DrawPronunciationDescendants({pronunciationId}: {pronunciationId: numbe
                     key={index}
                 >
                     <div>
-                        → {descendant.toPronunciation?.string}
+                        → {descendant.toPronunciationString}
                     </div>
-                    <DrawPronunciationDescendants pronunciationId={descendant.toPronunciation?.id}/>
+                    <DrawPronunciationDescendants pronunciationId={descendant.toPronunciationId}/>
                 </div>
             ))}
         </div>

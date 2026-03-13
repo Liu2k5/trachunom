@@ -1443,7 +1443,7 @@ const MeaningTabContent = () => {
     }, [explanationTrigger, explanationGroupTrigger]);
 
     // Load MeaningExplanations when selectedMeaning changes
-    useEffect(() => {
+    const refreshMeaningExplanationsTrigger = () => {
         if (selectedMeaning?.id) {
             MeaningExplanationService.findByMeaning(selectedMeaning)
                 .then(data => data?.filter(me => me !== undefined))
@@ -1454,7 +1454,8 @@ const MeaningTabContent = () => {
         } else {
             setMeaningExplanations([]);
         }
-    }, [selectedMeaning]);
+    };
+    useEffect(refreshMeaningExplanationsTrigger, [selectedMeaning]);
 
     useEffect(() => {
         EntityMapper.toExplanationDto(selectedExplanation ?? undefined).then(dto => setSelectedExplanationDto(dto))
@@ -1555,15 +1556,7 @@ const MeaningTabContent = () => {
                 try {
                     await MeaningExplanationEndpoint.delete(item.id.meaningId, item.id.explanationId);
                     // Reload the filtered list
-                    if (selectedMeaning?.id) {
-                        MeaningExplanationEndpoint.findByMeaningId(selectedMeaning.id)
-                            .then(async (dtos: any) => {
-                                EntityMapper.toMeaningExplanationDtoList(dtos)
-                                    .then(data => data?.filter(me => me !== undefined) as MeaningExplanation[])
-                                    .then(data => setMeaningExplanations(data));
-                            })
-                            .catch((error: any) => console.error('Error reloading MeaningExplanations:', error));
-                    }
+                    refreshMeaningExplanationsTrigger();
                     if (selectedMeaningExplanation?.id?.meaningId === item.id?.meaningId &&
                         selectedMeaningExplanation?.id?.explanationId === item.id?.explanationId) {
                         setSelectedMeaningExplanation(null);
@@ -1729,15 +1722,7 @@ const MeaningTabContent = () => {
                             onSubmitSuccess={() => {
                                 setSelectedMeaningExplanation(null);
                                 // Reload the filtered list
-                                if (selectedMeaning?.id) {
-                                    MeaningExplanationEndpoint.findByMeaningId(selectedMeaning.id)
-                                        .then((dtos: any) => {
-                                            EntityMapper.toMeaningExplanationDtoList(dtos)
-                                                .then(data => data?.filter(me => me !== undefined))
-                                                .then(data => setMeaningExplanations(data as MeaningExplanation[]));
-                                        })
-                                        .catch((error: any) => console.error('Error reloading MeaningExplanations:', error));
-                                }
+                                refreshMeaningExplanationsTrigger();
                                 meaningGridRef.current?.refresh();
                                 setExplanationGroupTrigger(!explanationGroupTrigger);
                             }}
