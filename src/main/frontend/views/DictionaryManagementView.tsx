@@ -57,12 +57,13 @@ import Pronunciation from "Frontend/generated/com/liu/trachunom/entity/pronuncia
 import * as PronunciationEndpoint from 'Frontend/generated/PronunciationEndpoint';
 import * as PronunciationService from 'Frontend/generated/PronunciationService';
 import {
+    EvolutionDescriptionService,
     ExampleService,
     ExampleWordService,
     PronunciationEvolutionEndpoint,
     PronunciationEvolutionService,
     QuocNguEndpoint,
-    QuocNguService
+    QuocNguService,
 } from "Frontend/generated/endpoints";
 import QuocNguModel from "Frontend/generated/com/liu/trachunom/entity/pronunciation/QuocNguModel";
 import QuocNguDtoModel from "Frontend/generated/com/liu/trachunom/dto/QuocNguDtoModel";
@@ -114,6 +115,7 @@ import ExampleDto from "Frontend/generated/com/liu/trachunom/dto/ExampleDto";
 import ExampleWordDtoModel from "Frontend/generated/com/liu/trachunom/dto/ExampleWordDtoModel";
 import {HnomStringByExampleIdComponent} from "Frontend/utils/entityUtils";
 import PronunciationDto from "Frontend/generated/com/liu/trachunom/dto/PronunciationDto";
+import EvolutionDescription from "Frontend/generated/com/liu/trachunom/entity/entity/EvolutionDescription";
 
 export const config: ViewConfig = {
     menu: {order: 2, icon: 'la la-book'},
@@ -1777,6 +1779,7 @@ const EntityTabContent = () => {
     const [languages, setLanguages] = useState<Language[]>([]);
     const [pronunciations, setPronunciations] = useState<Pronunciation[]>([]);
     const [pronunciationDtos, setPronunciationDtos] = useState<PronunciationDto[]>([]);
+    const [evolutionDescriptions, setEvolutionDescriptions] = useState<EvolutionDescription[]>([]);
 
     // Create stable service wrappers using useMemo
     const compositionService = useMemo(() => ({
@@ -1887,6 +1890,16 @@ const EntityTabContent = () => {
                 if (meaning) tempMeanings.push(meaning);
             });
             setMeanings(tempMeanings);
+        });
+    }, []);
+
+    useEffect(() => {
+        EvolutionDescriptionService.findAll().then(descriptions => {
+            const tempDescriptions: EvolutionDescription[] = [];
+            descriptions?.forEach(description => {
+                if (description) tempDescriptions.push(description);
+            });
+            setEvolutionDescriptions(tempDescriptions);
         });
     }, []);
 
@@ -2261,6 +2274,10 @@ const EntityTabContent = () => {
                                     header: 'Thực thể đến',
                                     path: 'toEntity.pronunciationString',
                                 },
+                                evolutionDescription: {
+                                    header: 'Mô tả',
+                                    path: 'evolutionDescription.description',
+                                },
                             }}
                             customColumns={[
                                 <GridColumn
@@ -2292,7 +2309,7 @@ const EntityTabContent = () => {
                                 }
                             }}
                             onSubmitError={error => window.alert('Lỗi lưu diễn biến: ' + error.error.message)}
-                            visibleFields={['toEntityId', 'description']}
+                            visibleFields={['toEntityId', 'descriptionId']}
                             fieldOptions={{
                                 toEntityId: {
                                     label: 'Đến thực thể',
@@ -2305,6 +2322,20 @@ const EntityTabContent = () => {
                                             {...field}
                                             renderer={item =>
                                         <span>{item.item.id + ' - ' + item.item.hnomString + ' ' + item.item.qnguString + ' ' + item.item.explanationsString}</span>}
+                                        />
+                                    )
+                                },
+                                descriptionId: {
+                                    label: 'Mô tả',
+                                    renderer: ({field}) => (
+                                        <ComboBox
+                                            label='Mô tả'
+                                            itemLabelPath='description'
+                                            itemValuePath='id'
+                                            items={evolutionDescriptions || []}
+                                            {...field}
+                                            renderer={item =>
+                                                <span>{item.item.id + ' - ' + item.item.description}</span>}
                                         />
                                     )
                                 }

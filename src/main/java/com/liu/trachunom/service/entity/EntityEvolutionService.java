@@ -49,5 +49,10 @@ public class EntityEvolutionService {
     public List<EntityEvolution> findByToEntityId(Long toEntityId) {
         return entityEvolutionRepository.findByToEntityId(toEntityId);
     }
+
+    @Transactional
+    public void deleteByFromEntityIdAndToEntityId(Long fromEntityId, Long toEntityId) {
+        entityEvolutionRepository.deleteByIdFromEntityIdAndIdToEntityId(fromEntityId, toEntityId);
+    }
 }
 

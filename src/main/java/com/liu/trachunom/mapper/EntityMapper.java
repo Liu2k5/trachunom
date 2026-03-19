@@ -26,6 +26,7 @@ import com.liu.trachunom.service.*;
 import com.liu.trachunom.service.character.CharacterService;
 import com.liu.trachunom.service.character.RadicalService;
 import com.liu.trachunom.service.entity.EntityService;
+import com.liu.trachunom.service.entity.EvolutionDescriptionService;
 import com.liu.trachunom.service.example.ExampleService;
 import com.liu.trachunom.service.example.ExampleWordService;
 import com.liu.trachunom.service.meaning.ExplanationService;
@@ -64,6 +65,7 @@ public class EntityMapper {
     private final LanguageService languageService;
     private final SourceService sourceService;
     private final PronunciationEvolutionService pronunciationEvolutionService;
+    private final EvolutionDescriptionService evolutionDescriptionService;
 
     public LanguageDto toLanguageDto(Language entity) {
         if (entity == null) {
@@ -290,11 +292,14 @@ public class EntityMapper {
         if (evolution == null) {
             return null;
         }
+
+        EvolutionDescription evolutionDescription = evolution.getEvolutionDescription();
         return EntityEvolutionDto.builder()
                 .fromEntityId(evolution.getFromEntity().getId())
                 .toEntityId(evolution.getToEntity().getId())
+                .description(evolutionDescription != null ? evolutionDescription.getDescription() : null)
+                .descriptionId(evolutionDescription != null ? evolutionDescription.getId() : null)
                 .fromEntity(toEntityDto(evolution.getFromEntity()))
-                .description(evolution.getDescription())
                 .build();
     }
 
@@ -743,13 +748,22 @@ public class EntityMapper {
             toEntity = entityService.findById(dto.getToEntityId());
         }
 
-        EntityEvolutionId id = new EntityEvolutionId(dto.getFromEntityId(), dto.getToEntityId());
+        EvolutionDescription evolutionDescription = null;
+        if (dto.getDescriptionId() != null) {
+            evolutionDescription = evolutionDescriptionService.findById(dto.getDescriptionId());
+        }
+
+        EntityEvolutionId id = EntityEvolutionId.builder()
+                .fromEntityId(dto.getFromEntityId())
+                .toEntityId(dto.getToEntityId())
+                .descriptionId(evolutionDescription != null ? evolutionDescription.getId() : null)
+                .build();
 
         return EntityEvolution.builder()
                 .id(id)
                 .fromEntity(fromEntity)
                 .toEntity(toEntity)
-                .description(dto.getDescription())
+                .evolutionDescription(evolutionDescription)
                 .build();
     }
 

@@ -5,13 +5,11 @@ import java.io.Serializable;
 import jakarta.persistence.Embeddable;
 import lombok.*;
 
-@Getter
-@Setter
+@Embeddable
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Embeddable
 @Builder
-@Data
 public class StructureComponentId implements Serializable {
     private Long structureId;
     private Long structureComponentId;

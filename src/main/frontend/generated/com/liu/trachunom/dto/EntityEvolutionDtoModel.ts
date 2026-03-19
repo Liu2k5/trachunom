@@ -12,6 +12,9 @@ class EntityEvolutionDtoModel<T extends EntityEvolutionDto_1 = EntityEvolutionDt
     get fromEntity(): EntityDtoModel_1 {
         return this[_getPropertyModel_1]("fromEntity", (parent, key) => new EntityDtoModel_1(parent, key, true));
     }
+    get descriptionId(): NumberModel_1 {
+        return this[_getPropertyModel_1]("descriptionId", (parent, key) => new NumberModel_1(parent, key, true, { meta: { javaType: "java.lang.Long" } }));
+    }
     get description(): StringModel_1 {
         return this[_getPropertyModel_1]("description", (parent, key) => new StringModel_1(parent, key, true, { meta: { javaType: "java.lang.String" } }));
     }

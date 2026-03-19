@@ -24,6 +24,9 @@ public class EntityEvolution {
     @JoinColumn(name = "to_entity_id")
     private EntityX toEntity;
 
-    private String description;
+    @MapsId("descriptionId")
+    @ManyToOne
+    @JoinColumn(name = "description_id")
+    private EvolutionDescription evolutionDescription;
 
 }

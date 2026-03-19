@@ -13,6 +13,7 @@ public class EntityEvolutionDto {
     private Long fromEntityId;
     private Long toEntityId;
     private EntityDto fromEntity;
+    private Long descriptionId;
     private String description;
 }
 
