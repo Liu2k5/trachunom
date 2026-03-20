@@ -39,6 +39,7 @@ import com.liu.trachunom.service.structure.StructureService;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.BrowserCallable;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -50,6 +51,7 @@ import java.util.stream.Collectors;
 @BrowserCallable
 @AnonymousAllowed
 @RequiredArgsConstructor
+@Slf4j
 public class EntityMapper {
     private final EntityService entityService;
     private final ExampleService exampleService;
@@ -147,12 +149,10 @@ public class EntityMapper {
         }
 
         StringBuilder stringBuilder1 = new StringBuilder();
-        entityService.findByPronunciation(entity).forEach(e -> {
-            stringBuilder1.append(e != null
-                    ? entityService.getHnomStringById(e.getId())
-                    : "")
-                    .append(" ");
-        });
+        entityService.findByPronunciation(entity).forEach(e -> stringBuilder1.append(e != null
+                ? entityService.getHnomStringById(e.getId())
+                : "")
+                .append(" "));
 
 
         return PronunciationDto.builder()
@@ -207,7 +207,7 @@ public class EntityMapper {
             return null;
         }
 
-        String characterString = "";
+        String characterString;
         if (structure.getCharacter() != null) {
             characterString = structure.getCharacterString();
         } else {
@@ -215,12 +215,10 @@ public class EntityMapper {
         }
 
         StringBuilder stringBuilder = new StringBuilder();
-        entityService.findByStructure(structure).forEach(e -> {
-            stringBuilder.append(e != null
-                    ? entityService.getQnguStringById(e.getId())
-                    : "")
-                    .append(" ");
-        });
+        entityService.findByStructure(structure).forEach(e -> stringBuilder.append(e != null
+                ? entityService.getQnguStringById(e.getId())
+                : "")
+                .append(" "));
 
         return StructureDto.builder()
                 .id(structure.getId())
@@ -429,7 +427,7 @@ public class EntityMapper {
             return null;
         }
         return CharacterX.builder()
-                .unicode(characterDto.getCharacterString() != "" ? characterDto.getCharacterString().codePointAt(0) : null)
+                .unicode(!characterDto.getCharacterString().isEmpty() ? characterDto.getCharacterString().codePointAt(0) : null)
                 .radical(radicalService.findById(characterDto.getRadical().getId()))
                 .additionalStrokeNumber(characterDto.getAdditionalStrokeNumber())
                 .totalStrokeNumber(characterDto.getTotalStrokeNumber())
@@ -440,13 +438,13 @@ public class EntityMapper {
         if (tradSimpStandardDto == null) {
             return null;
         }
-        CharacterX traditionalCharacter = characterService.findByUnicode(tradSimpStandardDto.getTraditionalString() != "" ? tradSimpStandardDto.getTraditionalString().codePointAt(0) : null);
-        CharacterX simplifiedCharacter = characterService.findByUnicode(tradSimpStandardDto.getSimplifiedString() != "" ? tradSimpStandardDto.getSimplifiedString().codePointAt(0) : null);
+        CharacterX traditionalCharacter = characterService.findByUnicode(!tradSimpStandardDto.getTraditionalString().isEmpty() ? tradSimpStandardDto.getTraditionalString().codePointAt(0) : null);
+        CharacterX simplifiedCharacter = characterService.findByUnicode(!tradSimpStandardDto.getSimplifiedString().isEmpty() ? tradSimpStandardDto.getSimplifiedString().codePointAt(0) : null);
 
         return TradSimpStandard.builder()
                 .id(TradSimpStandardId.builder()
-                        .traditionalUnicode(tradSimpStandardDto.getTraditionalString() != "" ? tradSimpStandardDto.getTraditionalString().codePointAt(0) : null)
-                        .simplifiedUnicode(tradSimpStandardDto.getSimplifiedString() != "" ? tradSimpStandardDto.getSimplifiedString().codePointAt(0) : null)
+                        .traditionalUnicode(!tradSimpStandardDto.getTraditionalString().isEmpty() ? tradSimpStandardDto.getTraditionalString().codePointAt(0) : null)
+                        .simplifiedUnicode(!tradSimpStandardDto.getSimplifiedString().isEmpty() ? tradSimpStandardDto.getSimplifiedString().codePointAt(0) : null)
                         .build())
                 .traditionalCharacter(traditionalCharacter)
                 .simplifiedCharacter(simplifiedCharacter)
@@ -471,7 +469,7 @@ public class EntityMapper {
         CharacterX character = null;
         // Ưu tiên lấy từ unicode
         if (structureDto.getCharacterString() != null) {
-            character = characterService.findByUnicode(structureDto.getCharacterString() != "" ? structureDto.getCharacterString().codePointAt(0) : null);
+            character = characterService.findByUnicode(!structureDto.getCharacterString().isEmpty() ? structureDto.getCharacterString().codePointAt(0) : null);
         } else if (structureDto.getCharacter() != null) {
             character = toCharacter(structureDto.getCharacter());
         }
@@ -756,8 +754,11 @@ public class EntityMapper {
         EntityEvolutionId id = EntityEvolutionId.builder()
                 .fromEntityId(dto.getFromEntityId())
                 .toEntityId(dto.getToEntityId())
-                .descriptionId(evolutionDescription != null ? evolutionDescription.getId() : null)
+                .descriptionId(dto.getDescriptionId())
                 .build();
+
+        log.debug("Mapping EntityEvolutionDto to EntityEvolution: fromEntityId={}, toEntityId={}, descriptionId={}",
+                dto.getFromEntityId(), dto.getToEntityId(), dto.getDescriptionId());
 
         return EntityEvolution.builder()
                 .id(id)

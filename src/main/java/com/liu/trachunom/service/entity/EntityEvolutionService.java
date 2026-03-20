@@ -51,8 +51,8 @@ public class EntityEvolutionService {
     }
 
     @Transactional
-    public void deleteByFromEntityIdAndToEntityId(Long fromEntityId, Long toEntityId) {
-        entityEvolutionRepository.deleteByIdFromEntityIdAndIdToEntityId(fromEntityId, toEntityId);
+    public void deleteByEachId(Long fromEntityId, Long toEntityId, Long descriptionId) {
+        entityEvolutionRepository.deleteById_FromEntityIdAndId_ToEntityIdAndId_DescriptionId(fromEntityId, toEntityId, descriptionId);
     }
 }
 

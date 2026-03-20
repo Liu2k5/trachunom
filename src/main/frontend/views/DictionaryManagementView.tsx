@@ -2012,7 +2012,7 @@ const EntityTabContent = () => {
         const handleDelete = async () => {
             if (item.id?.fromEntityId && item.id?.toEntityId) {
                 try {
-                    await EntityEvolutionEndpoint.deleteByEachId(item.id.fromEntityId, item.id.toEntityId);
+                    await EntityEvolutionEndpoint.deleteByEachId(item.id.fromEntityId, item.id.toEntityId, item.id.descriptionId);
                     // Reload the filtered list
                     if (selectedEntity?.id) {
                         EntityEvolutionEndpoint.findByFromEntityId(selectedEntity.id)
@@ -2024,7 +2024,8 @@ const EntityTabContent = () => {
                             .catch((error: any) => console.error('Error reloading EntityEvolutions:', error));
                     }
                     if (selectedEvolution?.id?.fromEntityId === item.id?.fromEntityId &&
-                        selectedEvolution?.id?.toEntityId === item.id?.toEntityId) {
+                        selectedEvolution?.id?.toEntityId === item.id?.toEntityId &&
+                        selectedEvolution?.id?.descriptionId === item.id?.descriptionId) {
                         setSelectedEvolution(null);
                     }
                 } catch (error) {
@@ -2290,7 +2291,7 @@ const EntityTabContent = () => {
                             service={{
                                 ...EntityEvolutionEndpoint,
                                 save: async (item: EntityEvolutionDto) => {
-                                    return await EntityEvolutionEndpoint.saveByIds(selectedEntity?.id, item.toEntityId, item.description);
+                                    return await EntityEvolutionEndpoint.saveByIds(selectedEntity?.id, item.toEntityId, item.descriptionId);
                                 }
                             }}
                             model={EntityEvolutionDtoModel}

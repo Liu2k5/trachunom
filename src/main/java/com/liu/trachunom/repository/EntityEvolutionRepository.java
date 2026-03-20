@@ -10,16 +10,10 @@ import java.util.List;
 
 @Repository
 public interface EntityEvolutionRepository extends JpaRepository<EntityEvolution, EntityEvolutionId> {
-    @Query("SELECT ee FROM EntityEvolution ee " +
-            "LEFT JOIN FETCH ee.fromEntity " +
-            "LEFT JOIN FETCH ee.toEntity " +
-            "LEFT JOIN FETCH ee.evolutionDescription")
-    List<EntityEvolution> findAllWithEntities();
-
     List<EntityEvolution> findByFromEntityId(Long fromEntityId);
 
     List<EntityEvolution> findByToEntityId(Long toEntityId);
 
-    void deleteByIdFromEntityIdAndIdToEntityId(Long fromEntityId, Long toEntityId);
+    void deleteById_FromEntityIdAndId_ToEntityIdAndId_DescriptionId(Long fromEntityId, Long toEntityId, Long descriptionId);
 }
 

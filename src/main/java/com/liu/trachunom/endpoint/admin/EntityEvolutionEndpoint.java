@@ -36,16 +36,16 @@ public class EntityEvolutionEndpoint {
         return entityMapper.toEntityEvolutionDto(evolution);
     }
 
-    public EntityEvolutionDto saveByIds(Long fromEntityId, Long toEntityId, String description) {
-        EvolutionDescription evolutionDescription = evolutionDescriptionService.findByDescription(description);
+    public EntityEvolutionDto saveByIds(Long fromEntityId, Long toEntityId, Long descriptionId) {
+        EvolutionDescription evolutionDescription = evolutionDescriptionService.findById(descriptionId);
         if (evolutionDescription == null) {
-            throw new IllegalArgumentException("Evolution description does not exist: " + description);
+            throw new IllegalArgumentException("Evolution description does not exist: " + descriptionId);
         }
 
         EntityEvolutionId evolutionId = EntityEvolutionId.builder()
                 .fromEntityId(fromEntityId)
                 .toEntityId(toEntityId)
-                .descriptionId(evolutionDescription.getId())
+                .descriptionId(descriptionId)
                 .build();
         EntityEvolution evolution = EntityEvolution.builder()
                 .id(evolutionId)
@@ -61,7 +61,7 @@ public class EntityEvolutionEndpoint {
         entityEvolutionService.deleteById(id);
     }
 
-    public void deleteByEachId(Long fromEntityId, Long toEntityId) {
-        entityEvolutionService.deleteByFromEntityIdAndToEntityId(fromEntityId, toEntityId);
+    public void deleteByEachId(Long fromEntityId, Long toEntityId, Long descriptionId) {
+        entityEvolutionService.deleteByEachId(fromEntityId, toEntityId, descriptionId);
     }
 }
