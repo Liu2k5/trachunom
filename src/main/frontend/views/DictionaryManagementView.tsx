@@ -1,7 +1,7 @@
 import {ViewConfig} from '@vaadin/hilla-file-router/types.js';
 import {useEffect, useRef, useState, useMemo} from 'react';
 import {AutoForm, AutoGrid} from "@vaadin/hilla-react-crud";
-import {ComboBox, GridColumn} from "@vaadin/react-components";
+import {ComboBox, GridColumn, TextArea} from "@vaadin/react-components";
 import RadicalModel from 'Frontend/generated/com/liu/trachunom/entity/character/RadicalModel';
 import RadicalDtoModel from "Frontend/generated/com/liu/trachunom/dto/RadicalDtoModel";
 import RadicalDto from "Frontend/generated/com/liu/trachunom/dto/RadicalDto";
@@ -795,15 +795,15 @@ const CharactersTabContent = () => {
 
 const StructureTabContent = () => {
     const structureGridRef = useRef<any>(null);
-    const structureComponentGridRef = useRef<any>(null);
+    // const structureComponentGridRef = useRef<any>(null);
 
     const [selectedStructure, setSelectedStructure] = useState<Structure | undefined | null>(null);
     const [selectedStructureDto, setSelectedStructureDto] = useState<StructureDto | undefined | null>(null);
     const [selectedStructureComponent, setSelectedStructureComponent] = useState<StructureComponent | undefined | null>(null);
     const [selectedStructureComponentDto, setSelectedStructureComponentDto] = useState<StructureComponentDto | undefined | null>(null);
-    const [refreshComponentsTrigger, setRefreshComponentsTrigger] = useState(0);
-
+    const [refreshComponentsTrigger, setRefreshComponentsTrigger] = useState(false);
     const [refreshTrigger, setRefreshTrigger] = useState(false);
+    // const [refreshStructureComponentsTrigger, setRefreshStructureComponentTrigger] = useState(false);
 
     useEffect(() => {
         EntityMapper.toStructureDto(selectedStructure ?? undefined).then(dto => setSelectedStructureDto(dto))
@@ -933,7 +933,8 @@ const StructureTabContent = () => {
             if (item.id) {
                 try {
                     await StructureComponentEndpoint.delete(item.id);
-                    structureComponentGridRef.current?.refresh();
+                    // structureComponentGridRef.current?.refresh();
+                    setRefreshComponentsTrigger(!refreshComponentsTrigger);
                     if (selectedStructureComponent?.id === item.id) {
                         setSelectedStructureComponent(null);
                     }
@@ -1005,7 +1006,7 @@ const StructureTabContent = () => {
             <div>
                 <AutoGrid
                     service={StructureComponentService}
-                    ref={structureComponentGridRef}
+                    // ref={structureComponentGridRef}
                     model={StructureComponentModel}
                     selectedItems={[selectedStructureComponent]}
                     onActiveItemChanged={i => setSelectedStructureComponent(i.detail.value)}
@@ -1039,8 +1040,8 @@ const StructureTabContent = () => {
                         // setSelectedStructureComponentDto(null);
                         // setSelectedStructureComponent(null);
 
-                        setRefreshComponentsTrigger(prev => prev + 1);
-                        structureComponentGridRef.current?.refresh();
+                        setRefreshComponentsTrigger(!refreshComponentsTrigger);
+                        // structureComponentGridRef.current?.refresh();
                     }}
                     onSubmitError={error => window.alert('Lỗi khi lưu thành phần cấu tạo: ' + error.error.message)}
                     fieldOptions={{
@@ -2602,6 +2603,16 @@ const ExampleTabContent = () => {
                                 />
                             )
                         },
+                        position: {
+                            label: 'Vị trí',
+                            renderer: ({field}) => (
+                                <TextArea
+                                    {...field}
+                                    value={exampleWordDtos.length + 1 + ""}
+                                    style={{ width: '100%' }}
+                                />
+                            )
+                        }
                     }}
                     hiddenFields={['entity', 'exampleId']}
                 />

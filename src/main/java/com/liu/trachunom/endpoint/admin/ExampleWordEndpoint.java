@@ -37,7 +37,6 @@ public class ExampleWordEndpoint {
     }
 
     public ExampleWordDto save(Long exampleId, Long entityId, Long position) {
-        System.out.println(exampleId + " " + entityId + " " + position);
         ExampleWord exampleWord = ExampleWord.builder()
                 .exampleWordId(ExampleWordId.builder().exampleId(exampleId).entityId(entityId).position(position).build())
                 .example(exampleService.findById(exampleId))

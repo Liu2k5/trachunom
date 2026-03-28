@@ -2,22 +2,20 @@ package com.liu.trachunom.config;
 
 import com.vaadin.flow.spring.security.RequestUtil;
 import com.vaadin.flow.spring.security.VaadinSavedRequestAwareAuthenticationSuccessHandler;
-import lombok.extern.slf4j.Slf4j;
+import com.vaadin.flow.spring.security.VaadinSecurityConfigurer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
-import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -30,8 +28,10 @@ public class SecurityConfig implements UserDetailsService {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                .with(VaadinSecurityConfigurer.vaadin(),
+                        vaadinSecurityConfigurer -> vaadinSecurityConfigurer.loginView("/login"))
                 .headers(headers -> headers
-                        .frameOptions(frame -> frame.sameOrigin())
+                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
                 )
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers(requestUtil::isFrameworkInternalRequest)
@@ -56,7 +56,6 @@ public class SecurityConfig implements UserDetailsService {
                                 "/admin/**"
                         ).permitAll()
                         .requestMatchers(requestUtil::isFrameworkInternalRequest).permitAll()
-                        .anyRequest().permitAll()
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
