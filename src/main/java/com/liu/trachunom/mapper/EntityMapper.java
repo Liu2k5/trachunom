@@ -18,10 +18,7 @@ import com.liu.trachunom.entity.pronunciation.Pronunciation;
 import com.liu.trachunom.entity.pronunciation.PronunciationEvolution;
 import com.liu.trachunom.entity.pronunciation.PronunciationEvolutionId;
 import com.liu.trachunom.entity.pronunciation.QuocNgu;
-import com.liu.trachunom.entity.structure.Structure;
-import com.liu.trachunom.entity.structure.StructureClassification;
-import com.liu.trachunom.entity.structure.StructureComponent;
-import com.liu.trachunom.entity.structure.StructureComponentId;
+import com.liu.trachunom.entity.structure.*;
 import com.liu.trachunom.service.*;
 import com.liu.trachunom.service.character.CharacterService;
 import com.liu.trachunom.service.character.RadicalService;
@@ -36,6 +33,7 @@ import com.liu.trachunom.service.pronunciation.PronunciationService;
 import com.liu.trachunom.service.pronunciation.QuocNguService;
 import com.liu.trachunom.service.structure.StructureClassificationService;
 import com.liu.trachunom.service.structure.StructureService;
+import com.liu.trachunom.service.structure.StructureTypeService;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.BrowserCallable;
 import lombok.RequiredArgsConstructor;
@@ -68,6 +66,7 @@ public class EntityMapper {
     private final SourceService sourceService;
     private final PronunciationEvolutionService pronunciationEvolutionService;
     private final EvolutionDescriptionService evolutionDescriptionService;
+    private final StructureTypeService structureTypeService;
 
     public LanguageDto toLanguageDto(Language entity) {
         if (entity == null) {
@@ -189,6 +188,7 @@ public class EntityMapper {
                 .classificationDescription(structureComponent.getStructureClassification() != null ?
                         structureComponent.getStructureClassification().getDescription() : null)
                 .quantity(structureComponent.getQuantity())
+                .position(structureComponent.getId() != null ? structureComponent.getPosition() : 0)
                 .build();
     }
 
@@ -223,6 +223,7 @@ public class EntityMapper {
         return StructureDto.builder()
                 .id(structure.getId())
                 .character(toCharacterDto(structure.getCharacter()))
+                .structureTypeId(structure.getStructureType() == null ? null : structure.getStructureType().getId())
                 .characterString(characterString)
                 .characterWithPronunciationsString(characterString + " " + stringBuilder.toString().trim())
                 .build();
@@ -474,9 +475,14 @@ public class EntityMapper {
             character = toCharacter(structureDto.getCharacter());
         }
 
+        StructureType structureType = structureDto.getStructureTypeId() == null
+                ? null
+                : structureTypeService.findById(structureDto.getStructureTypeId());
+
         return Structure.builder()
                 .id(structureDto.getId())
                 .character(character)
+                .structureType(structureType)
                 .build();
     }
 
@@ -500,6 +506,7 @@ public class EntityMapper {
                 .structureClassification(structureComponentDto.getClassificationId() != null ?
                     structureClassificationService.findById(structureComponentDto.getClassificationId()) : null)
                 .quantity(structureComponentDto.getQuantity())
+                .position(structureComponentDto.getPosition())
                 .build();
     }
 

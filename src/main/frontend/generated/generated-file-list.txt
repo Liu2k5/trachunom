@@ -38,6 +38,7 @@ QuocNguService.ts
 StructureClassificationService.ts
 StructureComponentService.ts
 StructureService.ts
+StructureTypeService.ts
 ExampleEndpoint.ts
 ExampleWordEndpoint.ts
 com/liu/trachunom/dto/CharacterDto.ts
@@ -96,6 +97,7 @@ com/vaadin/hilla/mappedtypes/Pageable.ts
 com/liu/trachunom/entity/entity/EvolutionDescription.ts
 com/liu/trachunom/entity/example/ExampleWordId.ts
 com/liu/trachunom/entity/meaning/MeaningExplanationId.ts
+com/liu/trachunom/entity/structure/StructureType.ts
 com/vaadin/hilla/crud/filter/PropertyStringFilter/Matcher.ts
 com/vaadin/hilla/mappedtypes/Sort.ts
 com/vaadin/hilla/mappedtypes/Order.ts
@@ -158,6 +160,7 @@ com/vaadin/hilla/mappedtypes/PageableModel.ts
 com/liu/trachunom/entity/entity/EvolutionDescriptionModel.ts
 com/liu/trachunom/entity/example/ExampleWordIdModel.ts
 com/liu/trachunom/entity/meaning/MeaningExplanationIdModel.ts
+com/liu/trachunom/entity/structure/StructureTypeModel.ts
 com/vaadin/hilla/crud/filter/PropertyStringFilter/MatcherModel.ts
 com/vaadin/hilla/mappedtypes/SortModel.ts
 com/vaadin/hilla/mappedtypes/OrderModel.ts

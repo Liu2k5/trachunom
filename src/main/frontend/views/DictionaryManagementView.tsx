@@ -63,7 +63,7 @@ import {
     PronunciationEvolutionEndpoint,
     PronunciationEvolutionService,
     QuocNguEndpoint,
-    QuocNguService,
+    QuocNguService, StructureTypeService,
 } from "Frontend/generated/endpoints";
 import QuocNguModel from "Frontend/generated/com/liu/trachunom/entity/pronunciation/QuocNguModel";
 import QuocNguDtoModel from "Frontend/generated/com/liu/trachunom/dto/QuocNguDtoModel";
@@ -116,6 +116,7 @@ import ExampleWordDtoModel from "Frontend/generated/com/liu/trachunom/dto/Exampl
 import {HnomStringByExampleIdComponent} from "Frontend/utils/entityUtils";
 import PronunciationDto from "Frontend/generated/com/liu/trachunom/dto/PronunciationDto";
 import EvolutionDescription from "Frontend/generated/com/liu/trachunom/entity/entity/EvolutionDescription";
+import StructureType from "Frontend/generated/com/liu/trachunom/entity/structure/StructureType";
 
 export const config: ViewConfig = {
     menu: {order: 2, icon: 'la la-book'},
@@ -895,6 +896,14 @@ const StructureTabContent = () => {
             .catch(error => console.error('Error fetching structure components:', error));
     }, [selectedStructure, refreshComponentsTrigger]);
 
+    const [structureTypes, setStructureTypes] = useState<StructureType[] | undefined>(undefined);
+    useEffect(() => {
+        StructureTypeService.findAll()
+            .then(data => data?.filter(o => o != undefined))
+            .then(data => setStructureTypes(data))
+            .catch(error => console.error('Error loading structure types'));
+    }, []);
+
     const deleteStructureRenderer = ({item}: {item: Structure }) => {
         const handleDelete = async () => {
             if (item.id) {
@@ -970,6 +979,25 @@ const StructureTabContent = () => {
             }}
         >
             <div>
+                {/*<form>*/}
+                    <ComboBox
+                        label="Thành phần"
+                        itemLabelPath="characterWithPronunciationsString"
+                        itemValuePath="id"
+                        items={structureDtos || []}
+                        renderer={item =>
+                            <span>{item.item.id + ' - ' + item.item.characterWithPronunciationsString}</span>}
+                        onValueChanged={(e) => {
+                            const raw = e.detail.value;
+                            const id = (raw == null || raw === '') ? undefined : Number(raw);
+                            if (id == null || isNaN(id)) {
+                                setSelectedStructure(null);
+                            } else {
+                                setSelectedStructure(structures?.find(s => s.id === id) ?? null);
+                            }
+                    }}
+                    />
+                {/*</form>*/}
                 <AutoGrid
                     service={StructureService}
                     ref={structureGridRef}
@@ -982,9 +1010,13 @@ const StructureTabContent = () => {
                             header: 'Ký tự',
                             path: 'character.string',
                         },
+                        structureType: {
+                            header: 'Kiểu cấu tạo',
+                            path: 'structureType.description'
+                        }
                     }}
                     customColumns={[
-                        <GridColumn header="Xóa" renderer={deleteStructureRenderer} />,
+                        <GridColumn key="delete-structure" path="delete" header="Xóa" renderer={deleteStructureRenderer} flexGrow={0} width="90px" />,
                     ]}
                     hiddenColumns={['characterString']}
                 />
@@ -997,6 +1029,21 @@ const StructureTabContent = () => {
                         setSelectedStructureDto(null);
                         structureGridRef.current?.refresh();
                         setRefreshTrigger(!refreshTrigger);
+                    }}
+                    fieldOptions={{
+                        structureTypeId: {
+                            label: 'Kiểu cấu tạo',
+                            renderer: ({field}) => {
+                                return (
+                                    <ComboBox
+                                        {...field}
+                                        items={structureTypes}
+                                        itemLabelPath='description'
+                                        itemValuePath='id'
+                                    />
+                                );
+                            }
+                        }
                     }}
                     onSubmitError={error => window.alert('Lỗi khi lưu cấu tạo: ' + error.error.message)}
                     hiddenFields={['character', 'characterWithPronunciationsString']}
@@ -1025,6 +1072,10 @@ const StructureTabContent = () => {
                             path: 'structureClassification.description',
                         },
                         quantity: {header: 'Số lượng', filterable: false},
+                        position: {
+                            header: 'Vị trí',
+                            filterable: false,
+                        }
                     }}
                     customColumns={[
                         <GridColumn header="Xóa" renderer={deleteStructureComponentRenderer} />,
@@ -1045,10 +1096,10 @@ const StructureTabContent = () => {
                     }}
                     onSubmitError={error => window.alert('Lỗi khi lưu thành phần cấu tạo: ' + error.error.message)}
                     fieldOptions={{
-                        structureId: {
-                            label: 'ID Cấu tạo',
-                            readonly: true,
-                        },
+                        // structureId: {
+                        //     label: 'ID Cấu tạo',
+                        //     readonly: true,
+                        // },
                         structureComponentId: {
                             label: 'Thành phần',
                             renderer: ({field}) => {
@@ -1081,10 +1132,7 @@ const StructureTabContent = () => {
                         },
                         quantity: {label: 'Số lượng'},
                     }}
-                    hiddenFields={selectedStructureComponent ?
-                        ['id', 'structureId', 'structureCharacterString', 'structureComponentCharacterString',
-                            'classificationDescription', 'structure', 'structureComponent', 'structureClassification'] :
-                        ['id', 'structureCharacterString', 'structureComponentCharacterString',
+                    hiddenFields={['id', 'structureCharacterString', 'structureComponentCharacterString',
                             'classificationDescription', 'structure', 'structureComponent', 'structureClassification']}
                 />
 

@@ -55,6 +55,10 @@ public class SecurityConfig implements UserDetailsService {
                                 "/login/**",
                                 "/admin/**"
                         ).permitAll()
+                        .requestMatchers(
+                                "/search",
+                                "/entity/**"
+                        ).permitAll()
                         .requestMatchers(requestUtil::isFrameworkInternalRequest).permitAll()
                 )
                 .formLogin(form -> form

@@ -5,7 +5,10 @@ import {
     EntityService,
     ExampleService,
     PronunciationEvolutionService,
-    PronunciationService, SourceService
+    PronunciationService,
+    SourceService,
+    StructureTypeService,
+    RadicalService, StructureService
 } from "Frontend/generated/endpoints";
 import EntityEvolutionDto from "Frontend/generated/com/liu/trachunom/dto/EntityEvolutionDto";
 import {
@@ -15,12 +18,11 @@ import {
 import type StructureDto from "Frontend/generated/com/liu/trachunom/dto/StructureDto";
 import StructureComponentDto from "Frontend/generated/com/liu/trachunom/dto/StructureComponentDto";
 import * as StructureEndpoint from "Frontend/generated/StructureEndpoint";
-import PronunciationEvolution from "Frontend/generated/com/liu/trachunom/entity/pronunciation/PronunciationEvolution";
 import Pronunciation from "Frontend/generated/com/liu/trachunom/entity/pronunciation/Pronunciation";
 import Meaning from "Frontend/generated/com/liu/trachunom/entity/meaning/Meaning";
 import Source from "Frontend/generated/com/liu/trachunom/entity/Source";
-import {color} from "@vaadin/vaadin-lumo-styles";
 import PronunciationEvolutionDto from "Frontend/generated/com/liu/trachunom/dto/PronunciationEvolutionDto";
+import StructureType from "Frontend/generated/com/liu/trachunom/entity/structure/StructureType";
 
 export {
     HnomQngu as HnomQnguComponent,
@@ -30,6 +32,7 @@ export {
     DrawPronunciationEvolution as DrawPronunciationEvolution,
     DrawMeaningEvolution as DrawMeaningEvolution,
     DrawEntityYear as DrawEntityYear,
+    PaintStructure as PaintStructure,
 };
 
 const HnomQngu = ({entityId, markedId}: {entityId: number | undefined, markedId: number}): JSX.Element => {
@@ -208,7 +211,7 @@ function DrawStructure({structure}: {structure : StructureDto | undefined }): JS
         }
 
         // Fetch structure components
-        StructureEndpoint.getStructureComponents(structure.id)
+        StructureEndpoint.getStructureComponentsByStructureId(structure.id)
             .then((data: (StructureComponentDto | undefined)[] | undefined) => {
                 const filtered = (data || []).filter((c): c is StructureComponentDto => c !== undefined);
                 setStructureComponents(filtered);
@@ -544,3 +547,174 @@ function DrawEntityYear({entityId}: {entityId: number | undefined}): JSX.Element
         </div>
     );
 };
+
+function PaintStructure({ structure }: { structure: StructureDto | undefined }): JSX.Element {
+    const structureTypeId = structure?.structureTypeId;
+    const [structureType, setStructureType] = useState<StructureType | undefined>(undefined);
+    const [structureComponents, setStructureComponents] = useState<StructureComponentDto[] | undefined>(undefined);
+    const [structures, setStructures] = useState<StructureDto[] | undefined>(undefined);
+    // const [doesExist, setDoesExist] = useState<boolean>(false);
+    // const [doesExist2, setDoesExist2] = useState<boolean>(false);
+    const [checkOfRadicalList, setCheckOfRadicalList] = useState<boolean[] | undefined>(undefined);
+
+
+    useEffect(() => {
+        if (structureTypeId == null) return;
+        StructureTypeService.findById(structureTypeId)
+            .then(o => setStructureType(o))
+            .catch(error => console.error('Error finding structure type', error));
+    }, [structureTypeId]);
+
+    useEffect(() => {
+        if (structure?.id == null) return;
+        StructureEndpoint.getStructureComponentsByStructureId(structure.id)
+            .then(data => data?.filter(o => o != undefined))
+            .then(data =>
+                data?.sort((o1, o2) =>
+                    (o1?.position && o2?.position) ? (o1?.position - o2?.position) : 0))
+            .then(data => setStructureComponents(data))
+            .catch(error => console.error('Error finding structure components by structure id', error));
+    }, [structure?.id]);
+
+
+    useEffect(() => {
+        if (!structureComponents || structureComponents.length === 0) {
+            setStructures(undefined);
+            return;
+        }
+
+        (async () => {
+            const arraysOfArrays: (StructureDto[][]) = await Promise.all(
+            structureComponents
+                .map(async (o) => {
+                    const idToFetch = o.structureComponentId ?? -1;
+                    const raw = await StructureService.findById(idToFetch);
+                    const s = await EntityMapper.toStructureDto(raw);
+                    const output: StructureDto[] = [];
+                    if (s) {
+                        for (let i = 0; i < (o.quantity ?? 0); i++) {
+                            output.push(s);
+                        }
+                    }
+                    return output;
+                })
+            );
+
+            const flat: StructureDto[] = arraysOfArrays.flat();
+            setStructures(flat);
+
+            const checkResults: boolean[] = await Promise.all(
+                flat?.map(async (o) =>
+                    RadicalService.existsByUnicode(o.character?.radical?.unicode?? -1)
+                )
+            );
+            setCheckOfRadicalList(checkResults);
+
+            // window.alert(structureComponents?.length + " " + structures?.length + " " + checkOfRadicalList?.length);
+        })();
+
+    }, [structureComponents]);
+
+    // window.alert(!structure + " " + !structureType + " " + structureComponents?.length);
+    if (!(structure && structureType && structureComponents?.length)) {
+        // return <div>{structure?.characterString}</div>;
+        return <div></div>;
+    }
+
+    const tempComponent = structureComponents?.at(0);
+    const tempComponent2 = structureComponents?.length ?? 0 >= 1 ? structureComponents?.at(1) : null;
+
+    // let gridTemplateColumns = structureComponents?.map(o => '1fr ').flat().at(0);;
+    // let gridTemplateRows = gridTemplateColumns;
+    let frList: number[] = [];
+    let flexDirection = 'row';
+
+    structureComponents.map(o => frList.push(o.quantity ?? 0));
+
+    const length = checkOfRadicalList?.length;
+    const comq1 = tempComponent?.quantity;
+    const comq2 = tempComponent2?.quantity;
+    const isRa1 = checkOfRadicalList?.at(0);
+    const isRa2 = checkOfRadicalList?.at(1);
+
+    switch (structureType?.description) {
+        case '⿰':
+            flexDirection = 'row';
+            frList = (length === 2)
+                ? ((comq1 === 2)
+                    ? [1, 1]
+                    : (
+                        (comq1 === 1 && comq2 === 1)
+                            ? (isRa1 && !isRa2
+                                ? [1, 2]
+                                : (!isRa1 && isRa2
+                                    ? [2, 1]
+                                    : (isRa1 && isRa2)
+                                        ? [1, 2]
+                                        : [1, 1]
+                                    )
+                            )
+                            : [1]
+                    )
+                )
+                : [1];
+            break;
+        //⿰⿲⿱⿳⿸⿺⿹⿽⿵⿷⿶⿼⿴⿻
+        case '⿱':
+            flexDirection = 'column';
+            frList = (length === 2)
+                ? ((comq1 === 2)
+                        ? [1, 1]
+                        : (
+                            (comq1 === 1 && comq2 === 1)
+                                ? (isRa1 && !isRa2
+                                        ? [1, 2]
+                                        : (!isRa1 && isRa2
+                                                ? [2, 1]
+                                                : [1, 1]
+                                                // : ((isRa1 && isRa2)
+                                                //     ? [1, 1]
+                                                //     : [1, 3])
+                                        )
+                                )
+                                : [1]
+                        )
+                )
+                : [1];
+            break;
+    }
+    return (
+        <div
+            key={structure?.id}
+            style={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                flexDirection:  flexDirection,
+            }}
+        >
+            {structures?.map((o, index) => (
+                <div
+                    key={index}
+                    style={{
+                        display: 'flex',
+                        border: '2px solid ' +
+                            (structureComponents?.at(index)?.classificationId == -1
+                                ? 'blue'
+                                : structureComponents?.at(index)?.classificationId == 0
+                                    ? 'gray'
+                                    : 'red'),
+                        borderRadius: '3px',
+                        boxSizing: 'border-box',
+                        // gap: '10%',
+                        margin: '1px',
+                        flex: frList.at(index),
+                    }}
+                >
+                    <PaintStructure structure={o} />
+                </div>
+            ))}
+        </div>
+    );
+}
+

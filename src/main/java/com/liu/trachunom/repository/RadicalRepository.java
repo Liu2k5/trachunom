@@ -11,6 +11,6 @@ import java.util.List;
 @Repository
 public interface RadicalRepository extends JpaRepository<Radical, String>, JpaSpecificationExecutor<Radical> {
     List<Radical> findAll();
-
     Radical findByUnicode(int i);
+    boolean existsByUnicode(int unicode);
 }

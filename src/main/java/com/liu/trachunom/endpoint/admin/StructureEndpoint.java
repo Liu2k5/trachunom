@@ -31,7 +31,7 @@ public class StructureEndpoint {
         structureService.deleteById(id);
     }
 
-    public List<StructureComponentDto> getStructureComponents(Long structureId) {
+    public List<StructureComponentDto> getStructureComponentsByStructureId(Long structureId) {
         Structure structure = structureService.findById(structureId);
         if (structure == null) {
             return List.of();

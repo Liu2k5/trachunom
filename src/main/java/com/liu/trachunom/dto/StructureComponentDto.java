@@ -20,6 +20,7 @@ public class StructureComponentDto {
 //    private StructureClassificationDto structureClassification;
     private Long classificationId;
     private String classificationDescription;
-    private int quantity;
+    private Integer quantity;
+    private Integer position;
 }
 

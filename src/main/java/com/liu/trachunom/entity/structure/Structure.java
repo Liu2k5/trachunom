@@ -25,6 +25,10 @@ public class Structure {
     @JoinColumn(name = "unicode")
     private CharacterX character;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "structure_type_id")
+    private StructureType structureType;
+
     public String getCharacterString() {
         try {
             if (this.character != null) {

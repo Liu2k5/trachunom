@@ -10,7 +10,8 @@ import {
     DrawMeaningEvolution,
     DrawPronunciationEvolution,
     DrawStructure,
-    HnomQnguComponent
+    HnomQnguComponent,
+    PaintStructure
 } from 'Frontend/utils/entityUtils';
 import {EntityService} from "Frontend/generated/endpoints";
 import {SearchBar} from "Frontend/views/SearchBar";
@@ -168,6 +169,19 @@ export default function EntityDetailView() {
                                             }}
                                         >
                                             <HnomQnguComponent entityId={entity.id} markedId={0}/>
+                                            <div
+                                                style={{
+                                                    // height: '200px',
+                                                    width: '80px',
+                                                    height: '80px',
+                                                    // aspectRatio: '1 / 1',
+                                                    display: 'inline-flex',
+                                                    // alignItems: 'stretch',
+                                                    // justifyContent: 'stretch',
+                                                }}
+                                            >
+                                                <PaintStructure structure={entity.structure}/>
+                                            </div>
                                         </div>
                                         {entity.structure?.character && (
                                             <div>

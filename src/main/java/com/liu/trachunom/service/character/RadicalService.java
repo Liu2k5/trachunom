@@ -79,4 +79,6 @@ public class RadicalService extends ListRepositoryService<Radical, String, Radic
     public Radical findByUnicode(int i) {
         return radicalRepository.findByUnicode(i);
     }
+
+    public boolean existsByUnicode(int unicode) { return radicalRepository.existsByUnicode(unicode); }
 }

@@ -35,5 +35,6 @@ public class StructureComponent {
     private StructureClassification structureClassification;
     
     private Integer quantity;
+    private Integer position;
 
 }

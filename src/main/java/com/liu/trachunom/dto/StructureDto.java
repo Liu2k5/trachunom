@@ -11,8 +11,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class StructureDto {
     private Long id;
-    private String characterString;
     private CharacterDto character;
+    private Long structureTypeId;
+    private String characterString;
     private String characterWithPronunciationsString;
 }
 
