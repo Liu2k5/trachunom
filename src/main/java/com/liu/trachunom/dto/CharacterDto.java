@@ -23,5 +23,13 @@ public class CharacterDto {
         }
     }
 
+    public String getRadicalStringByUnicode() {
+        try {
+            return new String(Character.toChars(radical.getUnicode()));
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
 }
 

@@ -166,6 +166,7 @@ export default function EntityDetailView() {
                                                 display: 'flex',
                                                 justifyContent: 'center',
                                                 gap: '20px',
+                                                position: 'relative',
                                             }}
                                         >
                                             <HnomQnguComponent entityId={entity.id} markedId={0}/>
@@ -178,6 +179,7 @@ export default function EntityDetailView() {
                                                     display: 'inline-flex',
                                                     // alignItems: 'stretch',
                                                     // justifyContent: 'stretch',
+                                                    position: 'absolute',
                                                 }}
                                             >
                                                 <PaintStructure structure={entity.structure}/>

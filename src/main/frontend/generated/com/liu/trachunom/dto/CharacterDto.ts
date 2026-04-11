@@ -5,5 +5,6 @@ interface CharacterDto {
     additionalStrokeNumber?: number;
     totalStrokeNumber?: number;
     radicalString?: string;
+    radicalStringByUnicode?: string;
 }
 export default CharacterDto;

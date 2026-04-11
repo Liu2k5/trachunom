@@ -8,7 +8,7 @@ import {
     PronunciationService,
     SourceService,
     StructureTypeService,
-    RadicalService, StructureService
+    RadicalService, StructureService, StructureComponentService
 } from "Frontend/generated/endpoints";
 import EntityEvolutionDto from "Frontend/generated/com/liu/trachunom/dto/EntityEvolutionDto";
 import {
@@ -23,6 +23,10 @@ import Meaning from "Frontend/generated/com/liu/trachunom/entity/meaning/Meaning
 import Source from "Frontend/generated/com/liu/trachunom/entity/Source";
 import PronunciationEvolutionDto from "Frontend/generated/com/liu/trachunom/dto/PronunciationEvolutionDto";
 import StructureType from "Frontend/generated/com/liu/trachunom/entity/structure/StructureType";
+import Structure from "Frontend/generated/com/liu/trachunom/entity/structure/Structure";
+import StructureComponent from "Frontend/generated/com/liu/trachunom/entity/structure/StructureComponent";
+import structureComponent from "Frontend/generated/com/liu/trachunom/entity/structure/StructureComponent";
+import structureComponentId from "Frontend/generated/com/liu/trachunom/entity/structure/StructureComponentId";
 
 export {
     HnomQngu as HnomQnguComponent,
@@ -32,7 +36,7 @@ export {
     DrawPronunciationEvolution as DrawPronunciationEvolution,
     DrawMeaningEvolution as DrawMeaningEvolution,
     DrawEntityYear as DrawEntityYear,
-    PaintStructure as PaintStructure,
+    PaintStructureInitialiser as PaintStructure,
 };
 
 const HnomQngu = ({entityId, markedId}: {entityId: number | undefined, markedId: number}): JSX.Element => {
@@ -548,16 +552,57 @@ function DrawEntityYear({entityId}: {entityId: number | undefined}): JSX.Element
     );
 };
 
-function PaintStructure({ structure }: { structure: StructureDto | undefined }): JSX.Element {
+async function countStructureComponentsByType(structureId: number, type: string | undefined): Promise<number> {
+    //⿰⿲⿱⿳⿸⿺⿹⿽⿵⿷⿶⿼⿴⿻
+    var verticalGroups = '⿱⿳';
+    var horizontalGroups = '⿰⿲';
+
+    var structure: Structure | undefined;
+    var structureComponentIds: (number[] | undefined) = [];
+    var output: number = 1;
+
+    structure = await StructureService.findById(structureId);
+
+    var isVerStruct = verticalGroups.includes(type ?? 'null') && verticalGroups.includes(structure?.structureType?.description ?? 'null');
+    var isHorStruct = horizontalGroups.includes(type ?? 'null') && horizontalGroups.includes(structure?.structureType?.description ?? 'null');
+
+    if (!(isVerStruct || isHorStruct)) return 1;
+
+    structureComponentIds = await StructureComponentService.findByStructure(structure)
+        .then(data => data?.filter(o => o != undefined))
+        .then(data => data?.filter(o => o.structureClassification?.id != 0))
+        .then(data => data?.map(o => o.structureComponent))
+        .then(data => data?.filter(o => o != undefined))
+        .then(data => data?.map(o => o.id))
+        .then(data => data?.filter(o => o != undefined))
+        .then(data => data);
+
+    // window.alert(structureComponentIds?.length);
+    if (!structureComponentIds || structureComponentIds.length === 0) return 1;
+
+    await (async () => {
+        const promises = structureComponentIds.map((o) => countStructureComponentsByType(o, type))
+            .flat()
+            .filter(o => o != undefined)
+            .map(o => o);
+        const results: number[] = await Promise.all(promises);
+        results.map(o => output += o);
+    })();
+    return output;
+}
+
+function PaintStructureInitialiser({ structure }: { structure: StructureDto | undefined }): JSX.Element {
+    return <PaintStructure structure={structure} isOutmostComponent={true} key={structure?.id} />
+}
+
+function PaintStructure({ structure, isOutmostComponent }: { structure: StructureDto | undefined, isOutmostComponent: boolean }): JSX.Element {
     const structureTypeId = structure?.structureTypeId;
     const [structureType, setStructureType] = useState<StructureType | undefined>(undefined);
     const [structureComponents, setStructureComponents] = useState<StructureComponentDto[] | undefined>(undefined);
     const [structures, setStructures] = useState<StructureDto[] | undefined>(undefined);
-    // const [doesExist, setDoesExist] = useState<boolean>(false);
-    // const [doesExist2, setDoesExist2] = useState<boolean>(false);
-    const [checkOfRadicalList, setCheckOfRadicalList] = useState<boolean[] | undefined>(undefined);
+    const [frList, setFrList] = useState<number[] | undefined>(undefined);
 
-
+    // get structure type from structureDto
     useEffect(() => {
         if (structureTypeId == null) return;
         StructureTypeService.findById(structureTypeId)
@@ -565,10 +610,12 @@ function PaintStructure({ structure }: { structure: StructureDto | undefined }):
             .catch(error => console.error('Error finding structure type', error));
     }, [structureTypeId]);
 
+    // load structure components
     useEffect(() => {
         if (structure?.id == null) return;
         StructureEndpoint.getStructureComponentsByStructureId(structure.id)
             .then(data => data?.filter(o => o != undefined))
+            .then(data => data?.filter(o => o.classificationId != 0))
             .then(data =>
                 data?.sort((o1, o2) =>
                     (o1?.position && o2?.position) ? (o1?.position - o2?.position) : 0))
@@ -576,7 +623,7 @@ function PaintStructure({ structure }: { structure: StructureDto | undefined }):
             .catch(error => console.error('Error finding structure components by structure id', error));
     }, [structure?.id]);
 
-
+    // load structures from structure components
     useEffect(() => {
         if (!structureComponents || structureComponents.length === 0) {
             setStructures(undefined);
@@ -587,12 +634,14 @@ function PaintStructure({ structure }: { structure: StructureDto | undefined }):
             const arraysOfArrays: (StructureDto[][]) = await Promise.all(
             structureComponents
                 .map(async (o) => {
-                    const idToFetch = o.structureComponentId ?? -1;
+                    const output: StructureDto[] = [];
+                    if (!o.structureComponentId) return output;
+
+                    const idToFetch = o.structureComponentId;
                     const raw = await StructureService.findById(idToFetch);
                     const s = await EntityMapper.toStructureDto(raw);
-                    const output: StructureDto[] = [];
-                    if (s) {
-                        for (let i = 0; i < (o.quantity ?? 0); i++) {
+                    if (s && o.quantity) {
+                        for (let i = 0; i < (o.quantity); i++) {
                             output.push(s);
                         }
                     }
@@ -602,85 +651,153 @@ function PaintStructure({ structure }: { structure: StructureDto | undefined }):
 
             const flat: StructureDto[] = arraysOfArrays.flat();
             setStructures(flat);
-
-            const checkResults: boolean[] = await Promise.all(
-                flat?.map(async (o) =>
-                    RadicalService.existsByUnicode(o.character?.radical?.unicode?? -1)
-                )
-            );
-            setCheckOfRadicalList(checkResults);
-
-            // window.alert(structureComponents?.length + " " + structures?.length + " " + checkOfRadicalList?.length);
         })();
 
     }, [structureComponents]);
 
-    // window.alert(!structure + " " + !structureType + " " + structureComponents?.length);
+    // calculate fraction values
+    useEffect(() => {
+        if (!structures || structures.length === 0) {
+            setFrList(undefined);
+            return;
+        }
+
+        (async () => {
+            try {
+                const promises = structures?.map(o => o.id)
+                    .filter(o => o != undefined)
+                    ?.map((o) =>
+                        countStructureComponentsByType(o, structureType?.description)
+                    );
+                var tempFrList: number[] = await Promise.all(promises);
+
+                // special case: isOutmostComponent + frList = [1, 1]
+                let isRad1 = false;
+                let isRad2 = false;
+                if (
+                    // comment out if need applying this for deeper components
+                    // ((isOutmostComponent && structureType?.description === '⿰') || structureType?.description === '⿱') &&
+
+                    tempFrList?.at(0) === 1 && tempFrList.at(1) === 1 &&
+                    '⿰⿱'.includes(structureType?.description ?? 'null') &&
+                    structures?.at(0)?.characterString !== structures.at(1)?.characterString
+                ) {
+                    await (async () => {
+                        const cp0 = structures?.at(0)?.character?.characterString?.codePointAt(0);
+                        const cp1 = structures?.at(1)?.character?.characterString?.codePointAt(0);
+
+                        isRad1 = (typeof cp0 === 'number') ? await RadicalService.existsByUnicode(cp0) : false;
+                        isRad2 = (typeof cp1 === 'number') ? await RadicalService.existsByUnicode(cp1) : false;
+
+                        if (structureType?.description === '⿰') {
+                            if (isRad1 && !isRad2) {
+                                tempFrList = [1, 2];
+                            } else if (!isRad1 && isRad2) {
+                                tempFrList = [2, 2];
+                            } else if (isRad1 && isRad2) {
+                                tempFrList = [1, 2];
+                            } else {
+                                tempFrList = [1, 1];
+                            }
+                        } else if (structureType?.description === '⿱') {
+                            if (isRad1 && !isRad2) {
+                                tempFrList = [1, 2];
+                            } else if (!isRad1 && isRad2) {
+                                tempFrList = [1, 0.9];
+                            } else if (isRad1 && isRad2) {
+                                tempFrList = [2, 3];
+                            } else {
+                                tempFrList = [1, 1];
+                            }
+                        }
+
+                    })();
+                }
+
+
+
+                setFrList(tempFrList);
+            } catch (e) {
+                console.error('Error counting values of frList: ' + e);
+            }
+        })();
+    }, [structures, structureType?.description]);
+
     if (!(structure && structureType && structureComponents?.length)) {
-        // return <div>{structure?.characterString}</div>;
         return <div></div>;
+        // return <div
+        //     style={{
+        //         fontSize: '0.8em',
+        //     }}
+        // >{structure?.characterString}</div>;
     }
 
-    const tempComponent = structureComponents?.at(0);
-    const tempComponent2 = structureComponents?.length ?? 0 >= 1 ? structureComponents?.at(1) : null;
-
-    // let gridTemplateColumns = structureComponents?.map(o => '1fr ').flat().at(0);;
-    // let gridTemplateRows = gridTemplateColumns;
-    let frList: number[] = [];
     let flexDirection = 'row';
-
-    structureComponents.map(o => frList.push(o.quantity ?? 0));
-
-    const length = checkOfRadicalList?.length;
-    const comq1 = tempComponent?.quantity;
-    const comq2 = tempComponent2?.quantity;
-    const isRa1 = checkOfRadicalList?.at(0);
-    const isRa2 = checkOfRadicalList?.at(1);
+    let ndComRatioVer = 0.8;
+    let ndComRatioHor = 0.8;
+    let ndComRatioVerCtr = 0.8;
+    let ndComRatioHorCtr = 0.8;
+    let justification = '';
+    let alignment = '';
 
     switch (structureType?.description) {
         case '⿰':
             flexDirection = 'row';
-            frList = (length === 2)
-                ? ((comq1 === 2)
-                    ? [1, 1]
-                    : (
-                        (comq1 === 1 && comq2 === 1)
-                            ? (isRa1 && !isRa2
-                                ? [1, 2]
-                                : (!isRa1 && isRa2
-                                    ? [2, 1]
-                                    : (isRa1 && isRa2)
-                                        ? [1, 2]
-                                        : [1, 1]
-                                    )
-                            )
-                            : [1]
-                    )
-                )
-                : [1];
             break;
-        //⿰⿲⿱⿳⿸⿺⿹⿽⿵⿷⿶⿼⿴⿻
         case '⿱':
             flexDirection = 'column';
-            frList = (length === 2)
-                ? ((comq1 === 2)
-                        ? [1, 1]
-                        : (
-                            (comq1 === 1 && comq2 === 1)
-                                ? (isRa1 && !isRa2
-                                        ? [1, 2]
-                                        : (!isRa1 && isRa2
-                                                ? [2, 1]
-                                                : [1, 1]
-                                                // : ((isRa1 && isRa2)
-                                                //     ? [1, 1]
-                                                //     : [1, 3])
-                                        )
-                                )
-                                : [1]
-                        )
-                )
-                : [1];
+            break;
+        //⿰⿲⿱⿳⿸⿺⿹⿽⿵⿷⿶⿼⿴⿻
+        case '⿲':
+            flexDirection = 'row';
+            break;
+        case '⿳':
+            flexDirection = 'column';
+            break;
+        case '⿸':
+            flexDirection = 'row';
+            justification = 'end';
+            alignment = 'end';
+            break;
+        case '⿺':
+            flexDirection = 'row';
+            justification = 'end';
+            alignment = 'start';
+            break;
+        case '⿹':
+            flexDirection = 'row';
+            justification = 'start';
+            alignment = 'end';
+            break;
+        case '⿽':
+            flexDirection = 'row';
+            justification = 'start';
+            alignment = 'start';
+            break;
+        case '⿵':
+            flexDirection = 'row';
+            justification = 'center';
+            alignment = 'end';
+            break;
+        case '⿷':
+            flexDirection = 'row';
+            justification = 'end';
+            alignment = 'center';
+            break;
+        case '⿶':
+            flexDirection = 'row';
+            justification = 'center';
+            alignment = 'start';
+            break;
+        case '⿼':
+            flexDirection = 'row';
+            justification = 'start';
+            alignment = 'center';
+            break;
+        case '⿴':
+            flexDirection = 'row';
+            justification = 'center';
+            alignment = 'center';
             break;
     }
     return (
@@ -689,8 +806,9 @@ function PaintStructure({ structure }: { structure: StructureDto | undefined }):
             style={{
                 width: '100%',
                 height: '100%',
-                display: 'flex',
+                display: 'inline-flex',
                 flexDirection:  flexDirection,
+                position: 'relative',
             }}
         >
             {structures?.map((o, index) => (
@@ -698,20 +816,88 @@ function PaintStructure({ structure }: { structure: StructureDto | undefined }):
                     key={index}
                     style={{
                         display: 'flex',
-                        border: '2px solid ' +
+                        border: '1px solid ' +
                             (structureComponents?.at(index)?.classificationId == -1
                                 ? 'blue'
                                 : structureComponents?.at(index)?.classificationId == 0
                                     ? 'gray'
                                     : 'red'),
                         borderRadius: '3px',
-                        boxSizing: 'border-box',
-                        // gap: '10%',
-                        margin: '1px',
-                        flex: frList.at(index),
+                        // boxSizing: 'border-box',
+                        margin: '0px',
+                        flex: frList?.at(index),
+                        position: (index == 1 && (justification || alignment)) ? 'absolute' : 'static',
+                        left: (index == 1 && justification)
+                            ? (('⿸⿺⿹⿽'.includes(structureType.description ?? 'null'))
+                                ? ((justification === 'start'
+                                    ? '0%'
+                                    : (justification === 'end'
+                                        ? (((1 - ndComRatioHor) * 100) + '%')
+                                        : (justification === 'center'
+                                            ? (((1 - ndComRatioHor) * 50) + '%')
+                                            : ''
+                                        )
+                                    )
+                                ))
+                                : ('⿵⿷⿶⿼⿴'.includes(structureType.description ?? 'null')
+                                    ? ((justification === 'start'
+                                        ? '0%'
+                                        : (justification === 'end'
+                                            ? (((1 - ndComRatioHorCtr) * 100) + '%')
+                                            : (justification === 'center'
+                                                ? (((1 - ndComRatioHorCtr) * 50) + '%')
+                                                : ''
+                                            )
+                                        )
+                                    ))
+                                    : ''
+                                )
+                            )
+                            : '',
+                        top: (index == 1 && alignment)
+                            ? (('⿸⿺⿹⿽'.includes(structureType.description ?? 'null'))
+                                ? ((alignment === 'start'
+                                    ? '0%'
+                                    : (alignment === 'end'
+                                        ? (((1 - ndComRatioVer) * 100) + '%')
+                                        : (alignment === 'center'
+                                            ? (((1 - ndComRatioVer) * 50) + '%')
+                                            : ''
+                                        )
+                                    )
+                                ))
+                                : ('⿵⿷⿶⿼⿴'.includes(structureType.description ?? 'null')
+                                    ? ((alignment === 'start'
+                                        ? '0%'
+                                        : (alignment === 'end'
+                                            ? (((1 - ndComRatioVerCtr) * 100) + '%')
+                                            : (alignment === 'center'
+                                                ? (((1 - ndComRatioVerCtr) * 50) + '%')
+                                                : ''
+                                            )
+                                        )
+                                    ))
+                                    : ''
+                                )
+                            )
+                            : '',
+                        height: (index == 1 && (justification || alignment))
+                            ? (('⿸⿺⿹⿽'.includes(structureType.description ?? 'null')
+                                ? ((ndComRatioVer * 100) + '%')
+                                : (('⿵⿷⿶⿼⿴'.includes(structureType.description ?? 'null'))
+                                    ? ((ndComRatioVerCtr * 100) + '%')
+                                    : '')))
+                            : '',
+                        width: (index == 1 && (justification || alignment))
+                            ? (('⿸⿺⿹⿽'.includes(structureType.description ?? 'null')
+                                ? ((ndComRatioHor * 100) + '%')
+                                : (('⿵⿷⿶⿼⿴'.includes(structureType.description ?? 'null'))
+                                    ? ((ndComRatioHorCtr * 100) + '%')
+                                    : '')))
+                            : '',
                     }}
                 >
-                    <PaintStructure structure={o} />
+                    <PaintStructure structure={o} isOutmostComponent={false} />
                 </div>
             ))}
         </div>

@@ -151,6 +151,10 @@ public class EntityService extends ListRepositoryService<EntityX, Long, EntityRe
     }
 
     public List<EntityX> findSynonyms(EntityX entity) {
+        if (entity.getMeaning() == null) {
+            return List.of();
+        }
+
         List<Explanation> explanations = entity.getMeaning().getExplanations();
         List<Meaning> meanings = meaningService.findAll()
                 .stream()

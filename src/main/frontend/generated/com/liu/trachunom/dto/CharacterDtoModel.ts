@@ -18,5 +18,8 @@ class CharacterDtoModel<T extends CharacterDto_1 = CharacterDto_1> extends Objec
     get radicalString(): StringModel_1 {
         return this[_getPropertyModel_1]("radicalString", (parent, key) => new StringModel_1(parent, key, true, { meta: { javaType: "java.lang.String" } }));
     }
+    get radicalStringByUnicode(): StringModel_1 {
+        return this[_getPropertyModel_1]("radicalStringByUnicode", (parent, key) => new StringModel_1(parent, key, true, { meta: { javaType: "java.lang.String" } }));
+    }
 }
 export default CharacterDtoModel;
