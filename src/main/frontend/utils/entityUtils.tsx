@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import EntityX from "Frontend/generated/com/liu/trachunom/entity/entity/EntityX";
 import {
     EntityMapper,
@@ -7,8 +7,7 @@ import {
     PronunciationEvolutionService,
     PronunciationService,
     SourceService,
-    StructureTypeService,
-    RadicalService, StructureService, StructureComponentService
+    StructureService, StructureComponentService
 } from "Frontend/generated/endpoints";
 import EntityEvolutionDto from "Frontend/generated/com/liu/trachunom/dto/EntityEvolutionDto";
 import {
@@ -22,21 +21,18 @@ import Pronunciation from "Frontend/generated/com/liu/trachunom/entity/pronuncia
 import Meaning from "Frontend/generated/com/liu/trachunom/entity/meaning/Meaning";
 import Source from "Frontend/generated/com/liu/trachunom/entity/Source";
 import PronunciationEvolutionDto from "Frontend/generated/com/liu/trachunom/dto/PronunciationEvolutionDto";
-import StructureType from "Frontend/generated/com/liu/trachunom/entity/structure/StructureType";
 import Structure from "Frontend/generated/com/liu/trachunom/entity/structure/Structure";
 import StructureComponent from "Frontend/generated/com/liu/trachunom/entity/structure/StructureComponent";
-import structureComponent from "Frontend/generated/com/liu/trachunom/entity/structure/StructureComponent";
-import structureComponentId from "Frontend/generated/com/liu/trachunom/entity/structure/StructureComponentId";
 
 export {
     HnomQngu as HnomQnguComponent,
     HnomStringByExampleId as HnomStringByExampleIdComponent,
     DrawEvolution as DrawEvolution,
-    DrawStructure as DrawStructure,
+    AnalyseStructure as AnalyseStructure,
     DrawPronunciationEvolution as DrawPronunciationEvolution,
     DrawMeaningEvolution as DrawMeaningEvolution,
     DrawEntityYear as DrawEntityYear,
-    PaintStructureInitialiser as PaintStructure,
+    DrawStructureInitialiser as DrawStructure,
 };
 
 const HnomQngu = ({entityId, markedId}: {entityId: number | undefined, markedId: number}): JSX.Element => {
@@ -70,15 +66,45 @@ const HnomQngu = ({entityId, markedId}: {entityId: number | undefined, markedId:
                 justifyContent: 'center',
                 color: entity?.id === markedId ? 'blue' : (entity?.attested ? 'black' : 'grey'),
                 position: 'relative',
-                margin: '0px 0px 1em'
+                margin: '0.1em 0px 0em'
             }}
         >
-            <p style={{fontSize: '0.4em', margin: '0px', lineHeight: '1em', position: 'absolute', top: '-1em'}}>
+            <p style={{fontSize: '0.6em', margin: '0px', lineHeight: '1em', position: 'absolute', top: '-1em', transform: 'scale(0.5, 1)', width: '200%'}}>
                 {qnguString}
             </p>
-            <p style={{fontSize: '1em', margin: '0px', lineHeight: '1em'}}>
-                {hnomString}
-            </p>
+            <div style={{fontSize: '1em', margin: '0px', lineHeight: '1em', height: 'fit-content'}}>
+                {entity?.compound ? (
+                    <p
+                        style={{
+                            margin: '0',
+                        }}
+                    >
+                        {hnomString}
+                    </p>
+                    ) :
+                    (
+                        <div
+                            style={{
+                                // width: '200px',
+                                // height: '200px',
+                                width: '1em',
+                                height: '1em',
+                                // aspectRatio: '1 / 1',
+                                display: 'flex',
+                                alignItems: 'stretch',
+                                justifyContent: 'stretch',
+                                // marginLeft: '-1%',
+                                // marginTop: '-1%',
+                                padding: '0',
+                                // position: 'absolute',
+                                // backgroundColor: 'lightgray',
+                            }}
+                        >
+                            <DrawStructureInitialiser structureId={Number.parseInt(entity?.structureId ?? 0 as unknown as string)}/>
+                        </div>
+                    )
+                }
+            </div>
         </div>
     );
 
@@ -204,7 +230,7 @@ function EvolutionRow({evolution}: { evolution: EntityEvolutionDto | null | unde
     )
 }
 
-function DrawStructure({structure}: {structure : StructureDto | undefined }): JSX.Element {
+function AnalyseStructure({structure}: {structure : StructureDto | undefined }): JSX.Element {
     const [structureComponents, setStructureComponents] = useState<StructureComponentDto[]>([]);
     const [gridTemplateColumns, setGridTemplateColumns] = useState<string>("");
 
@@ -265,7 +291,7 @@ function StructureRow({component}: { component: StructureComponentDto; }): JSX.E
             .catch((error) => console.error('Error fetching structure:', error));
     }, [component.structureComponentId]);
 
-    const recursiveValue = structureComponent ? <DrawStructure structure={structureComponent}/> : null;
+    const recursiveValue = structureComponent ? <AnalyseStructure structure={structureComponent}/> : null;
 
     return (
         <div style={{alignItems: "start", verticalAlign: "top"}}>
@@ -552,355 +578,468 @@ function DrawEntityYear({entityId}: {entityId: number | undefined}): JSX.Element
     );
 };
 
-async function countStructureComponentsByType(structureId: number, type: string | undefined): Promise<number> {
+async function calcStructureWidthHeight(structureId: number | undefined): Promise<number[]> {
+    if (!structureId) return [1, 1];
+
     //⿰⿲⿱⿳⿸⿺⿹⿽⿵⿷⿶⿼⿴⿻
-    var verticalGroups = '⿱⿳';
-    var horizontalGroups = '⿰⿲';
+    var verticalGroup = '⿱⿳';
+    var horizontalGroup = '⿰⿲';
+    var wrapGroup = '⿸⿺⿹⿽⿵⿷⿶⿼⿴⿻';
+    var tripleGroup = '⿳⿲';
+    var wrapCentreGroup = '⿵⿷⿶⿼⿴⿻';
 
     var structure: Structure | undefined;
-    var structureComponentIds: (number[] | undefined) = [];
-    var output: number = 1;
+    var structureComponents: StructureComponent[] | undefined = [];
+    var structureComponentResults: Structure[] | undefined = [];
+    var output: number[] = [0, 0];
 
     structure = await StructureService.findById(structureId);
 
-    var isVerStruct = verticalGroups.includes(type ?? 'null') && verticalGroups.includes(structure?.structureType?.description ?? 'null');
-    var isHorStruct = horizontalGroups.includes(type ?? 'null') && horizontalGroups.includes(structure?.structureType?.description ?? 'null');
+    console.log(structureId + " " + structure?.structureType?.description + " " + structure?.characterString);
 
-    if (!(isVerStruct || isHorStruct)) return 1;
+    // case of chu tuong hinh
+    if (!structure?.structureType?.description) return [structure?.width ?? 1, structure?.height ?? 1];
 
-    structureComponentIds = await StructureComponentService.findByStructure(structure)
+    var structureTypeDescription =  structure.structureType.description;
+    structureComponents = await StructureComponentService.findByStructureId(structure.id)
         .then(data => data?.filter(o => o != undefined))
-        .then(data => data?.filter(o => o.structureClassification?.id != 0))
-        .then(data => data?.map(o => o.structureComponent))
-        .then(data => data?.filter(o => o != undefined))
-        .then(data => data?.map(o => o.id))
-        .then(data => data?.filter(o => o != undefined))
-        .then(data => data);
+        .then(data => data?.map(o => {
+            var tempArr = [];
+            for (let i = 0; i < (o?.quantity ?? 0); i++) {
+                tempArr.push(o);
+            }
+            return tempArr;
+        })
+            .flat());
+        // .then(data => data?.filter(o => o.structureClassification?.id != 0)) // components from variants are ignored
+    structureComponentResults = structureComponents
+        ?.map(o => o.structureComponent)
+        .filter(o => o != undefined);
 
-    // window.alert(structureComponentIds?.length);
-    if (!structureComponentIds || structureComponentIds.length === 0) return 1;
+    if (structureComponentResults) {
+        // console.log("finding structure components for " + structure.characterString + "(" + structureComponentResults.length + "): " + structureComponentResults.map(o => o.characterString + " "));
+        await (async () => {
+            const promises = structureComponentResults.map((o, index) => {
+                if (!structureComponents?.at(index)?.structureClassification?.id) return calcStructureWidthHeight(undefined);
+                return calcStructureWidthHeight(o.id);
+            })
+                .flat()
+                .filter(o => o != undefined)
+                .map(o => o);
+            const results: number[][] = await Promise.all(promises);
 
-    await (async () => {
-        const promises = structureComponentIds.map((o) => countStructureComponentsByType(o, type))
-            .flat()
-            .filter(o => o != undefined)
-            .map(o => o);
-        const results: number[] = await Promise.all(promises);
-        results.map(o => output += o);
-    })();
+            output = aggregateStructureWidthHeight(structureTypeDescription, results);
+        })();
+
+    }
+    if (structure.width) output = [structure.width, output[1]];
+    if (structure.height) output = [output[0], structure.height];
+    console.log(structure.characterString + " " +  structure.width + ", " + structure.height);
+
+    console.log('here is the output of ' + structure.characterString + ': '+ output.at(0) + ", "  + output.at(1));
     return output;
 }
 
-function PaintStructureInitialiser({ structure }: { structure: StructureDto | undefined }): JSX.Element {
-    return <PaintStructure structure={structure} isOutmostComponent={true} key={structure?.id} />
+function aggregateStructureWidthHeight(structureTypeDescription: string, results : number[][]) {
+    var verticalGroup = '⿱⿳';
+    var horizontalGroup = '⿰⿲';
+    var wrapGroup = '⿸⿺⿹⿽⿵⿷⿶⿼⿴⿻';
+    var tripleGroup = '⿳⿲';
+    var wrapCentreGroup = '⿵⿷⿶⿼⿴⿻';
+
+    var output: number[] = [0, 0];
+
+    if ((verticalGroup + horizontalGroup + wrapCentreGroup).includes(structureTypeDescription)) {
+        // console.log(output[0] + ", " + output[1] + "   ");
+        // console.log(results[0]);
+        // console.log(results[1]);
+        results.map(o => {
+            if (verticalGroup.includes(structureTypeDescription)) {
+                output = [max(output[0], o[0]), sum(output[1], o[1])];
+            } else if (horizontalGroup.includes(structureTypeDescription)) {
+                output = [sum(output[0], o[0]), max(output[1], o[1])];
+            } else if (wrapCentreGroup.includes(structureTypeDescription)) {
+                output = [sum(output[0], o[0]), sum(output[1], o[1])];
+            }
+        });
+    } else {
+        const stComp = [results[0][0], results[0][1]];
+        const ndComp = [results[1][0], results[1][1]];
+        switch (structureTypeDescription) {
+            // wrap components will be recursive until returning values, so ill solve the others (horizon, vertical)
+            case '⿸':
+                output = [max(stComp[0], ndComp[0] + 1), max(stComp[1], ndComp[1] + 1)];
+                break;
+            case '⿺':
+                output = [max(stComp[0], ndComp[0] + 1), max(stComp[1], ndComp[1] + 1)];
+                break;
+            case '⿹':
+                output = [max(stComp[0], ndComp[0] + 1), max(stComp[1], ndComp[1] + 1)];
+                break;
+            case '⿽':
+                output = [max(stComp[0], ndComp[0] + 1), max(stComp[1], ndComp[1] + 1)];
+                break;
+        }
+    }
+    return output;
 }
 
-function PaintStructure({ structure, isOutmostComponent }: { structure: StructureDto | undefined, isOutmostComponent: boolean }): JSX.Element {
-    const structureTypeId = structure?.structureTypeId;
-    const [structureType, setStructureType] = useState<StructureType | undefined>(undefined);
-    const [structureComponents, setStructureComponents] = useState<StructureComponentDto[] | undefined>(undefined);
-    const [structures, setStructures] = useState<StructureDto[] | undefined>(undefined);
-    const [frList, setFrList] = useState<number[] | undefined>(undefined);
+function max(x: number | undefined, y: number | undefined) {
+    return (x ?? 0) >= (y ?? 0) ? (x ?? 0) : (y ?? 0);
+}
 
-    // get structure type from structureDto
-    useEffect(() => {
-        if (structureTypeId == null) return;
-        StructureTypeService.findById(structureTypeId)
-            .then(o => setStructureType(o))
-            .catch(error => console.error('Error finding structure type', error));
-    }, [structureTypeId]);
+function sum(x: number | undefined, y: number | undefined) {
+    return (x ?? 0) + (y ?? 0);
+}
 
-    // load structure components
+function DrawStructureInitialiser({ structureId }: { structureId: number | undefined }): JSX.Element {
+    return <DrawStructure structureId={structureId} fontSize={[1, 1]} key={structureId} />
+}
+
+function DrawStructure({ structureId, fontSize }: { structureId: number | undefined, fontSize: [number, number] }): JSX.Element {
+    const [structure, setStructure] = useState<Structure | undefined>(undefined);
     useEffect(() => {
-        if (structure?.id == null) return;
-        StructureEndpoint.getStructureComponentsByStructureId(structure.id)
+        StructureService.findById(structureId).then(o => setStructure(o));
+    }, []);
+
+    const structureType = structure?.structureType;
+    const structureTypeId = structureType?.id;
+    const [structureComponents, setStructureComponents] = useState<StructureComponent[] | undefined>(undefined);
+    const [structures, setStructures] = useState<Structure[] | undefined>(undefined);
+
+    // load components when structureId changes
+    useEffect(() => {
+        if (!structureId) { setStructureComponents(undefined); return; }
+        StructureComponentService.findByStructureId(structureId)
             .then(data => data?.filter(o => o != undefined))
-            .then(data => data?.filter(o => o.classificationId != 0))
             .then(data =>
-                data?.sort((o1, o2) =>
-                    (o1?.position && o2?.position) ? (o1?.position - o2?.position) : 0))
-            .then(data => setStructureComponents(data))
-            .catch(error => console.error('Error finding structure components by structure id', error));
-    }, [structure?.id]);
+                data?.sort((o1, o2) => (o1.position ?? 0) - (o2.position ?? 0)))
+            .then(filtered => setStructureComponents(filtered ?? undefined))
+            .catch(err => console.error(err));
+    }, [structureId]);
 
-    // load structures from structure components
+    // update structures when structureComponents changes
     useEffect(() => {
-        if (!structureComponents || structureComponents.length === 0) {
-            setStructures(undefined);
-            return;
-        }
-
-        (async () => {
-            const arraysOfArrays: (StructureDto[][]) = await Promise.all(
-            structureComponents
-                .map(async (o) => {
-                    const output: StructureDto[] = [];
-                    if (!o.structureComponentId) return output;
-
-                    const idToFetch = o.structureComponentId;
-                    const raw = await StructureService.findById(idToFetch);
-                    const s = await EntityMapper.toStructureDto(raw);
-                    if (s && o.quantity) {
-                        for (let i = 0; i < (o.quantity); i++) {
-                            output.push(s);
-                        }
-                    }
-                    return output;
-                })
-            );
-
-            const flat: StructureDto[] = arraysOfArrays.flat();
-            setStructures(flat);
-        })();
-
+        if (!structureComponents) { setStructures(undefined); return; }
+        const arr = structureComponents
+            .map(o => o.structureComponent)
+            .filter((s): s is Structure => s !== undefined);
+        setStructures(arr);
     }, [structureComponents]);
 
-    // calculate fraction values
+    var description = structure?.structureType?.description;
+    var firstStructure = structures?.at(0);
+    var firstStructureDescription = firstStructure?.structureType?.description;
+    var output: (string | number)[] = [];
+    const [firstStructureComponents, setFirstStructureComponents] = useState<Structure[] | undefined>(undefined);
     useEffect(() => {
-        if (!structures || structures.length === 0) {
-            setFrList(undefined);
-            return;
-        }
+        StructureComponentService.findByStructureId(firstStructure?.id)
+            .then(data => data?.filter(o => o != undefined))
+            .then(data => data?.map(o => o.structureComponent))
+            .then(data => data?.filter(o => o != undefined))
+            .then(data => setFirstStructureComponents(data));
+    }, [firstStructure]);
+    var structureIds = structures?.map(o => o.id).filter(o => o != undefined);
 
-        (async () => {
-            try {
-                const promises = structures?.map(o => o.id)
-                    .filter(o => o != undefined)
-                    ?.map((o) =>
-                        countStructureComponentsByType(o, structureType?.description)
-                    );
-                var tempFrList: number[] = await Promise.all(promises);
+    // 3 truong hop
+    // 1: don thuan cau tao long khong co cau tao con (逐)
+    // 2: cau tao long co cau tao con nhung trong do khong co cau tao long (翹 co 堯 thuoc cau tao doc)
+    // 3: co cau tao long chua cau tao long (𱑐 co 逐 long 什)
+    // => 1: khong thay doi vi tri, chi can dat kich thuoc cau tao index = 0 la 100% width height
+    // => 2: sap xep, phan bo thanh cac cau tao phan bo doc/ngang
+    // => 3: xu li khac nhau:
+    // 𱑐 => cau tao long + cau tao ngang (辵 long (豕 va 什))
 
-                // special case: isOutmostComponent + frList = [1, 1]
-                let isRad1 = false;
-                let isRad2 = false;
-                if (
-                    // comment out if need applying this for deeper components
-                    // ((isOutmostComponent && structureType?.description === '⿰') || structureType?.description === '⿱') &&
+    // case 1
+    // if (wrapGroup.includes(description ?? 'null') &&
+    //     !structureTypes.includes(firstStructureDescription ?? 'null')) {
+        output= [structureType?.description ?? '⿰', ...(structureIds ?? [])]; // ⿰ is default
+    // }
+    // case 2
+    if (wrapGroup.includes(description ?? 'null') &&
+        structureTypes.includes(firstStructureDescription ?? 'null') &&
+        !wrapGroup.includes(firstStructureDescription ?? 'null')) {
 
-                    tempFrList?.at(0) === 1 && tempFrList.at(1) === 1 &&
-                    '⿰⿱'.includes(structureType?.description ?? 'null') &&
-                    structures?.at(0)?.characterString !== structures.at(1)?.characterString
-                ) {
-                    await (async () => {
-                        const cp0 = structures?.at(0)?.character?.characterString?.codePointAt(0);
-                        const cp1 = structures?.at(1)?.character?.characterString?.codePointAt(0);
+    }
+    else if (wrapGroup.includes(description ?? 'null') &&
+        structureTypes.includes(firstStructureDescription ?? 'null') &&
+        wrapGroup.includes(firstStructureDescription ?? 'null')) {
 
-                        isRad1 = (typeof cp0 === 'number') ? await RadicalService.existsByUnicode(cp0) : false;
-                        isRad2 = (typeof cp1 === 'number') ? await RadicalService.existsByUnicode(cp1) : false;
-
-                        if (structureType?.description === '⿰') {
-                            if (isRad1 && !isRad2) {
-                                tempFrList = [1, 2];
-                            } else if (!isRad1 && isRad2) {
-                                tempFrList = [2, 2];
-                            } else if (isRad1 && isRad2) {
-                                tempFrList = [1, 2];
-                            } else {
-                                tempFrList = [1, 1];
-                            }
-                        } else if (structureType?.description === '⿱') {
-                            if (isRad1 && !isRad2) {
-                                tempFrList = [1, 2];
-                            } else if (!isRad1 && isRad2) {
-                                tempFrList = [1, 0.9];
-                            } else if (isRad1 && isRad2) {
-                                tempFrList = [2, 3];
-                            } else {
-                                tempFrList = [1, 1];
-                            }
-                        }
-
-                    })();
-                }
-
-
-
-                setFrList(tempFrList);
-            } catch (e) {
-                console.error('Error counting values of frList: ' + e);
-            }
-        })();
-    }, [structures, structureType?.description]);
-
-    if (!(structure && structureType && structureComponents?.length)) {
-        return <div></div>;
-        // return <div
-        //     style={{
-        //         fontSize: '0.8em',
-        //     }}
-        // >{structure?.characterString}</div>;
     }
 
-    let flexDirection = 'row';
-    let ndComRatioVer = 0.8;
-    let ndComRatioHor = 0.8;
-    let ndComRatioVerCtr = 0.8;
-    let ndComRatioHorCtr = 0.8;
-    let justification = '';
-    let alignment = '';
 
-    switch (structureType?.description) {
-        case '⿰':
-            flexDirection = 'row';
-            break;
-        case '⿱':
-            flexDirection = 'column';
-            break;
-        //⿰⿲⿱⿳⿸⿺⿹⿽⿵⿷⿶⿼⿴⿻
-        case '⿲':
-            flexDirection = 'row';
-            break;
-        case '⿳':
-            flexDirection = 'column';
-            break;
-        case '⿸':
-            flexDirection = 'row';
-            justification = 'end';
-            alignment = 'end';
-            break;
-        case '⿺':
-            flexDirection = 'row';
-            justification = 'end';
-            alignment = 'start';
-            break;
-        case '⿹':
-            flexDirection = 'row';
-            justification = 'start';
-            alignment = 'end';
-            break;
-        case '⿽':
-            flexDirection = 'row';
-            justification = 'start';
-            alignment = 'start';
-            break;
-        case '⿵':
-            flexDirection = 'row';
-            justification = 'center';
-            alignment = 'end';
-            break;
-        case '⿷':
-            flexDirection = 'row';
-            justification = 'end';
-            alignment = 'center';
-            break;
-        case '⿶':
-            flexDirection = 'row';
-            justification = 'center';
-            alignment = 'start';
-            break;
-        case '⿼':
-            flexDirection = 'row';
-            justification = 'start';
-            alignment = 'center';
-            break;
-        case '⿴':
-            flexDirection = 'row';
-            justification = 'center';
-            alignment = 'center';
-            break;
+
+    if (
+        // !structureTypeId
+        structure?.character
+    ) {
+        return (
+            <div
+                style={{
+                    transform: 'scale(' + fontSize[0] + ', ' + fontSize[1] + ')',
+                }}
+            >
+                {structure?.characterString}
+            </div>
+        );
     }
+
+
     return (
         <div
-            key={structure?.id}
             style={{
                 width: '100%',
                 height: '100%',
-                display: 'inline-flex',
-                flexDirection:  flexDirection,
+                display: 'flex',
+            }}
+        >
+            <PaintStructureTree input={output} fontSize={fontSize}/>
+        </div>
+    );
+
+}
+
+function PaintStructureTree({input, fontSize}: {input: (string | number)[], fontSize: [number, number]}): JSX.Element {
+    var description = input[0] as string;
+    const inputKey = JSON.stringify(input);
+    const splitSequences =
+    useMemo(() => splitStructureSequence(input), [inputKey]);
+    const [sizeList, setSizeList]= useState<number[][]>([]);
+    const [totalSize, setTotalSize] = useState<number[]>([]);
+    const [firstStructure, setFirstStructure] = useState<Structure | undefined>(undefined);
+    useEffect(() => {
+        // console.log('split sequences size: ' + splitSequences.length);
+        // console.log('split sequences size: ' + splitSequences.length);
+        var tempSizeList: number[][] = [];
+        (async () => {
+            for (let i = 0; i < splitSequences.length; i++) {
+                console.log('split sequence: ' + splitSequences[i]);
+                tempSizeList.push(await aggregateStructureTreeWidthHeight(splitSequences[i]));
+            }
+        })();
+        setSizeList(tempSizeList);
+    }, [splitSequences]);
+    useEffect(() => {
+        aggregateStructureTreeWidthHeight(input).then(o => setTotalSize(o));
+    }, [input]);
+    useEffect(() => {
+        // the first sequence is always an id so i must guarantee that it is the first case above only
+        // that the first component is already defined in the database
+        StructureService.findById(Number.parseInt(splitSequences[0] as unknown as string))
+            .then(data => {
+                console.log('set the first structure: ' + data?.characterString);
+                setFirstStructure(data);
+            });
+    }, [splitSequences[0]]);
+
+    // var aggregatedSize = aggregateStructureWidthHeight(description, sizeList);
+
+
+
+    let flexDirection = 'row';
+    let justification = '';
+    let alignment = '';
+
+    switch (description) {
+        case '⿰': flexDirection = 'row'; break;
+        case '⿱': flexDirection = 'column'; break;
+        //⿰⿲⿱⿳⿸⿺⿹⿽⿵⿷⿶⿼⿴⿻
+        case '⿲': flexDirection = 'row'; break;
+        case '⿳': flexDirection = 'column'; break;
+        case '⿸': flexDirection = ''; justification = 'end'; alignment = 'end'; break;
+        case '⿺': flexDirection = ''; justification = 'end'; alignment = 'start'; break;
+        case '⿹': flexDirection = ''; justification = 'start'; alignment = 'end'; break;
+        case '⿽': flexDirection = ''; justification = 'start'; alignment = 'start'; break;
+        case '⿵': flexDirection = ''; justification = 'center'; alignment = 'end'; break;
+        case '⿷': flexDirection = ''; justification = 'end'; alignment = 'center'; break;
+        case '⿶': flexDirection = ''; justification = 'center'; alignment = 'start'; break;
+        case '⿼': flexDirection = ''; justification = 'start'; alignment = 'center'; break;
+        case '⿴': flexDirection = ''; justification = 'center'; alignment = 'center'; break;
+    }
+    let cornerGroup = '⿸⿺⿹⿽';
+    let centreGroup = '⿵⿷⿶⿼⿴';
+
+    // rescale width/height to 100% for the opposite structure type (vertical versus horizontal)
+    let percentWidthList = sizeList.map(o => ('⿱⿳'.includes(description)) ? 100 : (o[0] / totalSize[0] * 100));
+    let percentHeightList = sizeList.map(o => ('⿰⿲'.includes(description)) ? 100 : (o[1] / totalSize[1] * 100));
+
+    // always is from the first component in wrapping structures
+    // if the first component of the wrapping structure is already defined in the database
+    let innerPercentSize = [(firstStructure?.innerWidth ?? 1) / totalSize[0], (firstStructure?.innerHeight ?? 1) / totalSize[1]];
+    //
+    // if (wrapGroup.includes(description)) {
+    //     var tempStructure = StructureService.findById()
+    // }
+
+    // rescale to 100% for both width and height when the structure type is wrapping the other
+    if (wrapGroup.includes(description)) {
+        percentWidthList[0] = 100;
+        percentHeightList[0] = 100;
+        percentWidthList[1] = innerPercentSize[0];
+        percentHeightList[1] = innerPercentSize[1];
+    }
+
+    // console.log(description);
+    // console.log('total size: ' + totalSize);
+    // console.log('size list: ' + sizeList.map(o => '[' + o[0] + ', ' + o[1] + "]"));
+    // console.log('width list: ' + widthList);
+    // console.log('height list ' + heightList);
+
+    let marginTop= 0;
+    let marginLeft = 0;
+    let marginRight = 0;
+    let marginBottom = 0;
+
+    if (wrapGroup.includes(description)) {
+        switch (justification) {
+            case 'start':
+                marginLeft = 0;
+                marginRight = 100 - percentWidthList[1];
+                break;
+            case 'center':
+                marginLeft = (100 - percentWidthList[1]) / 2;
+                marginRight = (100 - percentWidthList[1]) / 2;
+                break;
+            case 'end':
+                marginLeft = 100 - percentWidthList[1];
+                marginRight = 0;
+                break;
+        }
+        switch (alignment) {
+            case 'start':
+                marginTop = 0;
+                marginBottom = 100 - percentHeightList[1];
+                break;
+            case 'center':
+                marginTop = (100 - percentHeightList[1]) / 2;
+                marginBottom = (100 - percentHeightList[1]) / 2;
+                break;
+            case 'end':
+                marginTop = 100 - percentHeightList[1];
+                marginBottom = 0;
+                break;
+        }
+    }
+
+
+    return (
+        <div
+            style={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                flexDirection: flexDirection,
                 position: 'relative',
             }}
         >
-            {structures?.map((o, index) => (
-                <div
-                    key={index}
-                    style={{
-                        display: 'flex',
-                        border: '1px solid ' +
-                            (structureComponents?.at(index)?.classificationId == -1
-                                ? 'blue'
-                                : structureComponents?.at(index)?.classificationId == 0
-                                    ? 'gray'
-                                    : 'red'),
-                        borderRadius: '3px',
-                        // boxSizing: 'border-box',
-                        margin: '0px',
-                        flex: frList?.at(index),
-                        position: (index == 1 && (justification || alignment)) ? 'absolute' : 'static',
-                        left: (index == 1 && justification)
-                            ? (('⿸⿺⿹⿽'.includes(structureType.description ?? 'null'))
-                                ? ((justification === 'start'
-                                    ? '0%'
-                                    : (justification === 'end'
-                                        ? (((1 - ndComRatioHor) * 100) + '%')
-                                        : (justification === 'center'
-                                            ? (((1 - ndComRatioHor) * 50) + '%')
-                                            : ''
-                                        )
-                                    )
-                                ))
-                                : ('⿵⿷⿶⿼⿴'.includes(structureType.description ?? 'null')
-                                    ? ((justification === 'start'
-                                        ? '0%'
-                                        : (justification === 'end'
-                                            ? (((1 - ndComRatioHorCtr) * 100) + '%')
-                                            : (justification === 'center'
-                                                ? (((1 - ndComRatioHorCtr) * 50) + '%')
-                                                : ''
-                                            )
-                                        )
-                                    ))
-                                    : ''
-                                )
-                            )
-                            : '',
-                        top: (index == 1 && alignment)
-                            ? (('⿸⿺⿹⿽'.includes(structureType.description ?? 'null'))
-                                ? ((alignment === 'start'
-                                    ? '0%'
-                                    : (alignment === 'end'
-                                        ? (((1 - ndComRatioVer) * 100) + '%')
-                                        : (alignment === 'center'
-                                            ? (((1 - ndComRatioVer) * 50) + '%')
-                                            : ''
-                                        )
-                                    )
-                                ))
-                                : ('⿵⿷⿶⿼⿴'.includes(structureType.description ?? 'null')
-                                    ? ((alignment === 'start'
-                                        ? '0%'
-                                        : (alignment === 'end'
-                                            ? (((1 - ndComRatioVerCtr) * 100) + '%')
-                                            : (alignment === 'center'
-                                                ? (((1 - ndComRatioVerCtr) * 50) + '%')
-                                                : ''
-                                            )
-                                        )
-                                    ))
-                                    : ''
-                                )
-                            )
-                            : '',
-                        height: (index == 1 && (justification || alignment))
-                            ? (('⿸⿺⿹⿽'.includes(structureType.description ?? 'null')
-                                ? ((ndComRatioVer * 100) + '%')
-                                : (('⿵⿷⿶⿼⿴'.includes(structureType.description ?? 'null'))
-                                    ? ((ndComRatioVerCtr * 100) + '%')
-                                    : '')))
-                            : '',
-                        width: (index == 1 && (justification || alignment))
-                            ? (('⿸⿺⿹⿽'.includes(structureType.description ?? 'null')
-                                ? ((ndComRatioHor * 100) + '%')
-                                : (('⿵⿷⿶⿼⿴'.includes(structureType.description ?? 'null'))
-                                    ? ((ndComRatioHorCtr * 100) + '%')
-                                    : '')))
-                            : '',
-                    }}
-                >
-                    <PaintStructure structure={o} isOutmostComponent={false} />
-                </div>
-            ))}
+            {splitSequences.map((o, index) => {
+                var temp;
+                var newFontSize: [number, number] = (wrapGroup.includes(description) && index == 1)
+                    ? [fontSize[0] / 100 * innerPercentSize[0], fontSize[1] / 100 * innerPercentSize[1]]
+                    : [fontSize[0] / 100 * percentWidthList[index], fontSize[1] / 100 * percentHeightList[index]];
+
+                if (o.length == 1 && !structureTypes.includes(o[0] as string)) {
+                    temp = <DrawStructure structureId={o[0] as number} fontSize={newFontSize} key={o[0] as number} />;
+                    // temp = (<div>o[0]</div>)
+                } else {
+                    temp = <PaintStructureTree input={o} fontSize={newFontSize} key={o[0] as number} />;
+                }
+                // console.log(marginTop + '% ' + marginLeft + '% ' + marginRight + '% ' + marginBottom + '%');
+                return (
+                    <div
+                        style={{
+                            width: (wrapGroup.includes(description) && index == 1) ? (innerPercentSize[0] + '%') : (percentWidthList[index] + '%'),
+                            height: (wrapGroup.includes(description) && index == 1) ? (innerPercentSize[1] + '%') : (percentHeightList[index] + '%'),
+                            margin: (wrapGroup.includes(description) && index == 1) ?
+                                (marginTop + '% ' + marginRight + '% ' + marginBottom + '% ' + marginLeft + '%') : 'unset',
+                            // border: 'black solid 2px',
+                            position: (wrapGroup.includes(description) && index == 1) ? 'absolute' : 'relative',
+                            display: 'flex',              // ADDED
+                            alignItems: 'center',         // ADDED: vertical center
+                            justifyContent: 'center',     // ADDED: horizontal center
+                            boxSizing: 'border-box',      // ADDED
+                            overflow: 'hidden',
+                        }}
+                    >
+                        {temp}
+                    </div>
+                );
+            })}
         </div>
     );
 }
 
+var structureTypes = '⿰⿲⿱⿳⿸⿺⿹⿽⿵⿷⿶⿼⿴⿻';
+var verticalGroup = '⿱⿳';
+var horizontalGroup = '⿰⿲';
+var wrapGroup = '⿸⿺⿹⿽⿵⿷⿶⿼⿴⿻';
+var tripleGroup = '⿳⿲';
+var wrapCentreGroup = '⿵⿷⿶⿼⿴⿻';
+
+async function aggregateStructureTreeWidthHeight(input: (string | number)[]): Promise<number[]> {
+    // the base case
+    if (input.length == 1 && !structureTypes.includes(input[0] as string)) {
+        return calcStructureWidthHeight(input[0] as number);
+    }
+
+    // var inputCopy = [...input.slice(1)];
+    var structureTypeDescription = input[0] as string;
+    var sizeList: number[][] = [];
+
+    var splitSequences = splitStructureSequence(input);
+
+    for (let i = 0; i < splitSequences.length; i++) {
+        sizeList.push(await aggregateStructureTreeWidthHeight(splitSequences[i]));
+    }
+    // console.log("aggregateStructureTreeWidthHeight: " + aggregateStructureWidthHeight(structureTypeDescription, sizeList));
+    return aggregateStructureWidthHeight(structureTypeDescription, sizeList);
+}
+
+function splitStructureSequence(input: (string | number)[]): (string | number)[][] {
+    var inputSequence = [...input.slice(1)];
+    var output: (string | number)[][] = [];
+    var queue: (string | number)[] = [];
+    var structureDescriptionQueue: string[] = [];
+    var counter = 0;
+
+
+    // condition to continue the loop
+    while (inputSequence.length > 0) {
+        // add some initial data into the queue
+        queue.push(inputSequence[0]);
+        counter++;
+        // if entity just added is a number
+        if (!structureTypes.includes(queue[queue.length - 1] as string)) {
+            // if there are no longer wrapping structures
+            if (structureDescriptionQueue.length == 0) {
+                output.push([...inputSequence.slice(0, counter)]);
+                inputSequence = [...inputSequence.slice(counter)];
+                counter = 0;
+                queue.pop(); // clean the queue
+            } else {
+                // case of structure with 2 comps
+                if (!tripleGroup.includes(structureDescriptionQueue[structureDescriptionQueue.length - 1]) &&
+                    !structureTypes.includes(queue[queue.length - 2] as string) &&
+                    !structureTypes.includes(queue[queue.length - 1] as string)
+                ) {
+                    queue.pop(); queue.pop(); queue.pop();
+                    queue.push(0) // 0 is the placeholder
+                    structureDescriptionQueue.pop();
+                }
+                // case of structure with 3 comps
+                else if (tripleGroup.includes(structureDescriptionQueue[structureDescriptionQueue.length - 1]) &&
+                    !structureTypes.includes(queue[queue.length - 3] as string) &&
+                    !structureTypes.includes(queue[queue.length - 2] as string) &&
+                    !structureTypes.includes(queue[queue.length - 1] as string)
+                ) {
+                    queue.pop(); queue.pop(); queue.pop(); queue.pop();
+                    queue.push(0) // 0 is the placeholder
+                    structureDescriptionQueue.pop();
+                }
+            }
+        } else {
+            structureDescriptionQueue.push(queue[queue.length - 1] as string)
+        }
+    }
+    return output;
+}

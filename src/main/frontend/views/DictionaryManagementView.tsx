@@ -885,7 +885,7 @@ const StructureTabContent = () => {
             setStructureComponents(null);
             return;
         }
-        StructureComponentService.findByStructure(selectedStructure)
+        StructureComponentService.findByStructureId(selectedStructure.id)
             .then(list => {
                 const tempList : StructureComponent[] = [];
                 list?.forEach(component => {
@@ -1025,9 +1025,13 @@ const StructureTabContent = () => {
                     service={StructureEndpoint}
                     model={StructureDtoModel}
                     item={selectedStructureDto}
-                    onSubmitSuccess={() => {
-                        setSelectedStructureDto(null);
+                    onSubmitSuccess={(e) => {
+                        // setSelectedStructureDto(null);
+
                         structureGridRef.current?.refresh();
+                        StructureService.findById(selectedStructureDto?.id)
+                            .then(data => setSelectedStructure(data));
+
                         setRefreshTrigger(!refreshTrigger);
                     }}
                     fieldOptions={{
@@ -1043,7 +1047,19 @@ const StructureTabContent = () => {
                                     />
                                 );
                             }
-                        }
+                        },
+                        width: {
+                            label: 'Rộng',
+                        },
+                        height: {
+                            label: 'Cao',
+                        },
+                        innerWidth: {
+                            label: 'Rộng trong',
+                        },
+                        innerHeight: {
+                            label: 'Cao trong',
+                        },
                     }}
                     onSubmitError={error => window.alert('Lỗi khi lưu cấu tạo: ' + error.error.message)}
                     hiddenFields={['character', 'characterWithPronunciationsString']}
@@ -2656,7 +2672,7 @@ const ExampleTabContent = () => {
                             renderer: ({field}) => (
                                 <TextArea
                                     {...field}
-                                    value={exampleWordDtos.length + 1 + ""}
+                                    // value={exampleWordDtos.length + 1 + ""}
                                     style={{ width: '100%' }}
                                 />
                             )

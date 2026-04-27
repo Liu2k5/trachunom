@@ -10,10 +10,6 @@ export const config: ViewConfig = {
 export default function IndexView() {
   const navigate = useNavigate();
 
-  const handleNavigate = () => {
-    navigate('/admin/dictionary-management');
-  };
-
   return (
     <div
       style={{
@@ -58,40 +54,45 @@ export default function IndexView() {
           các ký tự chữ Nôm một cách dễ dàng và nhanh chóng.
         </p>
 
-        <button
-          onClick={handleNavigate}
-          style={{
-            marginTop: '20px',
-            display: 'inline-block',
-            color: '#667eea',
-            textDecoration: 'none',
-            fontWeight: '500',
-            fontSize: '1rem',
-            padding: '10px 20px',
-            border: '2px solid #667eea',
-            borderRadius: '8px',
-            transition: 'all 0.3s ease',
-            background: 'transparent',
-            cursor: 'pointer',
-          }}
-          onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
-            e.currentTarget.style.background = '#667eea';
-            e.currentTarget.style.color = 'white';
-          }}
-          onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
-            e.currentTarget.style.background = 'transparent';
-            e.currentTarget.style.color = '#667eea';
-          }}
-        >
-          Quản lý từ điển
-        </button>
-        <button onClick={() => navigate("/search")}>
-            Tìm kiếm chữ Nôm
-        </button>
-        <button onClick={() => navigate("/about")}>
-            Giới thiệu dự án
-        </button>
+        <MyButton text={'Quản lý từ điển'} link={'/admin/dictionary-management'}/>
+        <MyButton text={'Tìm kiếm chữ Nôm'} link={'/search'}/>
+        <MyButton text={' Giới thiệu dự án'} link={'/about'}/>
       </div>
     </div>
   );
+  
+    function MyButton({text, link}: {text: string, link: string}) {
+        return (
+            <button
+                onClick={() => {
+                    navigate(link);
+                }}
+                style={{
+                    marginTop: '20px',
+                    display: 'inline-block',
+                    color: '#667eea',
+                    textDecoration: 'none',
+                    fontWeight: '500',
+                    fontSize: '1rem',
+                    padding: '10px 20px',
+                    border: '2px solid #667eea',
+                    borderRadius: '8px',
+                    transition: 'all 0.3s ease',
+                    background: 'transparent',
+                    cursor: 'pointer',
+                }}
+                onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
+                    e.currentTarget.style.background = '#667eea';
+                    e.currentTarget.style.color = 'white';
+                }}
+                onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
+                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.color = '#667eea';
+                }}
+            >
+                {text}
+            </button>
+        );
+    }
 }
+

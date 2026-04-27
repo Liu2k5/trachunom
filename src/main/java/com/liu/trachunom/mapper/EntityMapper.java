@@ -223,6 +223,10 @@ public class EntityMapper {
         return StructureDto.builder()
                 .id(structure.getId())
                 .character(toCharacterDto(structure.getCharacter()))
+                .width(structure.getWidth())
+                .height(structure.getHeight())
+                .innerWidth(structure.getInnerWidth())
+                .innerHeight(structure.getInnerHeight())
                 .structureTypeId(structure.getStructureType() == null ? null : structure.getStructureType().getId())
                 .characterString(characterString)
                 .characterWithPronunciationsString(characterString + " " + stringBuilder.toString().trim())
@@ -483,6 +487,10 @@ public class EntityMapper {
                 .id(structureDto.getId())
                 .character(character)
                 .structureType(structureType)
+                .width(structureDto.getWidth())
+                .height(structureDto.getHeight())
+                .innerWidth(structureDto.getInnerWidth())
+                .innerHeight(structureDto.getInnerHeight())
                 .build();
     }
 

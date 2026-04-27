@@ -52,13 +52,14 @@ public class SecurityConfig implements UserDetailsService {
                                 "/sw.js",
                                 "/offline-stub.html",
                                 "/login",
-                                "/login/**",
-                                "/admin/**"
+                                "/login/**"
                         ).permitAll()
                         .requestMatchers(
                                 "/search",
                                 "/entity/**"
                         ).permitAll()
+                        .requestMatchers("/admin/**")
+                        .hasRole("ADMIN")
                         .requestMatchers(requestUtil::isFrameworkInternalRequest).permitAll()
                 )
                 .formLogin(form -> form

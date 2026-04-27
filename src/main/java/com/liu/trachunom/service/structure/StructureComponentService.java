@@ -22,11 +22,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class StructureComponentService extends ListRepositoryService<StructureComponent, StructureComponentId, StructureComponentRepository> {
     private final StructureComponentRepository structureComponentRepository;
-    private final StructureClassificationService structureClassificationService;
-    private final StructureRepository structureRepository;
 
-    public List<StructureComponent> findByStructure(Structure structure) {
-        return structureComponentRepository.findByStructure(structure);
+    public List<StructureComponent> findByStructureId(Long structureId) {
+        return structureComponentRepository.findByStructureId(structureId);
     }
 
     public List<StructureComponent> getStructureComponents(Structure structure) {

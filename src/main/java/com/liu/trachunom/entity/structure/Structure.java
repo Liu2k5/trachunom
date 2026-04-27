@@ -29,6 +29,11 @@ public class Structure {
     @JoinColumn(name = "structure_type_id")
     private StructureType structureType;
 
+    private Double width;
+    private Double height;
+    private Double innerWidth;
+    private Double innerHeight;
+
     public String getCharacterString() {
         try {
             if (this.character != null) {

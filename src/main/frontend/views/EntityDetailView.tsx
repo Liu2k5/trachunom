@@ -9,11 +9,9 @@ import {
     DrawEvolution,
     DrawMeaningEvolution,
     DrawPronunciationEvolution,
-    DrawStructure,
+    AnalyseStructure,
     HnomQnguComponent,
-    PaintStructure
 } from 'Frontend/utils/entityUtils';
-import {EntityService} from "Frontend/generated/endpoints";
 import {SearchBar} from "Frontend/views/SearchBar";
 
 export const config: ViewConfig = {
@@ -162,30 +160,16 @@ export default function EntityDetailView() {
                                                 fontWeight: 'bold',
                                                 color: '#667eea',
                                                 margin: '0.5em 0px 0px',
-                                                fontFamily: 'serif',
+                                                fontFamily: 'sans-serif',
                                                 display: 'flex',
                                                 justifyContent: 'center',
-                                                gap: '20px',
+                                                height: '80px',
                                                 position: 'relative',
                                             }}
                                         >
                                             <HnomQnguComponent entityId={entity.id} markedId={0}/>
-                                            <div
-                                                style={{
-                                                    // height: '200px',
-                                                    width: '80px',
-                                                    height: '80px',
-                                                    // aspectRatio: '1 / 1',
-                                                    display: 'inline-flex',
-                                                    // alignItems: 'stretch',
-                                                    // justifyContent: 'stretch',
-                                                    position: 'absolute',
-                                                }}
-                                            >
-                                                <PaintStructure structure={entity.structure}/>
-                                            </div>
                                         </div>
-                                        {entity.structure?.character && (
+                                        {entity.structure?.character ? (
                                             <div>
                                                 <p>Unicode: U+{(entity.structure?.character?.characterString?.charCodeAt(0))?.toString(16).toUpperCase()}</p>
                                                 <p>Bộ {entity.structure?.character?.radicalString}
@@ -193,6 +177,21 @@ export default function EntityDetailView() {
                                                     tổng {entity.structure?.character?.totalStrokeNumber}
                                                 </p>
                                             </div>
+                                        ) : (
+                                                <div>
+                                                    Kí tự này chưa được Unicode mã hóa
+                                                </div>
+                                            )
+                                        }
+                                        {/* Pronunciation */}
+                                        {entity.pronunciation && (
+                                            <section style={{marginBottom: '30px'}}>
+                                                <div style={{paddingLeft: '16px'}}>
+                                                    <div style={{fontSize: '18px', color: '#333'}}>
+                                                        <DrawPronunciationEvolution pronunciationId={entity.pronunciation.id}/>
+                                                    </div>
+                                                </div>
+                                            </section>
                                         )}
                                     </>
                                 )
@@ -203,11 +202,11 @@ export default function EntityDetailView() {
                                             fontSize: '80px',
                                             fontWeight: 'bold',
                                             color: '#667eea',
-                                            margin: '0.5em 0px 0px',
-                                            fontFamily: 'serif',
+                                            margin: '0em 0px 0px',
+                                            fontFamily: 'sans-serif',
                                             display: 'flex',
                                             justifyContent: 'center',
-                                            gap: '20px',
+                                            // gap: '20px',
                                         }}
                                     >
                                         {entity.compositionComponents?.map((component, index) => (
@@ -248,33 +247,13 @@ export default function EntityDetailView() {
                                         Cấu tạo
                                     </h2>
                                     <div style={{width: '100%',}}>
-                                        <DrawStructure structure={entity.structure}/>
+                                        <AnalyseStructure structure={entity.structure}/>
                                     </div>
                                 </section>
                             )}
-                            {/* Pronunciation */}
-                            {entity.pronunciation && (
-                                <section style={{marginBottom: '30px'}}>
-                                    <h2
-                                        style={{
-                                            color: '#667eea',
-                                            fontSize: '20px',
-                                            marginBottom: '15px',
-                                            borderLeft: '4px solid #667eea',
-                                            paddingLeft: '12px',
-                                        }}
-                                    >
-                                        Phát âm
-                                    </h2>
-                                    <div style={{paddingLeft: '16px'}}>
-                                        <div style={{fontSize: '18px', color: '#333'}}>
-                                            <DrawPronunciationEvolution pronunciationId={entity.pronunciation.id}/>
-                                        </div>
-                                    </div>
-                                </section>
-                            )}
-                            {/* Years */}
+                            {/* Age */}
                             {
+
                                 <section style={{marginBottom: '30px'}}>
                                     <h2
                                         style={{
@@ -294,26 +273,56 @@ export default function EntityDetailView() {
                                     </div>
                                 </section>
                             }
+                            {/* Meanings */}
+                            {entity.meaning?.explanations && entity.meaning.explanations.length > 0 && (
+                                <section style={{marginBottom: '30px'}}>
+                                    <h2
+                                        style={{
+                                            color: '#667eea',
+                                            fontSize: '20px',
+                                            marginBottom: '15px',
+                                            borderLeft: '4px solid #667eea',
+                                            paddingLeft: '12px',
+                                        }}
+                                    >
+                                        Ý nghĩa
+                                    </h2>
+                                    <DrawMeaningEvolution meaning={entity.meaning}/>
+                                </section>
+                            )}
+                            {/* Synonyms */}
+                            {entity.synonyms && entity.synonyms.length > 0 && (
+                                <section style={{marginBottom: '30px'}}>
+                                    <h2
+                                        style={{
+                                            color: '#667eea',
+                                            fontSize: '20px',
+                                            marginBottom: '15px',
+                                            borderLeft: '4px solid #667eea',
+                                            paddingLeft: '12px',
+                                        }}
+                                    >
+                                        Từ đồng nghĩa
+                                    </h2>
+                                    <div style={{paddingLeft: '16px', display: 'flex', gap: '10px'}}>
+                                        {entity.synonyms?.map(synonym =>
+                                            synonym ? (
+                                                <div
+                                                    key={synonym.id}
+                                                    style={{
+                                                        marginBottom: '10px',
+                                                        fontSize: '30px',
+                                                    }}
+                                                >
+                                                    <HnomQnguComponent entityId={synonym.id} markedId={0}/>
+                                                </div>
+                                            ) : null
+                                        )}
+                                    </div>
+                                </section>
+                            )}
                         </div>
                     </div>
-
-                    {/* Meanings */}
-                    {entity.meaning?.explanations && entity.meaning.explanations.length > 0 && (
-                        <section style={{marginBottom: '30px'}}>
-                            <h2
-                                style={{
-                                    color: '#667eea',
-                                    fontSize: '20px',
-                                    marginBottom: '15px',
-                                    borderLeft: '4px solid #667eea',
-                                    paddingLeft: '12px',
-                                }}
-                            >
-                                Ý nghĩa
-                            </h2>
-                            <DrawMeaningEvolution meaning={entity.meaning}/>
-                        </section>
-                    )}
 
                     {/* Evolution */}
                     {entity.evolutions && (
@@ -364,38 +373,6 @@ export default function EntityDetailView() {
                                             }}
                                         >
                                             <HnomQnguComponent entityId={variance.id} markedId={0}/>
-                                        </div>
-                                    ) : null
-                                )}
-                            </div>
-                        </section>
-                    )}
-
-                    {/* Synonyms */}
-                    {entity.synonyms && entity.synonyms.length > 0 && (
-                        <section style={{marginBottom: '30px'}}>
-                            <h2
-                                style={{
-                                    color: '#667eea',
-                                    fontSize: '20px',
-                                    marginBottom: '15px',
-                                    borderLeft: '4px solid #667eea',
-                                    paddingLeft: '12px',
-                                }}
-                            >
-                                Từ đồng nghĩa
-                            </h2>
-                            <div style={{paddingLeft: '16px', display: 'flex', gap: '10px'}}>
-                                {entity.synonyms?.map(synonym =>
-                                    synonym ? (
-                                        <div
-                                            key={synonym.id}
-                                            style={{
-                                                marginBottom: '10px',
-                                                fontSize: '30px',
-                                            }}
-                                        >
-                                            <HnomQnguComponent entityId={synonym.id} markedId={0}/>
                                         </div>
                                     ) : null
                                 )}
@@ -593,7 +570,7 @@ export default function EntityDetailView() {
                                                 display: 'flex',
                                                 flexWrap: 'wrap',
                                                 gap: '10px',
-                                                marginBottom: '40px',
+                                                marginBottom: '0.5em',
                                                 fontFamily: 'sans-serif',
                                                 fontSize: '30px'
                                             }}>

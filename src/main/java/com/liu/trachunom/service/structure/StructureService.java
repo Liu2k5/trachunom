@@ -3,11 +3,9 @@ package com.liu.trachunom.service.structure;
 import java.util.List;
 
 import com.liu.trachunom.entity.structure.StructureComponent;
-import com.liu.trachunom.service.character.CharacterService;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.BrowserCallable;
 import com.vaadin.hilla.crud.ListRepositoryService;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Service;
 
 import com.liu.trachunom.entity.structure.Structure;
@@ -25,6 +23,9 @@ public class StructureService extends ListRepositoryService<Structure, Long, Str
     private final StructureComponentService structureComponentService;
 
     public Structure findById(Long id) {
+        if (id == null) {
+            return null;
+        }
         return structureRepository.findById(id).orElse(null);
     }
 
@@ -40,7 +41,7 @@ public class StructureService extends ListRepositoryService<Structure, Long, Str
         if (structure.getCharacter() != null) {
             return structure.getCharacter().getString();
         } else {
-            List<StructureComponent> components = structureComponentService.findByStructure(structure);
+            List<StructureComponent> components = structureComponentService.findByStructureId(structure.getId());
             StringBuilder characterString = new StringBuilder();
             for (StructureComponent component : components) {
                 if (component.getStructureComponent().getCharacter() != null) {

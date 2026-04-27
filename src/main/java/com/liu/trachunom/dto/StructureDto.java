@@ -13,6 +13,10 @@ public class StructureDto {
     private Long id;
     private CharacterDto character;
     private Long structureTypeId;
+    private Double width;
+    private Double height;
+    private Double innerWidth;
+    private Double innerHeight;
     private String characterString;
     private String characterWithPronunciationsString;
 }

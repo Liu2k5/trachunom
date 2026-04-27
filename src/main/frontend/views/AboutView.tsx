@@ -13,7 +13,7 @@ export default function AboutView() {
   return (
     <div
       style={{
-        width: '100%',
+        // width: '100%',
         minHeight: '100vh',
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         padding: '40px 20px',
@@ -22,7 +22,7 @@ export default function AboutView() {
       <div
         style={{
           maxWidth: '800px',
-            width: 'auto',
+            // width: 'auto',
           margin: '0 auto',
           background: 'white',
           borderRadius: '16px',

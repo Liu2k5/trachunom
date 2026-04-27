@@ -32,10 +32,10 @@ public class StructureEndpoint {
     }
 
     public List<StructureComponentDto> getStructureComponentsByStructureId(Long structureId) {
-        Structure structure = structureService.findById(structureId);
-        if (structure == null) {
+        if (structureId == null) {
             return List.of();
         }
+        Structure structure = structureService.findById(structureId);
         return structureComponentService.getStructureComponents(structure).stream()
                 .map(entityMapper::toStructureComponentDto)
                 .collect(Collectors.toList());

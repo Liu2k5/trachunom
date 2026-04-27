@@ -12,6 +12,18 @@ class StructureDtoModel<T extends StructureDto_1 = StructureDto_1> extends Objec
     get structureTypeId(): NumberModel_1 {
         return this[_getPropertyModel_1]("structureTypeId", (parent, key) => new NumberModel_1(parent, key, true, { meta: { javaType: "java.lang.Long" } }));
     }
+    get width(): NumberModel_1 {
+        return this[_getPropertyModel_1]("width", (parent, key) => new NumberModel_1(parent, key, true, { meta: { javaType: "java.lang.Double" } }));
+    }
+    get height(): NumberModel_1 {
+        return this[_getPropertyModel_1]("height", (parent, key) => new NumberModel_1(parent, key, true, { meta: { javaType: "java.lang.Double" } }));
+    }
+    get innerWidth(): NumberModel_1 {
+        return this[_getPropertyModel_1]("innerWidth", (parent, key) => new NumberModel_1(parent, key, true, { meta: { javaType: "java.lang.Double" } }));
+    }
+    get innerHeight(): NumberModel_1 {
+        return this[_getPropertyModel_1]("innerHeight", (parent, key) => new NumberModel_1(parent, key, true, { meta: { javaType: "java.lang.Double" } }));
+    }
     get characterString(): StringModel_1 {
         return this[_getPropertyModel_1]("characterString", (parent, key) => new StringModel_1(parent, key, true, { meta: { javaType: "java.lang.String" } }));
     }
