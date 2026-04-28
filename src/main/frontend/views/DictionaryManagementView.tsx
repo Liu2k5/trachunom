@@ -731,7 +731,7 @@ const CharactersTabContent = () => {
                         characterGridRef.current?.refresh();
                     }}
                     onSubmitError={error => window.alert('Lỗi khi lưu ký tự: ' + error.error.message)}
-                    hiddenFields={['radicalString',]}
+                    hiddenFields={['radicalString','radicalStringByUnicode']}
                     fieldOptions={{
                         unicode: {label: 'Unicode'},
                         radical: {
@@ -1025,7 +1025,7 @@ const StructureTabContent = () => {
                     service={StructureEndpoint}
                     model={StructureDtoModel}
                     item={selectedStructureDto}
-                    onSubmitSuccess={(e) => {
+                    onSubmitSuccess={() => {
                         // setSelectedStructureDto(null);
 
                         structureGridRef.current?.refresh();

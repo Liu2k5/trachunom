@@ -66,7 +66,7 @@ const HnomQngu = ({entityId, markedId}: {entityId: number | undefined, markedId:
                 justifyContent: 'center',
                 color: entity?.id === markedId ? 'blue' : (entity?.attested ? 'black' : 'grey'),
                 position: 'relative',
-                margin: '0.1em 0px 0em'
+                margin: '0'
             }}
         >
             <p style={{fontSize: '0.6em', margin: '0px', lineHeight: '1em', position: 'absolute', top: '-1em', transform: 'scale(0.5, 1)', width: '200%'}}>
@@ -576,9 +576,9 @@ function DrawEntityYear({entityId}: {entityId: number | undefined}): JSX.Element
             {endYear}
         </div>
     );
-};
+}
 
-async function calcStructureWidthHeight(structureId: number | undefined): Promise<number[]> {
+async function calcStructureWidthHeight(structureId: number | undefined): Promise<[number, number]> {
     if (!structureId) return [1, 1];
 
     //⿰⿲⿱⿳⿸⿺⿹⿽⿵⿷⿶⿼⿴⿻
@@ -591,14 +591,13 @@ async function calcStructureWidthHeight(structureId: number | undefined): Promis
     var structure: Structure | undefined;
     var structureComponents: StructureComponent[] | undefined = [];
     var structureComponentResults: Structure[] | undefined = [];
-    var output: number[] = [0, 0];
+    var output: [number, number] = [0, 0];
 
     structure = await StructureService.findById(structureId);
 
     console.log(structureId + " " + structure?.structureType?.description + " " + structure?.characterString);
-
     // case of chu tuong hinh
-    if (!structure?.structureType?.description) return [structure?.width ?? 1, structure?.height ?? 1];
+    if (!structure?.structureType) return [structure?.width ?? 1, structure?.height ?? 1];
 
     var structureTypeDescription =  structure.structureType.description;
     structureComponents = await StructureComponentService.findByStructureId(structure.id)
@@ -616,8 +615,8 @@ async function calcStructureWidthHeight(structureId: number | undefined): Promis
         ?.map(o => o.structureComponent)
         .filter(o => o != undefined);
 
-    if (structureComponentResults) {
-        // console.log("finding structure components for " + structure.characterString + "(" + structureComponentResults.length + "): " + structureComponentResults.map(o => o.characterString + " "));
+    if (structureComponentResults && structureTypeDescription) {
+        console.log("finding structure components for " + structure.characterString + "(" + structureComponentResults.length + "): " + structureComponentResults.map(o => o.characterString + " "));
         await (async () => {
             const promises = structureComponentResults.map((o, index) => {
                 if (!structureComponents?.at(index)?.structureClassification?.id) return calcStructureWidthHeight(undefined);
@@ -626,8 +625,8 @@ async function calcStructureWidthHeight(structureId: number | undefined): Promis
                 .flat()
                 .filter(o => o != undefined)
                 .map(o => o);
-            const results: number[][] = await Promise.all(promises);
-
+            const results: [number, number][] = await Promise.all(promises);
+            // console.log(results);
             output = aggregateStructureWidthHeight(structureTypeDescription, results);
         })();
 
@@ -640,17 +639,18 @@ async function calcStructureWidthHeight(structureId: number | undefined): Promis
     return output;
 }
 
-function aggregateStructureWidthHeight(structureTypeDescription: string, results : number[][]) {
+function aggregateStructureWidthHeight(structureTypeDescription: string, results : [number, number][]) {
     var verticalGroup = '⿱⿳';
     var horizontalGroup = '⿰⿲';
     var wrapGroup = '⿸⿺⿹⿽⿵⿷⿶⿼⿴⿻';
     var tripleGroup = '⿳⿲';
-    var wrapCentreGroup = '⿵⿷⿶⿼⿴⿻';
+    var wrapCentreGroup = '⿵⿷⿶⿼⿴';
+    var stackGroup = '⿻';
 
-    var output: number[] = [0, 0];
+    var output: [number, number] = [0, 0];
 
-    if ((verticalGroup + horizontalGroup + wrapCentreGroup).includes(structureTypeDescription)) {
-        // console.log(output[0] + ", " + output[1] + "   ");
+    if ((verticalGroup + horizontalGroup + wrapCentreGroup + stackGroup).includes(structureTypeDescription)) {
+        console.log(output[0] + ", " + output[1] + "   dm " + structureTypeDescription);
         // console.log(results[0]);
         // console.log(results[1]);
         results.map(o => {
@@ -660,6 +660,10 @@ function aggregateStructureWidthHeight(structureTypeDescription: string, results
                 output = [sum(output[0], o[0]), max(output[1], o[1])];
             } else if (wrapCentreGroup.includes(structureTypeDescription)) {
                 output = [sum(output[0], o[0]), sum(output[1], o[1])];
+            } else if (stackGroup.includes(structureTypeDescription)) {
+                output = [max(output[0], o[0]), max(output[1], o[1])];
+                console.log(output[0] + ", " + output[1] + "   dm");
+
             }
         });
     } else {
@@ -703,7 +707,6 @@ function DrawStructure({ structureId, fontSize }: { structureId: number | undefi
     }, []);
 
     const structureType = structure?.structureType;
-    const structureTypeId = structureType?.id;
     const [structureComponents, setStructureComponents] = useState<StructureComponent[] | undefined>(undefined);
     const [structures, setStructures] = useState<Structure[] | undefined>(undefined);
 
@@ -730,7 +733,7 @@ function DrawStructure({ structureId, fontSize }: { structureId: number | undefi
     var description = structure?.structureType?.description;
     var firstStructure = structures?.at(0);
     var firstStructureDescription = firstStructure?.structureType?.description;
-    var output: (string | number)[] = [];
+    var output: (string | number)[];
     const [firstStructureComponents, setFirstStructureComponents] = useState<Structure[] | undefined>(undefined);
     useEffect(() => {
         StructureComponentService.findByStructureId(firstStructure?.id)
@@ -764,10 +767,7 @@ function DrawStructure({ structureId, fontSize }: { structureId: number | undefi
     else if (wrapGroup.includes(description ?? 'null') &&
         structureTypes.includes(firstStructureDescription ?? 'null') &&
         wrapGroup.includes(firstStructureDescription ?? 'null')) {
-
     }
-
-
 
     if (
         // !structureTypeId
@@ -783,7 +783,6 @@ function DrawStructure({ structureId, fontSize }: { structureId: number | undefi
             </div>
         );
     }
-
 
     return (
         <div
@@ -804,13 +803,12 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
     const inputKey = JSON.stringify(input);
     const splitSequences =
     useMemo(() => splitStructureSequence(input), [inputKey]);
-    const [sizeList, setSizeList]= useState<number[][]>([]);
-    const [totalSize, setTotalSize] = useState<number[]>([]);
-    const [firstStructure, setFirstStructure] = useState<Structure | undefined>(undefined);
-    useEffect(() => {
+    const [sizeList, setSizeList]= useState<[number, number][]>(Array.of());
+    const [totalSize, setTotalSize] = useState<[number, number]>([0, 0]);
+    const [firstStructure, setFirstStructure] = useState<Structure | undefined>(undefined);useEffect(() => {
         // console.log('split sequences size: ' + splitSequences.length);
         // console.log('split sequences size: ' + splitSequences.length);
-        var tempSizeList: number[][] = [];
+        var tempSizeList: [number, number][] = [];
         (async () => {
             for (let i = 0; i < splitSequences.length; i++) {
                 console.log('split sequence: ' + splitSequences[i]);
@@ -830,6 +828,7 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
                 console.log('set the first structure: ' + data?.characterString);
                 setFirstStructure(data);
             });
+        // calcStructureWidthHeight(firstStructure?.id).then(data => setFirstStructureSize(data));
     }, [splitSequences[0]]);
 
     // var aggregatedSize = aggregateStructureWidthHeight(description, sizeList);
@@ -855,21 +854,19 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
         case '⿶': flexDirection = ''; justification = 'center'; alignment = 'start'; break;
         case '⿼': flexDirection = ''; justification = 'start'; alignment = 'center'; break;
         case '⿴': flexDirection = ''; justification = 'center'; alignment = 'center'; break;
+        case '⿻': flexDirection = ''; justification = 'stretch'; alignment = 'stretch'; break;
     }
     let cornerGroup = '⿸⿺⿹⿽';
     let centreGroup = '⿵⿷⿶⿼⿴';
 
+    // always is from the first component in wrapping structures
+    // if the first component of the wrapping structure is already defined in the database
+    let innerPercentSize = [(firstStructure?.innerWidth ?? 1) / (firstStructure?.width ?? 1) * 100,
+        (firstStructure?.innerHeight ?? 1) / (firstStructure?.height ?? 1) * 100];
+
     // rescale width/height to 100% for the opposite structure type (vertical versus horizontal)
     let percentWidthList = sizeList.map(o => ('⿱⿳'.includes(description)) ? 100 : (o[0] / totalSize[0] * 100));
     let percentHeightList = sizeList.map(o => ('⿰⿲'.includes(description)) ? 100 : (o[1] / totalSize[1] * 100));
-
-    // always is from the first component in wrapping structures
-    // if the first component of the wrapping structure is already defined in the database
-    let innerPercentSize = [(firstStructure?.innerWidth ?? 1) / totalSize[0], (firstStructure?.innerHeight ?? 1) / totalSize[1]];
-    //
-    // if (wrapGroup.includes(description)) {
-    //     var tempStructure = StructureService.findById()
-    // }
 
     // rescale to 100% for both width and height when the structure type is wrapping the other
     if (wrapGroup.includes(description)) {
@@ -877,13 +874,16 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
         percentHeightList[0] = 100;
         percentWidthList[1] = innerPercentSize[0];
         percentHeightList[1] = innerPercentSize[1];
+    } else if (stackGroup.includes(description)) {
+        percentWidthList = [100, 100];
+        percentHeightList = [100, 100];
     }
 
     // console.log(description);
     // console.log('total size: ' + totalSize);
     // console.log('size list: ' + sizeList.map(o => '[' + o[0] + ', ' + o[1] + "]"));
-    // console.log('width list: ' + widthList);
-    // console.log('height list ' + heightList);
+    console.log('width list: ' + percentWidthList);
+    console.log('height list ' + percentHeightList);
 
     let marginTop= 0;
     let marginLeft = 0;
@@ -904,6 +904,10 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
                 marginLeft = 100 - percentWidthList[1];
                 marginRight = 0;
                 break;
+            case 'stretch':
+                marginLeft = 0;
+                marginRight = 0;
+                break;
         }
         switch (alignment) {
             case 'start':
@@ -916,6 +920,10 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
                 break;
             case 'end':
                 marginTop = 100 - percentHeightList[1];
+                marginBottom = 0;
+                break;
+            case 'stretch':
+                marginTop = 0;
                 marginBottom = 0;
                 break;
         }
@@ -953,7 +961,11 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
                             margin: (wrapGroup.includes(description) && index == 1) ?
                                 (marginTop + '% ' + marginRight + '% ' + marginBottom + '% ' + marginLeft + '%') : 'unset',
                             // border: 'black solid 2px',
-                            position: (wrapGroup.includes(description) && index == 1) ? 'absolute' : 'relative',
+                            position: (wrapGroup.includes(description) && index == 1) ?
+                                'absolute' :
+                                (stackGroup.includes(description)
+                                    ? 'absolute'
+                                    : 'relative'),
                             display: 'flex',              // ADDED
                             alignItems: 'center',         // ADDED: vertical center
                             justifyContent: 'center',     // ADDED: horizontal center
@@ -972,11 +984,12 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
 var structureTypes = '⿰⿲⿱⿳⿸⿺⿹⿽⿵⿷⿶⿼⿴⿻';
 var verticalGroup = '⿱⿳';
 var horizontalGroup = '⿰⿲';
-var wrapGroup = '⿸⿺⿹⿽⿵⿷⿶⿼⿴⿻';
+var wrapGroup = '⿸⿺⿹⿽⿵⿷⿶⿼⿴';
 var tripleGroup = '⿳⿲';
-var wrapCentreGroup = '⿵⿷⿶⿼⿴⿻';
+var wrapCentreGroup = '⿵⿷⿶⿼⿴';
+var stackGroup = '⿻';
 
-async function aggregateStructureTreeWidthHeight(input: (string | number)[]): Promise<number[]> {
+async function aggregateStructureTreeWidthHeight(input: (string | number)[]): Promise<[number, number]> {
     // the base case
     if (input.length == 1 && !structureTypes.includes(input[0] as string)) {
         return calcStructureWidthHeight(input[0] as number);
@@ -984,14 +997,14 @@ async function aggregateStructureTreeWidthHeight(input: (string | number)[]): Pr
 
     // var inputCopy = [...input.slice(1)];
     var structureTypeDescription = input[0] as string;
-    var sizeList: number[][] = [];
+    var sizeList: [number, number][] = [];
 
     var splitSequences = splitStructureSequence(input);
 
     for (let i = 0; i < splitSequences.length; i++) {
         sizeList.push(await aggregateStructureTreeWidthHeight(splitSequences[i]));
     }
-    // console.log("aggregateStructureTreeWidthHeight: " + aggregateStructureWidthHeight(structureTypeDescription, sizeList));
+    console.log("aggregateStructureTreeWidthHeight: (" + structureTypeDescription + ")" + aggregateStructureWidthHeight(structureTypeDescription, sizeList));
     return aggregateStructureWidthHeight(structureTypeDescription, sizeList);
 }
 

@@ -516,6 +516,7 @@ export default function EntityDetailView() {
                                                 display: 'flex',
                                                 wrap: 'wrap',
                                                 alignItems: 'start',
+                                                marginBottom: '1em',
                                             }}
                                         >
                                             <h1
