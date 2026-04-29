@@ -10,7 +10,7 @@ import {
     DrawMeaningEvolution,
     DrawPronunciationEvolution,
     AnalyseStructure,
-    HnomQnguComponent,
+    HnomQngu,
 } from 'Frontend/utils/entityUtils';
 import {SearchBar} from "Frontend/views/SearchBar";
 
@@ -167,7 +167,7 @@ export default function EntityDetailView() {
                                                 position: 'relative',
                                             }}
                                         >
-                                            <HnomQnguComponent entityId={entity.id} markedId={0}/>
+                                            <HnomQngu entityId={entity.id} markedId={0}/>
                                         </div>
                                         {entity.structure?.character ? (
                                             <div>
@@ -212,7 +212,7 @@ export default function EntityDetailView() {
                                         {entity.compositionComponents?.map((component, index) => (
                                             <div key={index}>
                                                 {component ? (
-                                                    <HnomQnguComponent entityId={component.id} markedId={0}/>
+                                                    <HnomQngu entityId={component.id} markedId={0}/>
                                                 ) : (
                                                     <div style={{color: 'grey'}}>không có</div>
                                                 )}
@@ -314,7 +314,7 @@ export default function EntityDetailView() {
                                                         fontSize: '30px',
                                                     }}
                                                 >
-                                                    <HnomQnguComponent entityId={synonym.id} markedId={0}/>
+                                                    <HnomQngu entityId={synonym.id} markedId={0}/>
                                                 </div>
                                             ) : null
                                         )}
@@ -340,7 +340,7 @@ export default function EntityDetailView() {
                             </h2>
                             <div style={{paddingLeft: '16px'}}>
                                 <div>
-                                    <p>{entity.hnomString} {entity.qnguString}</p>
+                                    <HnomQngu entityId={entity.id} markedId={0}/>
                                     <p>{entity.explanationsString}</p>
                                 </div>
                                 <DrawEvolution evolutions={entity.evolutions?.filter((evolution): evolution is EntityEvolutionDto => evolution !== undefined)} />
@@ -372,7 +372,7 @@ export default function EntityDetailView() {
                                                 fontSize: '30px',
                                             }}
                                         >
-                                            <HnomQnguComponent entityId={variance.id} markedId={0}/>
+                                            <HnomQngu entityId={variance.id} markedId={0}/>
                                         </div>
                                     ) : null
                                 )}
@@ -403,7 +403,7 @@ export default function EntityDetailView() {
                                             fontSize: '30px',
                                         }}
                                     >
-                                        <HnomQnguComponent entityId={fetchedEntity?.id} markedId={0}/>
+                                        <HnomQngu entityId={fetchedEntity?.id} markedId={0}/>
                                     </div>
                                 ))}
                             </div>
@@ -433,7 +433,7 @@ export default function EntityDetailView() {
                                             fontSize: '30px',
                                         }}
                                     >
-                                        <HnomQnguComponent entityId={fetchedEntity?.id} markedId={0}/>
+                                        <HnomQngu entityId={fetchedEntity?.id} markedId={0}/>
                                     </div>
                                 ))}
                             </div>
@@ -484,7 +484,7 @@ export default function EntityDetailView() {
                                                 }}
                                             >
                                                 {fetchedEntity?.map(entity => (
-                                                    <HnomQnguComponent entityId={entity?.id} markedId={0}/>
+                                                    <HnomQngu entityId={entity?.id} markedId={0}/>
                                                 ))}
                                             </div>
                                         </div>
@@ -539,7 +539,7 @@ export default function EntityDetailView() {
                                                 }}
                                             >
                                                 {fetchedEntity?.map(entity => (
-                                                    <HnomQnguComponent entityId={entity?.id} markedId={0}/>
+                                                    <HnomQngu entityId={entity?.id} markedId={0}/>
                                                 ))}
                                             </div>
                                         </div>
@@ -580,7 +580,7 @@ export default function EntityDetailView() {
                                                     example.exampleWords.map((word, index) => {
                                                             if (word?.entity) {
                                                                 return (
-                                                                    <HnomQnguComponent entityId={word.entity.id} markedId={entity.id ?? 0} key={index}/>
+                                                                    <HnomQngu entityId={word.entity.id} markedId={entity.id ?? 0} key={index}/>
                                                                 );
                                                             }
                                                             return undefined;

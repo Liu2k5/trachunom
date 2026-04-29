@@ -3,7 +3,7 @@ import {useEffect, useState} from 'react';
 import { useSearchParams } from 'react-router';
 import { findByQuery } from 'Frontend/generated/SearchEndpoint';
 import EntityX from "Frontend/generated/com/liu/trachunom/entity/entity/EntityX";
-import {HnomQnguComponent} from "Frontend/utils/entityUtils";
+import {HnomQngu} from "Frontend/utils/entityUtils";
 import {SearchBar} from "Frontend/views/SearchBar";
 
 export const config: ViewConfig = {
@@ -111,7 +111,7 @@ const ResultContent = ({ result, index }: { result: EntityX, index: number }) =>
                                 {result.language?.abbreviation ?? 'N/A'}
                             </span>
                             <span>
-                                <HnomQnguComponent entityId={result.id} markedId={0}/>
+                                <HnomQngu entityId={result.id} markedId={0}/>
                             </span>
                         </span>
             </div>

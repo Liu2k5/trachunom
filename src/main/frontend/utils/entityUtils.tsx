@@ -25,7 +25,7 @@ import Structure from "Frontend/generated/com/liu/trachunom/entity/structure/Str
 import StructureComponent from "Frontend/generated/com/liu/trachunom/entity/structure/StructureComponent";
 
 export {
-    HnomQngu as HnomQnguComponent,
+    HnomQngu as HnomQngu,
     HnomStringByExampleId as HnomStringByExampleIdComponent,
     DrawEvolution as DrawEvolution,
     AnalyseStructure as AnalyseStructure,
@@ -208,12 +208,8 @@ function EvolutionRow({evolution}: { evolution: EntityEvolutionDto | null | unde
                         color: 'black',
                     }}
                 >
-                    <div
-                        style={{
-                            fontFamily: 'serif',
-                        }}
-                    >
-                        {(evolution?.fromEntity?.hnomString ?? '') + ' ' + (evolution?.fromEntity?.qnguString ?? '')}
+                    <div>
+                        <HnomQngu entityId={evolution?.fromEntityId} markedId={0}/>
                     </div>
                     <p>{evolution?.fromEntity?.explanationsString}</p>
                 </a>
@@ -787,8 +783,8 @@ function DrawStructure({ structureId, fontSize }: { structureId: number | undefi
     return (
         <div
             style={{
-                width: '100%',
-                height: '100%',
+                width: '1em',
+                height: '1em',
                 display: 'flex',
             }}
         >
@@ -861,22 +857,22 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
 
     // always is from the first component in wrapping structures
     // if the first component of the wrapping structure is already defined in the database
-    let innerPercentSize = [(firstStructure?.innerWidth ?? 1) / (firstStructure?.width ?? 1) * 100,
-        (firstStructure?.innerHeight ?? 1) / (firstStructure?.height ?? 1) * 100];
+    let innerPercentSize = [(firstStructure?.innerWidth ?? 1) / (firstStructure?.width ?? 1),
+        (firstStructure?.innerHeight ?? 1) / (firstStructure?.height ?? 1)];
 
     // rescale width/height to 100% for the opposite structure type (vertical versus horizontal)
-    let percentWidthList = sizeList.map(o => ('⿱⿳'.includes(description)) ? 100 : (o[0] / totalSize[0] * 100));
-    let percentHeightList = sizeList.map(o => ('⿰⿲'.includes(description)) ? 100 : (o[1] / totalSize[1] * 100));
+    let percentWidthList = sizeList.map(o => ('⿱⿳'.includes(description)) ? 1 : (o[0] / totalSize[0]));
+    let percentHeightList = sizeList.map(o => ('⿰⿲'.includes(description)) ? 1 : (o[1] / totalSize[1]));
 
     // rescale to 100% for both width and height when the structure type is wrapping the other
     if (wrapGroup.includes(description)) {
-        percentWidthList[0] = 100;
-        percentHeightList[0] = 100;
+        percentWidthList[0] = 1;
+        percentHeightList[0] = 1;
         percentWidthList[1] = innerPercentSize[0];
         percentHeightList[1] = innerPercentSize[1];
     } else if (stackGroup.includes(description)) {
-        percentWidthList = [100, 100];
-        percentHeightList = [100, 100];
+        percentWidthList = [1, 1];
+        percentHeightList = [1, 1];
     }
 
     // console.log(description);
@@ -894,14 +890,14 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
         switch (justification) {
             case 'start':
                 marginLeft = 0;
-                marginRight = 100 - percentWidthList[1];
+                marginRight = 1 - percentWidthList[1];
                 break;
             case 'center':
-                marginLeft = (100 - percentWidthList[1]) / 2;
-                marginRight = (100 - percentWidthList[1]) / 2;
+                marginLeft = (1 - percentWidthList[1]) / 2;
+                marginRight = (1 - percentWidthList[1]) / 2;
                 break;
             case 'end':
-                marginLeft = 100 - percentWidthList[1];
+                marginLeft = 1 - percentWidthList[1];
                 marginRight = 0;
                 break;
             case 'stretch':
@@ -912,14 +908,14 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
         switch (alignment) {
             case 'start':
                 marginTop = 0;
-                marginBottom = 100 - percentHeightList[1];
+                marginBottom = 1 - percentHeightList[1];
                 break;
             case 'center':
-                marginTop = (100 - percentHeightList[1]) / 2;
-                marginBottom = (100 - percentHeightList[1]) / 2;
+                marginTop = (1 - percentHeightList[1]) / 2;
+                marginBottom = (1 - percentHeightList[1]) / 2;
                 break;
             case 'end':
-                marginTop = 100 - percentHeightList[1];
+                marginTop = 1 - percentHeightList[1];
                 marginBottom = 0;
                 break;
             case 'stretch':
@@ -933,8 +929,8 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
     return (
         <div
             style={{
-                width: '100%',
-                height: '100%',
+                width: '1em',
+                height: '1em',
                 display: 'flex',
                 flexDirection: flexDirection,
                 position: 'relative',
@@ -943,8 +939,8 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
             {splitSequences.map((o, index) => {
                 var temp;
                 var newFontSize: [number, number] = (wrapGroup.includes(description) && index == 1)
-                    ? [fontSize[0] / 100 * innerPercentSize[0], fontSize[1] / 100 * innerPercentSize[1]]
-                    : [fontSize[0] / 100 * percentWidthList[index], fontSize[1] / 100 * percentHeightList[index]];
+                    ? [fontSize[0] * innerPercentSize[0], fontSize[1] * innerPercentSize[1]]
+                    : [fontSize[0] * percentWidthList[index], fontSize[1] * percentHeightList[index]];
 
                 if (o.length == 1 && !structureTypes.includes(o[0] as string)) {
                     temp = <DrawStructure structureId={o[0] as number} fontSize={newFontSize} key={o[0] as number} />;
@@ -956,10 +952,10 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
                 return (
                     <div
                         style={{
-                            width: (wrapGroup.includes(description) && index == 1) ? (innerPercentSize[0] + '%') : (percentWidthList[index] + '%'),
-                            height: (wrapGroup.includes(description) && index == 1) ? (innerPercentSize[1] + '%') : (percentHeightList[index] + '%'),
+                            width: (wrapGroup.includes(description) && index == 1) ? (innerPercentSize[0] + 'em') : (percentWidthList[index] + 'em'),
+                            height: (wrapGroup.includes(description) && index == 1) ? (innerPercentSize[1] + 'em') : (percentHeightList[index] + 'em'),
                             margin: (wrapGroup.includes(description) && index == 1) ?
-                                (marginTop + '% ' + marginRight + '% ' + marginBottom + '% ' + marginLeft + '%') : 'unset',
+                                (marginTop + 'em ' + marginRight + 'em ' + marginBottom + 'em ' + marginLeft + 'em') : 'unset',
                             // border: 'black solid 2px',
                             position: (wrapGroup.includes(description) && index == 1) ?
                                 'absolute' :
