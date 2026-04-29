@@ -1,5 +1,5 @@
 import { ViewConfig } from "@vaadin/hilla-file-router/types.js";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export const config: ViewConfig = {
     route: 'login',
@@ -9,6 +9,29 @@ export const config: ViewConfig = {
 
 export default function LoginView() {
     const [error, setError] = useState('');
+
+    // // Show message from query parameters (set by SecurityConfig.loginFailureHandler or failureUrl)
+    // useEffect(() => {
+    //     try {
+    //         const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    //         if (params) {
+    //             if (params.has('incorrect_email_or_password')) {
+    //                 setError('Tên đăng nhập hoặc mật khẩu không đúng');
+    //             } else if (params.has('account_disabled')) {
+    //                 setError('Tài khoản đã bị vô hiệu hóa');
+    //             } else if (params.has('unknown_error')) {
+    //                 setError('Đã xảy ra lỗi không xác định. Vui lòng thử lại');
+    //             } else if (params.has('error')) {
+    //                 // generic Spring Security failure URL uses ?error
+    //                 setError('Đăng nhập thất bại. Vui lòng kiểm tra thông tin và thử lại');
+    //             }
+    //             // optional: remove querystring so refresh won't re-show the message
+    //             // window.history.replaceState({}, '', window.location.pathname);
+    //         }
+    //     } catch (e) {
+    //         // ignore client-side parse errors
+    //     }
+    // }, []);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -26,18 +49,31 @@ export default function LoginView() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
                 },
                 body: body.toString(),
                 credentials: 'same-origin',
-                redirect: 'manual',
             });
 
-            // Spring Security trả về 302 khi đăng nhập thành công
-            // type === 'opaqueredirect' khi redirect: 'manual' và có redirect
-            if (response.type === 'opaqueredirect' || response.ok) {
+            if (response.status === 401) {
+                try {
+                    const data = await response.json();
+                    if (data && data.error === 'incorrect_email_or_password') {
+                        setError('Tên đăng nhập hoặc mật khẩu không đúng');
+                    } else if (data && data.error === 'account_disabled') {
+                        setError('Tài khoản đã bị vô hiệu hóa');
+                    } else {
+                        setError('Đăng nhập thất bại. Vui lòng thử lại');
+                    }
+                } catch (e) {
+                    setError('Đăng nhập thất bại. Vui lòng thử lại');
+                }
+            } else if (response.ok || response.redirected || response.type === 'opaqueredirect') {
+                // success
                 window.location.href = '/';
             } else {
-                setError('Tên đăng nhập hoặc mật khẩu không đúng');
+                setError('Đã xảy ra lỗi, vui lòng thử lại');
             }
         } catch (err) {
             setError('Có lỗi xảy ra, vui lòng thử lại');
