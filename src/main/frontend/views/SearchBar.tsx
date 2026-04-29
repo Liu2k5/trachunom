@@ -1,5 +1,6 @@
 import {useState} from "react";
 import {useNavigate, useSearchParams} from "react-router";
+import {correct} from "Frontend/utils/inputUtils";
 
 export {SearchBar as SearchBar};
 
@@ -10,7 +11,7 @@ const SearchBar = () => {
 
     const handleSearch = async () => {
         if (searchQuery.trim()) {
-            navigate(`/search?query=${encodeURIComponent(searchQuery.trim())}`);
+            navigate(`/search?query=${encodeURIComponent(correct(searchQuery).trim())}`);
         }
     };
 

@@ -595,7 +595,7 @@ async function calcStructureWidthHeight(structureId: number | undefined): Promis
 
     structure = await StructureService.findById(structureId);
 
-    console.log(structureId + " " + structure?.structureType?.description + " " + structure?.characterString);
+    // console.log(structureId + " " + structure?.structureType?.description + " " + structure?.characterString);
     // case of chu tuong hinh
     if (!structure?.structureType) return [structure?.width ?? 1, structure?.height ?? 1];
 
@@ -616,7 +616,7 @@ async function calcStructureWidthHeight(structureId: number | undefined): Promis
         .filter(o => o != undefined);
 
     if (structureComponentResults && structureTypeDescription) {
-        console.log("finding structure components for " + structure.characterString + "(" + structureComponentResults.length + "): " + structureComponentResults.map(o => o.characterString + " "));
+        // console.log("finding structure components for " + structure.characterString + "(" + structureComponentResults.length + "): " + structureComponentResults.map(o => o.characterString + " "));
         await (async () => {
             const promises = structureComponentResults.map((o, index) => {
                 if (!structureComponents?.at(index)?.structureClassification?.id) return calcStructureWidthHeight(undefined);
@@ -633,9 +633,9 @@ async function calcStructureWidthHeight(structureId: number | undefined): Promis
     }
     if (structure.width) output = [structure.width, output[1]];
     if (structure.height) output = [output[0], structure.height];
-    console.log(structure.characterString + " " +  structure.width + ", " + structure.height);
+    // console.log(structure.characterString + " " +  structure.width + ", " + structure.height);
 
-    console.log('here is the output of ' + structure.characterString + ': '+ output.at(0) + ", "  + output.at(1));
+    // console.log('here is the output of ' + structure.characterString + ': '+ output.at(0) + ", "  + output.at(1));
     return output;
 }
 
@@ -650,7 +650,7 @@ function aggregateStructureWidthHeight(structureTypeDescription: string, results
     var output: [number, number] = [0, 0];
 
     if ((verticalGroup + horizontalGroup + wrapCentreGroup + stackGroup).includes(structureTypeDescription)) {
-        console.log(output[0] + ", " + output[1] + "   dm " + structureTypeDescription);
+        // console.log(output[0] + ", " + output[1] + "   dm " + structureTypeDescription);
         // console.log(results[0]);
         // console.log(results[1]);
         results.map(o => {
@@ -662,7 +662,7 @@ function aggregateStructureWidthHeight(structureTypeDescription: string, results
                 output = [sum(output[0], o[0]), sum(output[1], o[1])];
             } else if (stackGroup.includes(structureTypeDescription)) {
                 output = [max(output[0], o[0]), max(output[1], o[1])];
-                console.log(output[0] + ", " + output[1] + "   dm");
+                // console.log(output[0] + ", " + output[1] + "   dm");
 
             }
         });
@@ -811,7 +811,7 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
         var tempSizeList: [number, number][] = [];
         (async () => {
             for (let i = 0; i < splitSequences.length; i++) {
-                console.log('split sequence: ' + splitSequences[i]);
+                // console.log('split sequence: ' + splitSequences[i]);
                 tempSizeList.push(await aggregateStructureTreeWidthHeight(splitSequences[i]));
             }
         })();
@@ -825,7 +825,7 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
         // that the first component is already defined in the database
         StructureService.findById(Number.parseInt(splitSequences[0] as unknown as string))
             .then(data => {
-                console.log('set the first structure: ' + data?.characterString);
+                // console.log('set the first structure: ' + data?.characterString);
                 setFirstStructure(data);
             });
         // calcStructureWidthHeight(firstStructure?.id).then(data => setFirstStructureSize(data));
@@ -882,8 +882,8 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
     // console.log(description);
     // console.log('total size: ' + totalSize);
     // console.log('size list: ' + sizeList.map(o => '[' + o[0] + ', ' + o[1] + "]"));
-    console.log('width list: ' + percentWidthList);
-    console.log('height list ' + percentHeightList);
+    // console.log('width list: ' + percentWidthList);
+    // console.log('height list ' + percentHeightList);
 
     let marginTop= 0;
     let marginLeft = 0;
@@ -1004,7 +1004,7 @@ async function aggregateStructureTreeWidthHeight(input: (string | number)[]): Pr
     for (let i = 0; i < splitSequences.length; i++) {
         sizeList.push(await aggregateStructureTreeWidthHeight(splitSequences[i]));
     }
-    console.log("aggregateStructureTreeWidthHeight: (" + structureTypeDescription + ")" + aggregateStructureWidthHeight(structureTypeDescription, sizeList));
+    // console.log("aggregateStructureTreeWidthHeight: (" + structureTypeDescription + ")" + aggregateStructureWidthHeight(structureTypeDescription, sizeList));
     return aggregateStructureWidthHeight(structureTypeDescription, sizeList);
 }
 
