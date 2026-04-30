@@ -570,7 +570,7 @@ export default function EntityDetailView() {
                                             style={{
                                                 display: 'flex',
                                                 flexWrap: 'wrap',
-                                                gap: '10px',
+                                                gap: '20px',
                                                 marginBottom: '0.5em',
                                                 fontFamily: 'sans-serif',
                                                 fontSize: '30px'

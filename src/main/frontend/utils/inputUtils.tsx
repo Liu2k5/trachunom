@@ -53,8 +53,19 @@ const finalConsonants = [
     'ch', 'ng', 'nh',
     'c', 'm', 'n', 'p', 't'
 ];
+const wVowels = [
+    'oa', 'oă', 'oe', 'uă', 'uâ', 'ue', 'uê', 'uơ', 'uy',
+    'uyê', 'oai', 'oao', 'uao', 'oeo', 'uyu', 'oay', 'uây'
+];
 
 function correct(input: string) {
+    // ignores strings containing cjk characters
+    for (let i = 0; i < input.length; i++) {
+        if ((input.codePointAt(i) ?? 0) >= 0x4e00) {
+            return input;
+        }
+    }
+
     var splitStrings = input
         .replace('/[^\\w\\s]|_/g', '')
         .replace('f', 'ph')
@@ -97,8 +108,9 @@ function correct(input: string) {
                     initialConsonant = 'ngh';
                 } else if (initialConsonant === 'ngh' && !['e', 'ê', 'i'].includes(vowel.charAt(0))) {
                     initialConsonant = 'ng';
-                } else if (['c', 'k'].includes(initialConsonant) &&
-                    !['oa', 'oă', 'oe', 'uă', 'uâ', 'ue', 'uê', 'uơ', 'uy', 'uyê'].includes(vowel.charAt(0))) {
+                }
+                if (['c', 'k'].includes(initialConsonant) &&
+                    wVowels.includes(vowel)) {
                     initialConsonant = 'qu';
                     vowel = vowel.slice(1);
                 }

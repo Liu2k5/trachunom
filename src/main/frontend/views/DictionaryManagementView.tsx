@@ -979,25 +979,23 @@ const StructureTabContent = () => {
             }}
         >
             <div>
-                {/*<form>*/}
-                    <ComboBox
-                        label="Thành phần"
-                        itemLabelPath="characterWithPronunciationsString"
-                        itemValuePath="id"
-                        items={structureDtos || []}
-                        renderer={item =>
-                            <span>{item.item.id + ' - ' + item.item.characterWithPronunciationsString}</span>}
-                        onValueChanged={(e) => {
-                            const raw = e.detail.value;
-                            const id = (raw == null || raw === '') ? undefined : Number(raw);
-                            if (id == null || isNaN(id)) {
-                                setSelectedStructure(null);
-                            } else {
-                                setSelectedStructure(structures?.find(s => s.id === id) ?? null);
-                            }
-                    }}
-                    />
-                {/*</form>*/}
+                <ComboBox
+                    label="Thành phần"
+                    itemLabelPath="characterWithPronunciationsString"
+                    itemValuePath="id"
+                    items={structureDtos || []}
+                    renderer={item =>
+                        <span>{item.item.id + ' - ' + item.item.characterWithPronunciationsString}</span>}
+                    onValueChanged={(e) => {
+                        const raw = e.detail.value;
+                        const id = (raw == null || raw === '') ? undefined : Number(raw);
+                        if (id == null || isNaN(id)) {
+                            setSelectedStructure(null);
+                        } else {
+                            setSelectedStructure(structures?.find(s => s.id === id) ?? null);
+                        }
+                }}
+                />
                 <AutoGrid
                     service={StructureService}
                     ref={structureGridRef}
@@ -2126,6 +2124,27 @@ const EntityTabContent = () => {
         >
             <div>
                 <h3>Thực thể</h3>
+                <ComboBox
+                    label="Tìm thực thể"
+                    items={entityDtos || []}
+                    itemValuePath='id'
+                    itemLabelPath='qnguString'
+                    renderer={(item) => (
+                        <span>{item.item.id + ' - ' + item.item.hnomString + ' ' + item.item.qnguString + ' ' + item.item.explanationsString}</span>
+                    )}
+                    onValueChanged={(e) => {
+                        const raw = e.detail.value;
+                        const id = (raw == null || raw === '') ? undefined : Number(raw);
+                        if (id == null || isNaN(id)) {
+                            setSelectedEntity(null);
+                        } else {
+                            // fetch full entity model and set as selected
+                            EntityService.findById(id)
+                                .then(ent => setSelectedEntity(ent))
+                                .catch(err => console.error('Error fetching entity by id:', err));
+                        }
+                    }}
+                />
                 <AutoGrid
                     service={EntityService}
                     ref={entityGridRef}

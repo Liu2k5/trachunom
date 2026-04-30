@@ -788,7 +788,7 @@ function DrawStructure({ structureId, fontSize }: { structureId: number | undefi
                 display: 'flex',
             }}
         >
-            <PaintStructureTree input={output} fontSize={fontSize}/>
+            <PaintStructureTree input={output} fontSize={fontSize} key={0}/>
         </div>
     );
 
