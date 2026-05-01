@@ -574,15 +574,17 @@ function DrawEntityYear({entityId}: {entityId: number | undefined}): JSX.Element
     );
 }
 
+var structureTypes = ['⿰', '⿲', '⿱', '⿳' , '⿸', '⿺', '⿹', '⿽', '⿵', '⿷', '⿶', '⿼', '⿴', '⿻'];
+var verticalGroup = ['⿱', '⿳'];
+var horizontalGroup = ['⿰', '⿲'];
+var wrapGroup = ['⿸', '⿺', '⿹', '⿽', '⿵', '⿷', '⿶', '⿼', '⿴'];
+var tripleGroup = ['⿳', '⿲'];
+var wrapCentreGroup = ['⿵', '⿷', '⿶', '⿼', '⿴'];
+let wrapCornerGroup = ['⿸', '⿺', '⿹', '⿽'];
+var stackGroup = ['⿻'];
+
 async function calcStructureWidthHeight(structureId: number | undefined): Promise<[number, number]> {
     if (!structureId) return [1, 1];
-
-    //⿰⿲⿱⿳⿸⿺⿹⿽⿵⿷⿶⿼⿴⿻
-    var verticalGroup = '⿱⿳';
-    var horizontalGroup = '⿰⿲';
-    var wrapGroup = '⿸⿺⿹⿽⿵⿷⿶⿼⿴⿻';
-    var tripleGroup = '⿳⿲';
-    var wrapCentreGroup = '⿵⿷⿶⿼⿴⿻';
 
     var structure: Structure | undefined;
     var structureComponents: StructureComponent[] | undefined = [];
@@ -636,17 +638,10 @@ async function calcStructureWidthHeight(structureId: number | undefined): Promis
 }
 
 function aggregateStructureWidthHeight(structureTypeDescription: string, results : [number, number][]) {
-    var verticalGroup = '⿱⿳';
-    var horizontalGroup = '⿰⿲';
-    var wrapGroup = '⿸⿺⿹⿽⿵⿷⿶⿼⿴⿻';
-    var tripleGroup = '⿳⿲';
-    var wrapCentreGroup = '⿵⿷⿶⿼⿴';
-    var stackGroup = '⿻';
-
     var output: [number, number] = [0, 0];
 
-    if ((verticalGroup + horizontalGroup + wrapCentreGroup + stackGroup).includes(structureTypeDescription)) {
-        // console.log(output[0] + ", " + output[1] + "   dm " + structureTypeDescription);
+    if (([] as string[]).concat(...verticalGroup, ...horizontalGroup, ...wrapCentreGroup, ...stackGroup).includes(structureTypeDescription)) {
+        // console.log(output[0] + ", " + output[1] + "  fr " + structureTypeDescription);
         // console.log(results[0]);
         // console.log(results[1]);
         results.map(o => {
@@ -852,8 +847,6 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
         case '⿴': flexDirection = ''; justification = 'center'; alignment = 'center'; break;
         case '⿻': flexDirection = ''; justification = 'stretch'; alignment = 'stretch'; break;
     }
-    let cornerGroup = '⿸⿺⿹⿽';
-    let centreGroup = '⿵⿷⿶⿼⿴';
 
     // always is from the first component in wrapping structures
     // if the first component of the wrapping structure is already defined in the database
@@ -976,14 +969,6 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
         </div>
     );
 }
-
-var structureTypes = '⿰⿲⿱⿳⿸⿺⿹⿽⿵⿷⿶⿼⿴⿻';
-var verticalGroup = '⿱⿳';
-var horizontalGroup = '⿰⿲';
-var wrapGroup = '⿸⿺⿹⿽⿵⿷⿶⿼⿴';
-var tripleGroup = '⿳⿲';
-var wrapCentreGroup = '⿵⿷⿶⿼⿴';
-var stackGroup = '⿻';
 
 async function aggregateStructureTreeWidthHeight(input: (string | number)[]): Promise<[number, number]> {
     // the base case
