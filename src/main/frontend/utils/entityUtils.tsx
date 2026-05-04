@@ -23,6 +23,7 @@ import Source from "Frontend/generated/com/liu/trachunom/entity/Source";
 import PronunciationEvolutionDto from "Frontend/generated/com/liu/trachunom/dto/PronunciationEvolutionDto";
 import Structure from "Frontend/generated/com/liu/trachunom/entity/structure/Structure";
 import StructureComponent from "Frontend/generated/com/liu/trachunom/entity/structure/StructureComponent";
+import {GlyphAdjustment} from "Frontend/utils/glyphAdjustment";
 
 export {
     HnomQngu as HnomQngu,
@@ -689,10 +690,10 @@ function sum(x: number | undefined, y: number | undefined) {
 }
 
 function DrawStructureInitialiser({ structureId }: { structureId: number | undefined }): JSX.Element {
-    return <DrawStructure structureId={structureId} fontSize={[1, 1]} key={structureId} />
+    return <DrawStructure structureId={structureId} fontSize={[1, 1]} parentStructureType={''} key={structureId} />
 }
 
-function DrawStructure({ structureId, fontSize }: { structureId: number | undefined, fontSize: [number, number] }): JSX.Element {
+function DrawStructure({ structureId, fontSize , parentStructureType}: { structureId: number | undefined, fontSize: [number, number], parentStructureType: string }): JSX.Element {
     const [structure, setStructure] = useState<Structure | undefined>(undefined);
     useEffect(() => {
         StructureService.findById(structureId).then(o => setStructure(o));
@@ -768,21 +769,23 @@ function DrawStructure({ structureId, fontSize }: { structureId: number | undefi
     else if (wrapGroup.includes(description ?? 'null') &&
         structureTypes.includes(firstStructureDescription ?? 'null') &&
         wrapGroup.includes(firstStructureDescription ?? 'null')) {
+
     }
 
     if (
         // !structureTypeId
         structure?.character
     ) {
-        return (
-            <div
-                style={{
-                    transform: 'scale(' + fontSize[0] + ', ' + fontSize[1] + ')',
-                }}
-            >
-                {structure?.characterString}
-            </div>
-        );
+        // return (
+        //     <div
+        //         style={{
+        //             transform: 'scale(' + fontSize[0] + ', ' + fontSize[1] + ')',
+        //         }}
+        //     >
+        //         {structure?.characterString}
+        //     </div>
+        // );
+        return <GlyphAdjustment structureId={structureId ?? 0} structureType={parentStructureType ?? ''} blankColour={'white'} fontSize={fontSize}/>;
     }
 
     return (
@@ -800,7 +803,7 @@ function DrawStructure({ structureId, fontSize }: { structureId: number | undefi
 }
 
 function PaintStructureTree({input, fontSize}: {input: (string | number)[], fontSize: [number, number]}): JSX.Element {
-    var description = input[0] as string;
+    var structureType = input[0] as string;
     const inputKey = JSON.stringify(input);
     const splitSequences =
     useMemo(() => splitStructureSequence(input), [inputKey]);
@@ -840,7 +843,7 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
     let justification = '';
     let alignment = '';
 
-    switch (description) {
+    switch (structureType) {
         case '⿰': flexDirection = 'row'; break;
         case '⿱': flexDirection = 'column'; break;
         //⿰⿲⿱⿳⿸⿺⿹⿽⿵⿷⿶⿼⿴⿻
@@ -864,16 +867,16 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
         (firstStructure?.innerHeight ?? 1) / (firstStructure?.height ?? 1)];
 
     // rescale width/height to 100% for the opposite structure type (vertical versus horizontal)
-    let percentWidthList = sizeList.map(o => ('⿱⿳'.includes(description)) ? 1 : (o[0] / totalSize[0]));
-    let percentHeightList = sizeList.map(o => ('⿰⿲'.includes(description)) ? 1 : (o[1] / totalSize[1]));
+    let percentWidthList = sizeList.map(o => ('⿱⿳'.includes(structureType)) ? 1 : (o[0] / totalSize[0]));
+    let percentHeightList = sizeList.map(o => ('⿰⿲'.includes(structureType)) ? 1 : (o[1] / totalSize[1]));
 
     // rescale to 100% for both width and height when the structure type is wrapping the other
-    if (wrapGroup.includes(description)) {
+    if (wrapGroup.includes(structureType)) {
         percentWidthList[0] = 1;
         percentHeightList[0] = 1;
         percentWidthList[1] = innerPercentSize[0];
         percentHeightList[1] = innerPercentSize[1];
-    } else if (stackGroup.includes(description)) {
+    } else if (stackGroup.includes(structureType)) {
         percentWidthList = [1, 1];
         percentHeightList = [1, 1];
     }
@@ -889,7 +892,7 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
     let marginRight = 0;
     let marginBottom = 0;
 
-    if (wrapGroup.includes(description)) {
+    if (wrapGroup.includes(structureType)) {
         switch (justification) {
             case 'start':
                 marginLeft = 0;
@@ -941,13 +944,14 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
         >
             {splitSequences.map((o, index) => {
                 var temp;
-                var newFontSize: [number, number] = (wrapGroup.includes(description) && index == 1)
+                var newFontSize: [number, number] = (wrapGroup.includes(structureType) && index == 1)
                     ? [fontSize[0] * innerPercentSize[0], fontSize[1] * innerPercentSize[1]]
                     : [fontSize[0] * percentWidthList[index], fontSize[1] * percentHeightList[index]];
 
                 if (o.length == 1 && !structureTypes.includes(o[0] as string)) {
-                    temp = <DrawStructure structureId={o[0] as number} fontSize={newFontSize}/>;
-                    // temp = (<div>o[0]</div>)
+                    // temp = <GlyphAdjustment structureId={o[0] as number} structureType={structureType} blankColour={'white'} fontSize={fontSize}/>;
+                    // if (temp == <div></div>)
+                        temp = <DrawStructure structureId={o[0] as number} fontSize={newFontSize} parentStructureType={structureType} />; // receive glyph adjustment here
                 } else {
                     temp = <PaintStructureTree input={o} fontSize={newFontSize} />;
                 }
@@ -956,14 +960,14 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
                     <div
                         key={o[0] as number}
                         style={{
-                            width: (wrapGroup.includes(description) && index == 1) ? (innerPercentSize[0] + 'em') : (percentWidthList[index] + 'em'),
-                            height: (wrapGroup.includes(description) && index == 1) ? (innerPercentSize[1] + 'em') : (percentHeightList[index] + 'em'),
-                            margin: (wrapGroup.includes(description) && index == 1) ?
+                            width: (wrapGroup.includes(structureType) && index == 1) ? (innerPercentSize[0] + 'em') : (percentWidthList[index] + 'em'),
+                            height: (wrapGroup.includes(structureType) && index == 1) ? (innerPercentSize[1] + 'em') : (percentHeightList[index] + 'em'),
+                            margin: (wrapGroup.includes(structureType) && index == 1) ?
                                 (marginTop + 'em ' + marginRight + 'em ' + marginBottom + 'em ' + marginLeft + 'em') : 'unset',
                             // border: 'black solid 2px',
-                            position: (wrapGroup.includes(description) && index == 1) ?
+                            position: (wrapGroup.includes(structureType) && index == 1) ?
                                 'absolute' :
-                                (stackGroup.includes(description)
+                                (stackGroup.includes(structureType)
                                     ? 'absolute'
                                     : 'relative'),
                             display: 'flex',              // ADDED
