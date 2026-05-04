@@ -47,6 +47,12 @@ import StructureComponent from "Frontend/generated/com/liu/trachunom/entity/stru
 import StructureComponentDto from "Frontend/generated/com/liu/trachunom/dto/StructureComponentDto";
 import StructureComponentModel from "Frontend/generated/com/liu/trachunom/entity/structure/StructureComponentModel";
 import StructureComponentDtoModel from "Frontend/generated/com/liu/trachunom/dto/StructureComponentDtoModel";
+import StructureDescription from "Frontend/generated/com/liu/trachunom/entity/structure/StructureDescription";
+import StructureDescriptionDto from "Frontend/generated/com/liu/trachunom/dto/StructureDescriptionDto";
+import StructureDescriptionModel from "Frontend/generated/com/liu/trachunom/entity/structure/StructureDescriptionModel";
+import StructureDescriptionDtoModel from "Frontend/generated/com/liu/trachunom/dto/StructureDescriptionDtoModel";
+import * as StructureDescriptionEndpoint from 'Frontend/generated/StructureDescriptionEndpoint';
+import * as StructureDescriptionService from 'Frontend/generated/StructureDescriptionService';
 import StructureModel from "Frontend/generated/com/liu/trachunom/entity/structure/StructureModel";
 import StructureDtoModel from "Frontend/generated/com/liu/trachunom/dto/StructureDtoModel";
 import StructureClassification from "Frontend/generated/com/liu/trachunom/entity/structure/StructureClassification";
@@ -802,7 +808,10 @@ const StructureTabContent = () => {
     const [selectedStructureDto, setSelectedStructureDto] = useState<StructureDto | undefined | null>(null);
     const [selectedStructureComponent, setSelectedStructureComponent] = useState<StructureComponent | undefined | null>(null);
     const [selectedStructureComponentDto, setSelectedStructureComponentDto] = useState<StructureComponentDto | undefined | null>(null);
+    const [selectedStructureDescription, setSelectedStructureDescription] = useState<StructureDescription | undefined | null>(null);
+    const [selectedStructureDescriptionDto, setSelectedStructureDescriptionDto] = useState<StructureDescriptionDto | undefined | null>(null);
     const [refreshComponentsTrigger, setRefreshComponentsTrigger] = useState(false);
+    const [refreshDescriptionsTrigger, setRefreshDescriptionsTrigger] = useState(false);
     const [refreshTrigger, setRefreshTrigger] = useState(false);
     // const [refreshStructureComponentsTrigger, setRefreshStructureComponentTrigger] = useState(false);
 
@@ -814,6 +823,7 @@ const StructureTabContent = () => {
     // lam moi form cua entity component khi chuyen sang structure khac, tranh viec form con du lieu cu khi chuyen sang structure moi
     useEffect(() => {
         setSelectedStructureComponent(null);
+        setSelectedStructureDescription(null);
     }, [selectedStructure]);
 
     useEffect(() => {
@@ -836,6 +846,18 @@ const StructureTabContent = () => {
             setSelectedStructureComponentDto(null);
         }
     }, [selectedStructureComponent, selectedStructure]);
+
+    useEffect(() => {
+        if (selectedStructureDescription) {
+            EntityMapper.toStructureDescriptionDto(selectedStructureDescription)
+                .then(dto => setSelectedStructureDescriptionDto(dto))
+                .catch(error => console.error('Error mapping StructureDescription to DTO:', error));
+        } else {
+            EntityMapper.getNewStructureDescriptionDto()
+                .then(newDto => setSelectedStructureDescriptionDto(newDto))
+                .catch(error => console.error('Error creating new StructureDescriptionDto:', error));
+        }
+    }, [selectedStructureDescription]);
 
     const [structureClassifications, setStructureClassifications] = useState<StructureClassification[] | undefined | null>(null);
     useEffect(() => {
@@ -895,6 +917,20 @@ const StructureTabContent = () => {
             })
             .catch(error => console.error('Error fetching structure components:', error));
     }, [selectedStructure, refreshComponentsTrigger]);
+
+
+    const [structureDescriptions, setStructureDescriptions] = useState<StructureDescription[] | undefined | null>(null);
+    useEffect(() => {
+        StructureDescriptionService.findAll()
+            .then(list => {
+                const tempList : StructureDescription[] = [];
+                list?.forEach(desc => {
+                    if (desc) tempList.push(desc);
+                });
+                setStructureDescriptions(tempList);
+            })
+            .catch(error => console.error('Error fetching structure descriptions:', error));
+    }, [refreshDescriptionsTrigger]);
 
     const [structureTypes, setStructureTypes] = useState<StructureType[] | undefined>(undefined);
     useEffect(() => {
@@ -970,11 +1006,43 @@ const StructureTabContent = () => {
         );
     };
 
+    const deleteStructureDescriptionRenderer = ({item}: {item: StructureDescription }) => {
+        const handleDelete = async () => {
+            if (item.id) {
+                try {
+                    await StructureDescriptionEndpoint.delete(item.id);
+                    setRefreshDescriptionsTrigger(!refreshDescriptionsTrigger);
+                    if (selectedStructureDescription?.id === item.id) {
+                        setSelectedStructureDescription(null);
+                    }
+                } catch (error) {
+                    console.error('Error deleting StructureDescription:', error);
+                }
+            }
+        };
+
+        return (
+            <button
+                onClick={handleDelete}
+                style={{
+                    background: 'red',
+                    color: 'white',
+                    border: 'none',
+                    padding: '5px 10px',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                }}
+            >
+                Xóa
+            </button>
+        );
+    };
+
     return (
         <div
             style={{
                 display: 'grid',
-                gridTemplateColumns: '1fr 2fr',
+                gridTemplateColumns: '1fr 1fr 1fr',
                 gridGap: '20px',
             }}
         >
@@ -985,7 +1053,7 @@ const StructureTabContent = () => {
                     itemValuePath="id"
                     items={structureDtos || []}
                     renderer={item =>
-                        <span>{item.item.id + ' - ' + item.item.characterWithPronunciationsString}</span>}
+                        <span>{item.item.characterWithPronunciationsString}</span>}
                     onValueChanged={(e) => {
                         const raw = e.detail.value;
                         const id = (raw == null || raw === '') ? undefined : Number(raw);
@@ -1125,7 +1193,7 @@ const StructureTabContent = () => {
                                         itemValuePath="id"
                                         items={structureDtos || []}
                                         renderer={item =>
-                                            <span>{item.item.id + ' - ' + item.item.characterWithPronunciationsString}</span>}
+                                            <span>{item.item.characterWithPronunciationsString}</span>}
                                     />
                                 );
                             },
@@ -1149,7 +1217,82 @@ const StructureTabContent = () => {
                     hiddenFields={['id', 'structureCharacterString', 'structureComponentCharacterString',
                             'classificationDescription', 'structure', 'structureComponent', 'structureClassification']}
                 />
+            </div>
+            <div>
 
+                <h3>Thành phần mô tả</h3>
+
+                <AutoGrid
+                    service={StructureDescriptionService}
+                    model={StructureDescriptionModel}
+                    selectedItems={[selectedStructureDescription]}
+                    onActiveItemChanged={i => setSelectedStructureDescription(i.detail.value)}
+                    items={structureDescriptions || []}
+                    columnOptions={{
+                        id: {
+                            header: 'ID',
+                            path: 'id.descriptionStructureId',
+                        },
+                        structure: {
+                            header: 'Cấu tạo chính',
+                            path: 'structure.characterString'
+                        },
+                        descriptionStructure: {
+                            header: 'Mô tả',
+                            path: 'descriptionStructure.characterString',
+                        }
+                    }}
+                    customColumns={[
+                        <GridColumn header="Xóa" renderer={deleteStructureDescriptionRenderer} />,
+                    ]}
+                    hiddenColumns={['character', 'structureType', 'width', 'height', 'innerWidth', 'innerHeight']}
+                />
+
+                <AutoForm
+                    service={StructureDescriptionEndpoint}
+                    model={StructureDescriptionDtoModel}
+                    item={selectedStructureDescriptionDto}
+                    onSubmitSuccess={() => {
+                        setRefreshDescriptionsTrigger(!refreshDescriptionsTrigger);
+                        setSelectedStructureDescription(null);
+                    }}
+                    onSubmitError={error => window.alert('Lỗi khi lưu mô tả cấu tạo: ' + error.error.message)}
+                    fieldOptions={{
+                        id: {
+                            label: 'Cấu tạo chính',
+                            renderer: ({field}) => {
+                                return (
+                                    <ComboBox
+                                        {...field}
+                                        label="Cấu tạo chính"
+                                        itemLabelPath="characterWithPronunciationsString"
+                                        itemValuePath="id"
+                                        items={structureDtos || []}
+                                        renderer={item =>
+                                            <span>{item.item.characterWithPronunciationsString}</span>}
+                                    />
+                                );
+                            },
+                        },
+                        descriptionStructureId: {
+                            label: 'Cấu tạo mô tả',
+                            renderer: ({field}) => {
+                                return (
+                                    <ComboBox
+                                        {...field}
+                                        label="Cấu tạo mô tả"
+                                        itemLabelPath="characterWithPronunciationsString"
+                                        itemValuePath="id"
+                                        items={structureDtos || []}
+                                        renderer={item =>
+                                            <span>{item.item.characterWithPronunciationsString}</span>}
+                                    />
+                                );
+                            },
+                        }
+                    }}
+                    hiddenFields={['descriptionStructureCharacterString']}
+                />
             </div>
         </div>
     );
@@ -1454,7 +1597,7 @@ const PronunciationTabContent = () => {
                                         itemValuePath="id"
                                         items={pronunciationDtos || []}
                                         renderer={item =>
-                                            <div>{item.item.id + ' - ' + item.item.characterWithPronunciationsString}</div>}
+                                            <div>{item.item.characterWithPronunciationsString}</div>}
                                     />
                                 );
                             },

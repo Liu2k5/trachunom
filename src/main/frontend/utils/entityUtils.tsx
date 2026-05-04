@@ -7,7 +7,7 @@ import {
     PronunciationEvolutionService,
     PronunciationService,
     SourceService,
-    StructureService, StructureComponentService
+    StructureService, StructureComponentService, StructureDescriptionService
 } from "Frontend/generated/endpoints";
 import EntityEvolutionDto from "Frontend/generated/com/liu/trachunom/dto/EntityEvolutionDto";
 import {
@@ -201,8 +201,7 @@ function EvolutionRow({evolution}: { evolution: EntityEvolutionDto | null | unde
                     backgroundColor: '#f0f0f0',
                 }}
             >
-                <a
-                    href={'/entity/' + evolution?.fromEntityId}
+                <div
                     style={{
                         textDecoration: 'none',
                         color: 'black',
@@ -212,7 +211,7 @@ function EvolutionRow({evolution}: { evolution: EntityEvolutionDto | null | unde
                         <HnomQngu entityId={evolution?.fromEntityId} markedId={0}/>
                     </div>
                     <p>{evolution?.fromEntity?.explanationsString}</p>
-                </a>
+                </div>
             </div>
             <div
                 style={{
@@ -637,7 +636,9 @@ async function calcStructureWidthHeight(structureId: number | undefined): Promis
     return output;
 }
 
-function aggregateStructureWidthHeight(structureTypeDescription: string, results : [number, number][]) {
+function aggregateStructureWidthHeight(structureTypeDescription: string, results : [number, number][]): [number, number] {
+    if (results.length == 0) return [1, 1];
+
     var output: [number, number] = [0, 0];
 
     if (([] as string[]).concat(...verticalGroup, ...horizontalGroup, ...wrapCentreGroup, ...stackGroup).includes(structureTypeDescription)) {
@@ -658,8 +659,8 @@ function aggregateStructureWidthHeight(structureTypeDescription: string, results
             }
         });
     } else {
-        const stComp = [results[0][0], results[0][1]];
-        const ndComp = [results[1][0], results[1][1]];
+        const stComp = [results?.at(0)?.at(0) ?? 1, results.at(0)?.at(1) ?? 1];
+        const ndComp = [results.at(1)?.at(0) ?? 1, results.at(1)?.at(1) ?? 1];
         switch (structureTypeDescription) {
             // wrap components will be recursive until returning values, so ill solve the others (horizon, vertical)
             case '⿸':
@@ -696,6 +697,11 @@ function DrawStructure({ structureId, fontSize }: { structureId: number | undefi
     useEffect(() => {
         StructureService.findById(structureId).then(o => setStructure(o));
     }, []);
+    const [descriptionStructure, setDescriptionStructure] = useState<Structure | undefined>(undefined);
+    useEffect(() => {
+        StructureDescriptionService.findByStructureId(structure?.id)
+            .then(o => setDescriptionStructure(o?.descriptionStructure));
+    }, [structure]);
 
     const structureType = structure?.structureType;
     const [structureComponents, setStructureComponents] = useState<StructureComponent[] | undefined>(undefined);
@@ -703,14 +709,18 @@ function DrawStructure({ structureId, fontSize }: { structureId: number | undefi
 
     // load components when structureId changes
     useEffect(() => {
-        if (!structureId) { setStructureComponents(undefined); return; }
-        StructureComponentService.findByStructureId(structureId)
+        let fetchedId = descriptionStructure?.id ?? structureId;
+
+        // console.log("fetchedId: " + descriptionStructure?.id + " " + structureId);
+
+        if (!fetchedId) { setStructureComponents(undefined); return; }
+        StructureComponentService.findByStructureId(fetchedId)
             .then(data => data?.filter(o => o != undefined))
             .then(data =>
                 data?.sort((o1, o2) => (o1.position ?? 0) - (o2.position ?? 0)))
             .then(filtered => setStructureComponents(filtered ?? undefined))
             .catch(err => console.error(err));
-    }, [structureId]);
+    }, [descriptionStructure?.id, structureId]);
 
     // update structures when structureComponents changes
     useEffect(() => {
@@ -721,7 +731,7 @@ function DrawStructure({ structureId, fontSize }: { structureId: number | undefi
         setStructures(arr);
     }, [structureComponents]);
 
-    var description = structure?.structureType?.description;
+    var description = descriptionStructure?.structureType?.description ?? structure?.structureType?.description;
     var firstStructure = structures?.at(0);
     var firstStructureDescription = firstStructure?.structureType?.description;
     var output: (string | number)[];
@@ -747,7 +757,7 @@ function DrawStructure({ structureId, fontSize }: { structureId: number | undefi
     // case 1
     // if (wrapGroup.includes(description ?? 'null') &&
     //     !structureTypes.includes(firstStructureDescription ?? 'null')) {
-        output= [structureType?.description ?? '⿰', ...(structureIds ?? [])]; // ⿰ is default
+        output= [description ?? '⿰', ...(structureIds ?? [])]; // ⿰ is default
     // }
     // case 2
     if (wrapGroup.includes(description ?? 'null') &&
@@ -783,7 +793,7 @@ function DrawStructure({ structureId, fontSize }: { structureId: number | undefi
                 display: 'flex',
             }}
         >
-            <PaintStructureTree input={output} fontSize={fontSize} key={0}/>
+            <PaintStructureTree input={output} fontSize={fontSize} key={structureIds?.at(0) ?? 0}/>
         </div>
     );
 
@@ -936,14 +946,15 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
                     : [fontSize[0] * percentWidthList[index], fontSize[1] * percentHeightList[index]];
 
                 if (o.length == 1 && !structureTypes.includes(o[0] as string)) {
-                    temp = <DrawStructure structureId={o[0] as number} fontSize={newFontSize} key={o[0] as number} />;
+                    temp = <DrawStructure structureId={o[0] as number} fontSize={newFontSize}/>;
                     // temp = (<div>o[0]</div>)
                 } else {
-                    temp = <PaintStructureTree input={o} fontSize={newFontSize} key={o[0] as number} />;
+                    temp = <PaintStructureTree input={o} fontSize={newFontSize} />;
                 }
                 // console.log(marginTop + '% ' + marginLeft + '% ' + marginRight + '% ' + marginBottom + '%');
                 return (
                     <div
+                        key={o[0] as number}
                         style={{
                             width: (wrapGroup.includes(description) && index == 1) ? (innerPercentSize[0] + 'em') : (percentWidthList[index] + 'em'),
                             height: (wrapGroup.includes(description) && index == 1) ? (innerPercentSize[1] + 'em') : (percentHeightList[index] + 'em'),

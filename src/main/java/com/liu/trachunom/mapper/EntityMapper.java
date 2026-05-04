@@ -202,6 +202,28 @@ public class EntityMapper {
         return new StructureComponentDto();
     }
 
+    public StructureDescriptionDto toStructureDescriptionDto(StructureDescription structureDescription) {
+        if (structureDescription == null) {
+            return null;
+        }
+        return StructureDescriptionDto.builder()
+                .id(structureDescription.getStructure() != null ? structureDescription.getStructure().getId() : null)
+                .descriptionStructureId(structureDescription.getDescriptionStructure() != null ? structureDescription.getDescriptionStructure().getId() : null)
+                .descriptionStructureCharacterString(structureDescription.getDescriptionStructure() != null ?
+                        structureService.getCharacterStringById(structureDescription.getDescriptionStructure().getId()) : null)
+                .build();
+    }
+
+    public StructureDescriptionDto getNewStructureDescriptionDtoWithStructureId(Long structureId) {
+        return StructureDescriptionDto.builder()
+                .id(structureId)
+                .build();
+    }
+
+    public StructureDescriptionDto getNewStructureDescriptionDto() {
+        return new StructureDescriptionDto();
+    }
+
     public StructureDto toStructureDto(Structure structure) {
         if (structure == null) {
             return null;
@@ -229,7 +251,7 @@ public class EntityMapper {
                 .innerHeight(structure.getInnerHeight())
                 .structureTypeId(structure.getStructureType() == null ? null : structure.getStructureType().getId())
                 .characterString(characterString)
-                .characterWithPronunciationsString(characterString + " " + stringBuilder.toString().trim())
+                .characterWithPronunciationsString(structure.getId() + " " + characterString + " " + stringBuilder.toString().trim())
                 .build();
     }
 
@@ -518,6 +540,19 @@ public class EntityMapper {
                 .build();
     }
 
+    public StructureDescription toStructureDescription(StructureDescriptionDto structureDescriptionDto) {
+        if (structureDescriptionDto == null) {
+            return null;
+        }
+
+        return StructureDescription.builder()
+                .structure(structureDescriptionDto.getId() != null ?
+                        structureService.findById(structureDescriptionDto.getId()) : null)
+                .descriptionStructure(structureDescriptionDto.getDescriptionStructureId() != null ?
+                        structureService.findById(structureDescriptionDto.getDescriptionStructureId()) : null)
+                .build();
+    }
+
     public List<CharacterDto> toCharacterDtoList(List<CharacterX> characters) {
         if (characters == null) {
             return new ArrayList<>();
@@ -553,6 +588,16 @@ public class EntityMapper {
                 .map(this::toStructureComponentDto)
                 .collect(Collectors.toList());
     }
+
+    public List<StructureDescriptionDto> toStructureDescriptionDtoList(List<StructureDescription> structureDescriptions) {
+        if (structureDescriptions == null) {
+            return new ArrayList<>();
+        }
+        return structureDescriptions.stream()
+                .map(this::toStructureDescriptionDto)
+                .collect(Collectors.toList());
+    }
+
 
     public Pronunciation toPronunciation(PronunciationDto pronunciationDto) {
         if (pronunciationDto == null) {
