@@ -690,10 +690,10 @@ function sum(x: number | undefined, y: number | undefined) {
 }
 
 function DrawStructureInitialiser({ structureId }: { structureId: number | undefined }): JSX.Element {
-    return <DrawStructure structureId={structureId} fontSize={[1, 1]} parentStructureType={''} key={structureId} />
+    return <DrawStructure structureId={structureId} fontSize={[1, 1]} parentStructureType={''} index={-1} key={structureId}/>
 }
 
-function DrawStructure({ structureId, fontSize , parentStructureType}: { structureId: number | undefined, fontSize: [number, number], parentStructureType: string }): JSX.Element {
+function DrawStructure({ structureId, fontSize , parentStructureType, index}: { structureId: number | undefined, fontSize: [number, number], parentStructureType: string, index: number }): JSX.Element {
     const [structure, setStructure] = useState<Structure | undefined>(undefined);
     useEffect(() => {
         StructureService.findById(structureId).then(o => setStructure(o));
@@ -734,16 +734,25 @@ function DrawStructure({ structureId, fontSize , parentStructureType}: { structu
 
     var description = descriptionStructure?.structureType?.description ?? structure?.structureType?.description;
     var firstStructure = structures?.at(0);
-    var firstStructureDescription = firstStructure?.structureType?.description;
+    var firstStructureTypeDescription = firstStructure?.structureType?.description;
     var output: (string | number)[];
+    const [descriptionOfFirstStructure, setDescriptionOfFirstStructure] = useState<Structure | undefined>(undefined);
+    useEffect(() => {
+        StructureDescriptionService.findByStructureId(structures?.at(0)?.id)
+            .then(o => setDescriptionOfFirstStructure(o?.descriptionStructure));
+    }, [structures]);
+
     const [firstStructureComponents, setFirstStructureComponents] = useState<Structure[] | undefined>(undefined);
     useEffect(() => {
-        StructureComponentService.findByStructureId(firstStructure?.id)
+        // wait for these 2 value to prevent undefined result
+        if (!descriptionOfFirstStructure?.id && !firstStructure?.id) return;
+
+        StructureComponentService.findByStructureId(descriptionOfFirstStructure?.id ?? firstStructure?.id)
             .then(data => data?.filter(o => o != undefined))
             .then(data => data?.map(o => o.structureComponent))
             .then(data => data?.filter(o => o != undefined))
             .then(data => setFirstStructureComponents(data));
-    }, [firstStructure]);
+    }, [firstStructure, descriptionOfFirstStructure]);
     var structureIds = structures?.map(o => o.id).filter(o => o != undefined);
 
     // 3 truong hop
@@ -762,30 +771,31 @@ function DrawStructure({ structureId, fontSize , parentStructureType}: { structu
     // }
     // case 2
     if (wrapGroup.includes(description ?? 'null') &&
-        structureTypes.includes(firstStructureDescription ?? 'null') &&
-        !wrapGroup.includes(firstStructureDescription ?? 'null')) {
-
+        structureTypes.includes(firstStructureTypeDescription ?? 'null') &&
+        !wrapGroup.includes(firstStructureTypeDescription ?? 'null')) {
+        // 𥙩
+        if (description === '⿺' && firstStructureTypeDescription === '⿰') {
+            output= ['⿰', (firstStructureComponents?.at(0)?.id ?? 0),
+                    '⿺', (firstStructureComponents?.at(1)?.id ?? 0),
+                    (structureIds?.at(1)) ?? 0];
+        }
     }
     else if (wrapGroup.includes(description ?? 'null') &&
-        structureTypes.includes(firstStructureDescription ?? 'null') &&
-        wrapGroup.includes(firstStructureDescription ?? 'null')) {
-
+        structureTypes.includes(firstStructureTypeDescription ?? 'null') &&
+        wrapGroup.includes(firstStructureTypeDescription ?? 'null')) {
+        // 逐 ⿶什
+        if (description === '⿶' && firstStructureTypeDescription === '⿺') {
+            output= ['⿺', (firstStructureComponents?.at(0)?.id ?? 0),
+                '⿰', (structureIds?.at(1)) ?? 0,
+                (firstStructureComponents?.at(1)?.id ?? 0)];
+        }
     }
 
     if (
         // !structureTypeId
         structure?.character
     ) {
-        // return (
-        //     <div
-        //         style={{
-        //             transform: 'scale(' + fontSize[0] + ', ' + fontSize[1] + ')',
-        //         }}
-        //     >
-        //         {structure?.characterString}
-        //     </div>
-        // );
-        return <GlyphAdjustment structureId={structureId ?? 0} structureType={parentStructureType ?? ''} blankColour={'white'} fontSize={fontSize}/>;
+        return <GlyphAdjustment structureId={structureId ?? 0} structureType={parentStructureType ?? ''} blankColour={'white'} fontSize={fontSize} index={index} key={structureId}/>;
     }
 
     return (
@@ -863,8 +873,8 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
 
     // always is from the first component in wrapping structures
     // if the first component of the wrapping structure is already defined in the database
-    let innerPercentSize = [(firstStructure?.innerWidth ?? 1) / (firstStructure?.width ?? 1),
-        (firstStructure?.innerHeight ?? 1) / (firstStructure?.height ?? 1)];
+    let innerPercentSize = [(firstStructure?.innerWidth ?? 1) / (firstStructure?.width ?? 1) * fontSize[0],
+        (firstStructure?.innerHeight ?? 1) / (firstStructure?.height ?? 1) * fontSize[1]];
 
     // rescale width/height to 100% for the opposite structure type (vertical versus horizontal)
     let percentWidthList = sizeList.map(o => ('⿱⿳'.includes(structureType)) ? 1 : (o[0] / totalSize[0]));
@@ -896,14 +906,14 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
         switch (justification) {
             case 'start':
                 marginLeft = 0;
-                marginRight = 1 - percentWidthList[1];
+                marginRight = fontSize[0] - percentWidthList[1];
                 break;
             case 'center':
-                marginLeft = (1 - percentWidthList[1]) / 2;
-                marginRight = (1 - percentWidthList[1]) / 2;
+                marginLeft = (fontSize[0] - percentWidthList[1]) / 2;
+                marginRight = (fontSize[0] - percentWidthList[1]) / 2;
                 break;
             case 'end':
-                marginLeft = 1 - percentWidthList[1];
+                marginLeft = fontSize[0] - percentWidthList[1];
                 marginRight = 0;
                 break;
             case 'stretch':
@@ -914,14 +924,14 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
         switch (alignment) {
             case 'start':
                 marginTop = 0;
-                marginBottom = 1 - percentHeightList[1];
+                marginBottom = fontSize[1] - percentHeightList[1];
                 break;
             case 'center':
-                marginTop = (1 - percentHeightList[1]) / 2;
-                marginBottom = (1 - percentHeightList[1]) / 2;
+                marginTop = (fontSize[1] - percentHeightList[1]) / 2;
+                marginBottom = (fontSize[1] - percentHeightList[1]) / 2;
                 break;
             case 'end':
-                marginTop = 1 - percentHeightList[1];
+                marginTop = fontSize[1] - percentHeightList[1];
                 marginBottom = 0;
                 break;
             case 'stretch':
@@ -935,8 +945,8 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
     return (
         <div
             style={{
-                width: '1em',
-                height: '1em',
+                width: fontSize[0] + 'em',
+                height: fontSize[1] + 'em',
                 display: 'flex',
                 flexDirection: flexDirection,
                 position: 'relative',
@@ -951,7 +961,7 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
                 if (o.length == 1 && !structureTypes.includes(o[0] as string)) {
                     // temp = <GlyphAdjustment structureId={o[0] as number} structureType={structureType} blankColour={'white'} fontSize={fontSize}/>;
                     // if (temp == <div></div>)
-                        temp = <DrawStructure structureId={o[0] as number} fontSize={newFontSize} parentStructureType={structureType} />; // receive glyph adjustment here
+                        temp = <DrawStructure structureId={o[0] as number} fontSize={newFontSize} parentStructureType={structureType} index={index}/>; // receive glyph adjustment here
                 } else {
                     temp = <PaintStructureTree input={o} fontSize={newFontSize} />;
                 }
@@ -1009,45 +1019,51 @@ function splitStructureSequence(input: (string | number)[]): (string | number)[]
     var output: (string | number)[][] = [];
     var queue: (string | number)[] = [];
     var structureDescriptionQueue: string[] = [];
-    var counter = 0;
+    var tempSequence: (string | number)[] = [];
 
 
     // condition to continue the loop
     while (inputSequence.length > 0) {
-        // add some initial data into the queue
-        queue.push(inputSequence[0]);
-        counter++;
-        // if entity just added is a number
+        let fetchedValue = inputSequence[0];
+
+        queue.push(fetchedValue);
+        tempSequence.push(fetchedValue);
+        inputSequence = [...inputSequence.slice(1)];
         if (!structureTypes.includes(queue[queue.length - 1] as string)) {
-            // if there are no longer wrapping structures
+            // if there are no longer structures
             if (structureDescriptionQueue.length == 0) {
-                output.push([...inputSequence.slice(0, counter)]);
-                inputSequence = [...inputSequence.slice(counter)];
-                counter = 0;
-                queue.pop(); // clean the queue
-            } else {
-                // case of structure with 2 comps
-                if (!tripleGroup.includes(structureDescriptionQueue[structureDescriptionQueue.length - 1]) &&
-                    !structureTypes.includes(queue[queue.length - 2] as string) &&
-                    !structureTypes.includes(queue[queue.length - 1] as string)
-                ) {
-                    queue.pop(); queue.pop(); queue.pop();
-                    queue.push(0) // 0 is the placeholder
+                queue = [];
+                output.push(tempSequence);
+                tempSequence = [];
+            } else
+            while ((
+                queue.length >= 2 &&
+                !tripleGroup.includes(structureDescriptionQueue[structureDescriptionQueue.length - 1]) &&
+                !structureTypes.includes(queue[queue.length - 2] as string) &&
+                !structureTypes.includes(queue[queue.length - 1] as string)) ||
+            ((
+                queue.length >= 3 &&
+                tripleGroup.includes(structureDescriptionQueue[structureDescriptionQueue.length - 1]) &&
+                !structureTypes.includes(queue[queue.length - 3] as string) &&
+                !structureTypes.includes(queue[queue.length - 2] as string) &&
+                !structureTypes.includes(queue[queue.length - 1] as string))))
+            {
+                if (!tripleGroup.includes(structureDescriptionQueue[structureDescriptionQueue.length - 1])) {
+                    queue.pop(); queue.pop(); queue.pop(); queue.push(0); // 0 is the placeholder
                     structureDescriptionQueue.pop();
-                }
-                // case of structure with 3 comps
-                else if (tripleGroup.includes(structureDescriptionQueue[structureDescriptionQueue.length - 1]) &&
-                    !structureTypes.includes(queue[queue.length - 3] as string) &&
-                    !structureTypes.includes(queue[queue.length - 2] as string) &&
-                    !structureTypes.includes(queue[queue.length - 1] as string)
-                ) {
-                    queue.pop(); queue.pop(); queue.pop(); queue.pop();
-                    queue.push(0) // 0 is the placeholder
+                } else {
+                    queue.pop(); queue.pop(); queue.pop(); queue.pop(); queue.push(0); // 0 is the placeholder
                     structureDescriptionQueue.pop();
                 }
             }
+            // when the queue is a complete structure sequence
+            if (queue.length == 1) {
+                queue = [];
+                output.push(tempSequence);
+                tempSequence = [];
+            }
         } else {
-            structureDescriptionQueue.push(queue[queue.length - 1] as string)
+            structureDescriptionQueue.push(fetchedValue as string);
         }
     }
     return output;
