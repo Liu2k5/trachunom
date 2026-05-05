@@ -70,9 +70,11 @@ const HnomQngu = ({entityId, markedId}: {entityId: number | undefined, markedId:
                 margin: '0'
             }}
         >
-            <p style={{fontSize: '0.6em', margin: '0px', lineHeight: '1em', position: 'absolute', top: '-1em', transform: 'scale(0.5, 1)', width: '200%'}}>
-                {qnguString}
-            </p>
+            <div style={{ position: 'absolute', top: '-0.6em', left: 0, width: '100%', display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
+                <span style={{ fontSize: '0.6em', margin: '0px', lineHeight: '1em', transform: 'scale(0.5, 1)', transformOrigin: '50% 50%', whiteSpace: 'nowrap' }}>
+                    {qnguString}
+                </span>
+            </div>
             <div style={{fontSize: '1em', margin: '0px', lineHeight: '1em', height: 'fit-content'}}>
                 {entity?.compound ? (
                     <p
@@ -778,6 +780,10 @@ function DrawStructure({ structureId, fontSize , parentStructureType, index}: { 
             output= ['⿰', (firstStructureComponents?.at(0)?.id ?? 0),
                     '⿺', (firstStructureComponents?.at(1)?.id ?? 0),
                     (structureIds?.at(1)) ?? 0];
+        } else if (description === '⿺' && firstStructureTypeDescription === '⿰') {
+            output= ['⿰', (firstStructureComponents?.at(0)?.id ?? 0),
+                '⿺', (firstStructureComponents?.at(1)?.id ?? 0),
+                (structureIds?.at(1)) ?? 0];
         }
     }
     else if (wrapGroup.includes(description ?? 'null') &&
@@ -819,34 +825,36 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
     useMemo(() => splitStructureSequence(input), [inputKey]);
     const [sizeList, setSizeList]= useState<[number, number][]>(Array.of());
     const [totalSize, setTotalSize] = useState<[number, number]>([0, 0]);
-    const [firstStructure, setFirstStructure] = useState<Structure | undefined>(undefined);useEffect(() => {
-        // console.log('split sequences size: ' + splitSequences.length);
-        // console.log('split sequences size: ' + splitSequences.length);
+    const [firstStructure, setFirstStructure] = useState<Structure | undefined>(undefined);
+
+    useEffect(() => {
+        let isActive = true;
         var tempSizeList: [number, number][] = [];
         (async () => {
             for (let i = 0; i < splitSequences.length; i++) {
-                // console.log('split sequence: ' + splitSequences[i]);
                 tempSizeList.push(await aggregateStructureTreeWidthHeight(splitSequences[i]));
             }
+            if (isActive) setSizeList(tempSizeList);
         })();
-        setSizeList(tempSizeList);
+        return () => { isActive = false; };
     }, [splitSequences]);
+
     useEffect(() => {
-        aggregateStructureTreeWidthHeight(input).then(o => setTotalSize(o));
+        let isActive = true;
+        aggregateStructureTreeWidthHeight(input).then(o => {
+            if (isActive) setTotalSize(o);
+        });
+        return () => { isActive = false; };
     }, [input]);
+
     useEffect(() => {
-        // the first sequence is always an id so i must guarantee that it is the first case above only
-        // that the first component is already defined in the database
+        let isActive = true;
         StructureService.findById(Number.parseInt(splitSequences[0] as unknown as string))
             .then(data => {
-                // console.log('set the first structure: ' + data?.characterString);
-                setFirstStructure(data);
+                if (isActive) setFirstStructure(data);
             });
-        // calcStructureWidthHeight(firstStructure?.id).then(data => setFirstStructureSize(data));
+        return () => { isActive = false; };
     }, [splitSequences[0]]);
-
-    // var aggregatedSize = aggregateStructureWidthHeight(description, sizeList);
-
 
 
     let flexDirection = 'row';
@@ -875,6 +883,10 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
     // if the first component of the wrapping structure is already defined in the database
     let innerPercentSize = [(firstStructure?.innerWidth ?? 1) / (firstStructure?.width ?? 1) * fontSize[0],
         (firstStructure?.innerHeight ?? 1) / (firstStructure?.height ?? 1) * fontSize[1]];
+
+    if (sizeList.length !== splitSequences.length || totalSize[0] === 0 || totalSize[1] === 0) {
+        return <div style={{ width: fontSize[0] + 'em', height: fontSize[1] + 'em' }} />;
+    }
 
     // rescale width/height to 100% for the opposite structure type (vertical versus horizontal)
     let percentWidthList = sizeList.map(o => ('⿱⿳'.includes(structureType)) ? 1 : (o[0] / totalSize[0]));
@@ -906,14 +918,14 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
         switch (justification) {
             case 'start':
                 marginLeft = 0;
-                marginRight = fontSize[0] - percentWidthList[1];
+                marginRight = fontSize[0] - innerPercentSize[0];
                 break;
             case 'center':
-                marginLeft = (fontSize[0] - percentWidthList[1]) / 2;
-                marginRight = (fontSize[0] - percentWidthList[1]) / 2;
+                marginLeft = (fontSize[0] - innerPercentSize[0]) / 2;
+                marginRight = (fontSize[0] - innerPercentSize[0]) / 2;
                 break;
             case 'end':
-                marginLeft = fontSize[0] - percentWidthList[1];
+                marginLeft = fontSize[0] - innerPercentSize[0];
                 marginRight = 0;
                 break;
             case 'stretch':
@@ -924,14 +936,14 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
         switch (alignment) {
             case 'start':
                 marginTop = 0;
-                marginBottom = fontSize[1] - percentHeightList[1];
+                marginBottom = fontSize[1] - innerPercentSize[1];
                 break;
             case 'center':
-                marginTop = (fontSize[1] - percentHeightList[1]) / 2;
-                marginBottom = (fontSize[1] - percentHeightList[1]) / 2;
+                marginTop = (fontSize[1] - innerPercentSize[1]) / 2;
+                marginBottom = (fontSize[1] - innerPercentSize[1]) / 2;
                 break;
             case 'end':
-                marginTop = fontSize[1] - percentHeightList[1];
+                marginTop = fontSize[1] - innerPercentSize[1];
                 marginBottom = 0;
                 break;
             case 'stretch':
@@ -947,15 +959,15 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
             style={{
                 width: fontSize[0] + 'em',
                 height: fontSize[1] + 'em',
-                display: 'flex',
-                flexDirection: flexDirection,
                 position: 'relative',
+                padding: 0,
+                margin: 0,
             }}
         >
             {splitSequences.map((o, index) => {
                 var temp;
                 var newFontSize: [number, number] = (wrapGroup.includes(structureType) && index == 1)
-                    ? [fontSize[0] * innerPercentSize[0], fontSize[1] * innerPercentSize[1]]
+                    ? [innerPercentSize[0], innerPercentSize[1]]
                     : [fontSize[0] * percentWidthList[index], fontSize[1] * percentHeightList[index]];
 
                 if (o.length == 1 && !structureTypes.includes(o[0] as string)) {
@@ -965,26 +977,53 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
                 } else {
                     temp = <PaintStructureTree input={o} fontSize={newFontSize} />;
                 }
-                // console.log(marginTop + '% ' + marginLeft + '% ' + marginRight + '% ' + marginBottom + '%');
+                
+                let childTop = '0%';
+                let childLeft = '0%';
+                let childWidth = '100%';
+                let childHeight = '100%';
+
+                if (wrapGroup.includes(structureType)) {
+                    if (index === 0) {
+                        childWidth = '100%';
+                        childHeight = '100%';
+                    } else if (index === 1) {
+                        childTop = (marginTop / fontSize[1] * 100) + '%';
+                        childLeft = (marginLeft / fontSize[0] * 100) + '%';
+                        childWidth = (innerPercentSize[0] / fontSize[0] * 100) + '%';
+                        childHeight = (innerPercentSize[1] / fontSize[1] * 100) + '%';
+                    }
+                } else if (stackGroup.includes(structureType)) {
+                    childWidth = '100%';
+                    childHeight = '100%';
+                } else if (horizontalGroup.includes(structureType)) {
+                    childWidth = (percentWidthList[index] * 100) + '%';
+                    let prevWidths = 0;
+                    for (let i = 0; i < index; i++) prevWidths += percentWidthList[i];
+                    childLeft = (prevWidths * 100) + '%';
+                } else if (verticalGroup.includes(structureType)) {
+                    childHeight = (percentHeightList[index] * 100) + '%';
+                    let prevHeights = 0;
+                    for (let i = 0; i < index; i++) prevHeights += percentHeightList[i];
+                    childTop = (prevHeights * 100) + '%';
+                }
+
                 return (
                     <div
                         key={o[0] as number}
                         style={{
-                            width: (wrapGroup.includes(structureType) && index == 1) ? (innerPercentSize[0] + 'em') : (percentWidthList[index] + 'em'),
-                            height: (wrapGroup.includes(structureType) && index == 1) ? (innerPercentSize[1] + 'em') : (percentHeightList[index] + 'em'),
-                            margin: (wrapGroup.includes(structureType) && index == 1) ?
-                                (marginTop + 'em ' + marginRight + 'em ' + marginBottom + 'em ' + marginLeft + 'em') : 'unset',
-                            // border: 'black solid 2px',
-                            position: (wrapGroup.includes(structureType) && index == 1) ?
-                                'absolute' :
-                                (stackGroup.includes(structureType)
-                                    ? 'absolute'
-                                    : 'relative'),
-                            display: 'flex',              // ADDED
-                            alignItems: 'center',         // ADDED: vertical center
-                            justifyContent: 'center',     // ADDED: horizontal center
-                            boxSizing: 'border-box',      // ADDED
-                            overflow: 'hidden',
+                            position: 'absolute',
+                            top: childTop,
+                            left: childLeft,
+                            width: childWidth,
+                            height: childHeight,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxSizing: 'border-box',
+                            overflow: 'visible',
+                            padding: 0,
+                            margin: 0,
                         }}
                     >
                         {temp}

@@ -10,10 +10,7 @@ function GlyphAdjustment({structureId, structureType, blankColour, fontSize, ind
     }, []);
     let character = structure?.characterString ?? '';
 
-    let adjustment = [1, 1, 0, 0, 0, 0];
-    if (index == 0) {
-        adjustment = findAdjustment(character, structureType) ?? adjustment;
-    }
+    let adjustment = findAdjustment(character, structureType, index);
 
     // console.log('structureType ' + structureType + " " + adjustment);
 
@@ -29,7 +26,6 @@ function GlyphAdjustment({structureId, structureType, blankColour, fontSize, ind
         <div
             style={{
                 position: 'relative',
-                // transform: 'scale(' + fontSize[0] + ', ' + fontSize[1] + ')',
             }}
         >
             <div
@@ -56,20 +52,20 @@ function GlyphAdjustment({structureId, structureType, blankColour, fontSize, ind
     );
 }
 
-function findAdjustment(character: string, structureType: string) {
+function findAdjustment(character: string, structureType: string, index: number) {
     for (let i = 0; i < data.length; i++) {
-        if (data[i][0] === character && data[i][1] === structureType) {
-            return [data[i][2], data[i][3], data[i][4], data[i][5]];
+        if (data[i][0] === character && data[i][1] === structureType && data[i][2] === index) {
+            return [data[i][3], data[i][4], data[i][5], data[i][6]];
         }
     }
-    return undefined;
+    return [1, 1, 0, 0, 0, 0, 0];
 }
 
-// character, structureType, scaleX, scaleY, rightMove, bottomMove, blankSizeX, blankSizeY
-const data: [string, string, number, number, number, number, number, number][] = [
+// character, structureType, index, scaleX, scaleY, rightMove, bottomMove, blankSizeX, blankSizeY
+const data: [string, string, number, number, number, number, number, number, number][] = [
     // ⿰⿲⿱⿳⿸⿺⿹⿽⿵⿷⿶⿼⿴⿻
-    ['扌', '⿰',   2,   1,   0,   0,   0,   0],
-    ['礻', '⿰',   2,   1,   0,   0,   0,   0],
-    ['乚', '⿺', 1.3,   1,   0,   0,   0,   0],
-    ['辶', '⿺',   1,   1,   0,   0,   0,   0]
+    ['扌', '⿰',   0,   2,   1,   0,   0,   0,   0],
+    ['礻', '⿰',   0,   2,   1,   0,   0,   0,   0],
+    ['乚', '⿺',   0, 1.3,   1,   0,   0,   0,   0],
+    ['辶', '⿺',   0,   1,   1,   0,   0,   0,   0]
 ];
