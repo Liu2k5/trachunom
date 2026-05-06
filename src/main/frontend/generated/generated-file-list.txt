@@ -68,8 +68,8 @@ com/liu/trachunom/dto/SourceDto.ts
 com/liu/trachunom/entity/Source.ts
 com/liu/trachunom/entity/structure/StructureComponentId.ts
 com/liu/trachunom/dto/StructureComponentDto.ts
-com/liu/trachunom/entity/structure/StructureDescription.ts
 com/liu/trachunom/dto/StructureDescriptionDto.ts
+com/liu/trachunom/entity/structure/StructureDescription.ts
 com/liu/trachunom/dto/StructureDto.ts
 com/liu/trachunom/dto/StyleDto.ts
 com/liu/trachunom/entity/Style.ts
@@ -134,8 +134,8 @@ com/liu/trachunom/dto/SourceDtoModel.ts
 com/liu/trachunom/entity/SourceModel.ts
 com/liu/trachunom/entity/structure/StructureComponentIdModel.ts
 com/liu/trachunom/dto/StructureComponentDtoModel.ts
-com/liu/trachunom/entity/structure/StructureDescriptionModel.ts
 com/liu/trachunom/dto/StructureDescriptionDtoModel.ts
+com/liu/trachunom/entity/structure/StructureDescriptionModel.ts
 com/liu/trachunom/dto/StructureDtoModel.ts
 com/liu/trachunom/dto/StyleDtoModel.ts
 com/liu/trachunom/entity/StyleModel.ts

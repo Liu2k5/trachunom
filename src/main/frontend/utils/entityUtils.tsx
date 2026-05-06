@@ -593,7 +593,9 @@ async function calcStructureWidthHeight(structureId: number | undefined): Promis
     var structureComponentResults: Structure[] | undefined = [];
     var output: [number, number] = [0, 0];
 
-    structure = await StructureService.findById(structureId);
+
+    structure = await StructureDescriptionService.findByStructureId(structureId).then(o => o?.descriptionStructure) ??
+        await StructureService.findById(structureId);
 
     // console.log(structureId + " " + structure?.structureType?.description + " " + structure?.characterString);
     // case of chu tuong hinh
@@ -766,10 +768,12 @@ function DrawStructure({ structureId, fontSize , parentStructureType, index}: { 
     // => 3: xu li khac nhau:
     // 𱑐 => cau tao long + cau tao ngang (辵 long (豕 va 什))
 
+    let firstStructureIds = firstStructureComponents?.map(o => o.id ?? 0) ?? [];
+    let secondStructureId = structureIds?.at(1) ?? 0;
     // case 1
     // if (wrapGroup.includes(description ?? 'null') &&
     //     !structureTypes.includes(firstStructureDescription ?? 'null')) {
-        output= [description ?? '⿰', ...(structureIds ?? [])]; // ⿰ is default
+    output= [description ?? '⿰', ...(structureIds ?? [])]; // ⿰ is default
     // }
     // case 2
     if (wrapGroup.includes(description ?? 'null') &&
@@ -777,23 +781,23 @@ function DrawStructure({ structureId, fontSize , parentStructureType, index}: { 
         !wrapGroup.includes(firstStructureTypeDescription ?? 'null')) {
         // 𥙩
         if (description === '⿺' && firstStructureTypeDescription === '⿰') {
-            output= ['⿰', (firstStructureComponents?.at(0)?.id ?? 0),
-                    '⿺', (firstStructureComponents?.at(1)?.id ?? 0),
-                    (structureIds?.at(1)) ?? 0];
-        } else if (description === '⿺' && firstStructureTypeDescription === '⿰') {
-            output= ['⿰', (firstStructureComponents?.at(0)?.id ?? 0),
-                '⿺', (firstStructureComponents?.at(1)?.id ?? 0),
-                (structureIds?.at(1)) ?? 0];
+            output= ['⿰', firstStructureIds[0], '⿺', firstStructureIds[1], secondStructureId];
         }
+        // 羅
+        else if (description === '⿹' && firstStructureTypeDescription === '⿱') {
+            output= ['⿱', firstStructureIds[0], '⿰', secondStructureId, firstStructureIds[1]];
+        }
+        // // suppose ⿹羅車
+        // else if (description === '⿹' && firstStructureTypeDescription === '⿹') {
+        //     output= ['⿱', firstStructureIds[0], '⿱', firstStructureIds[1], secondStructureId] ;
+        // }
     }
     else if (wrapGroup.includes(description ?? 'null') &&
         structureTypes.includes(firstStructureTypeDescription ?? 'null') &&
         wrapGroup.includes(firstStructureTypeDescription ?? 'null')) {
         // 逐 ⿶什
         if (description === '⿶' && firstStructureTypeDescription === '⿺') {
-            output= ['⿺', (firstStructureComponents?.at(0)?.id ?? 0),
-                '⿰', (structureIds?.at(1)) ?? 0,
-                (firstStructureComponents?.at(1)?.id ?? 0)];
+            output= ['⿺', firstStructureIds[0], '⿰', secondStructureId, firstStructureIds[1]];
         }
     }
 
@@ -898,9 +902,17 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
         percentHeightList[0] = 1;
         percentWidthList[1] = innerPercentSize[0];
         percentHeightList[1] = innerPercentSize[1];
-    } else if (stackGroup.includes(structureType)) {
+    }
+    // not sure but just consider it is
+    else if (stackGroup.includes(structureType)) {
         percentWidthList = [1, 1];
         percentHeightList = [1, 1];
+    }
+    // example: 咾 and 𦒵
+    else if (horizontalGroup.includes(structureType) &&
+            !tripleGroup.includes(structureType) &&
+        percentWidthList[0] > percentWidthList[1]) {
+        percentWidthList = [0.5, 0.5];
     }
 
     // console.log(description);

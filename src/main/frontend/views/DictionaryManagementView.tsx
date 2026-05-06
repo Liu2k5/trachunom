@@ -1245,7 +1245,6 @@ const StructureTabContent = () => {
                     customColumns={[
                         <GridColumn header="Xóa" renderer={deleteStructureDescriptionRenderer} />,
                     ]}
-                    hiddenColumns={['character', 'structureType', 'width', 'height', 'innerWidth', 'innerHeight']}
                 />
 
                 <AutoForm
@@ -1815,9 +1814,7 @@ const MeaningTabContent = () => {
                             renderer={deleteExplanationRenderer}
                         />
                     ]}
-                >
-
-                </AutoGrid>
+                />
                 <AutoForm
                     service={ExplanationEndpoint}
                     model={ExplanationDtoModel}
@@ -1856,8 +1853,7 @@ const MeaningTabContent = () => {
                         />
                     ]}
                     hiddenColumns={['origin']}
-                >
-                </AutoGrid>
+                />
                 <AutoForm
                     service={MeaningEndpoint}
                     model={MeaningDtoModel}
@@ -1914,8 +1910,7 @@ const MeaningTabContent = () => {
                                     renderer={deleteMeaningExplanationRenderer}
                                 />
                             ]}
-                        >
-                        </AutoGrid>
+                        />
                         <AutoForm
                             service={{
                                 ...MeaningExplanationEndpoint,
