@@ -2,7 +2,10 @@ import {useEffect, useState} from "react";
 import Structure from "Frontend/generated/com/liu/trachunom/entity/structure/Structure";
 import {StructureService} from "Frontend/generated/endpoints";
 
-export {GlyphAdjustment as GlyphAdjustment};
+export {
+    GlyphAdjustment as GlyphAdjustment,
+    findAdjustment as findAdjustment,
+};
 function GlyphAdjustment({structureId, structureType, blankColour, fontSize, index}: {structureId: number, structureType: string, blankColour: string, fontSize: [number, number], index: number}): JSX.Element | undefined {
     const [structure, setStructure] = useState<Structure | undefined>(undefined);
     useEffect(() => {
@@ -15,8 +18,8 @@ function GlyphAdjustment({structureId, structureType, blankColour, fontSize, ind
     // console.log('structureType ' + structureType + " " + adjustment);
 
     let glyph = adjustment[0] == '' ? character : adjustment[0];
-    let scaleX = adjustment[1]; // to make gaps narrower
-    let scaleY = adjustment[2];
+    let scaleX = adjustment[1] * 1.1; // to make gaps narrower
+    let scaleY = adjustment[2] * 1.1;
     let rightMove = adjustment[3];
     let bottomMove = adjustment[4];
     let blankStartX = adjustment[5];
@@ -71,9 +74,14 @@ function findAdjustment(character: string, structureType: string, index: number)
 // character, structureType, index, glyph, scaleX, scaleY, rightMove, bottomMove, blankStartX, blankStartY, blankEndX, blankEndY
 const data: [string, string, number, string, number, number, number, number, number, number, number, number][] = [
     // ⿰⿲⿱⿳⿸⿺⿹⿽⿵⿷⿶⿼⿴⿻
+    // as default font on each os displays these single radicals differently in position of a square
+    // (centre or leftmost), it is recommended to adjust the compound characters to prevent it,
+    // like 礼 in lieu of 礻
     ['扌', '⿰',   0,  '' , 2.5,   1,   0,   0,   0,   0,   0,   0],
     ['礻', '⿰',   0, '礼', 2.5,   1,0.25,   0, 0.75, 0.0,1.25,  1],
+    // ['礻', '⿰',   0,   '', 2.5,   1,0.,   0, 0.75, 0.0,1.25,  1],
     ['女', '⿰',   0, '如', 2.5,   1,0.25,   0, 0.75, 0.0,1.25,  1],
+    ['罒', '⿱',   0,   '', 1,   3,   0,   0.25,    0,   0,   0,   0],
     ['乚', '⿺',   0,  '' , 1.3,   1,   0.05,   0,   0,   0,   0,   0],
     ['辶', '⿺',   0,  '' ,   1,   1,   0,   0,   0,   0,   0,   0],
     ['囗', '⿴',   0,  '' ,   1,   1,   0,   0, 0.1, 0.1, 0.9, 0.9],

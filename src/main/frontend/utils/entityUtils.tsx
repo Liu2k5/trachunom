@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useState} from 'react';
+import {useEffect, useState} from 'react';
 import EntityX from "Frontend/generated/com/liu/trachunom/entity/entity/EntityX";
 import {
     EntityMapper,
@@ -23,7 +23,7 @@ import Source from "Frontend/generated/com/liu/trachunom/entity/Source";
 import PronunciationEvolutionDto from "Frontend/generated/com/liu/trachunom/dto/PronunciationEvolutionDto";
 import Structure from "Frontend/generated/com/liu/trachunom/entity/structure/Structure";
 import StructureComponent from "Frontend/generated/com/liu/trachunom/entity/structure/StructureComponent";
-import {GlyphAdjustment} from "Frontend/utils/glyphAdjustment";
+import {findAdjustment, GlyphAdjustment} from "Frontend/utils/glyphAdjustment";
 
 export {
     HnomQngu as HnomQngu,
@@ -576,22 +576,22 @@ function DrawEntityYear({entityId}: {entityId: number | undefined}): JSX.Element
     );
 }
 
-var structureTypes = ['⿰', '⿲', '⿱', '⿳' , '⿸', '⿺', '⿹', '⿽', '⿵', '⿷', '⿶', '⿼', '⿴', '⿻'];
-var verticalGroup = ['⿱', '⿳'];
-var horizontalGroup = ['⿰', '⿲'];
-var wrapGroup = ['⿸', '⿺', '⿹', '⿽', '⿵', '⿷', '⿶', '⿼', '⿴'];
-var tripleGroup = ['⿳', '⿲'];
-var wrapCentreGroup = ['⿵', '⿷', '⿶', '⿼', '⿴'];
+let structureTypes = ['⿰', '⿲', '⿱', '⿳' , '⿸', '⿺', '⿹', '⿽', '⿵', '⿷', '⿶', '⿼', '⿴', '⿻'];
+let verticalGroup = ['⿱', '⿳'];
+let horizontalGroup = ['⿰', '⿲'];
+let wrapGroup = ['⿸', '⿺', '⿹', '⿽', '⿵', '⿷', '⿶', '⿼', '⿴'];
+let tripleGroup = ['⿳', '⿲'];
+let wrapCentreGroup = ['⿵', '⿷', '⿶', '⿼', '⿴'];
 let wrapCornerGroup = ['⿸', '⿺', '⿹', '⿽'];
-var stackGroup = ['⿻'];
+let stackGroup = ['⿻'];
 
 async function calcStructureWidthHeight(structureId: number | undefined): Promise<[number, number]> {
     if (!structureId) return [1, 1];
 
-    var structure: Structure | undefined;
-    var structureComponents: StructureComponent[] | undefined = [];
-    var structureComponentResults: Structure[] | undefined = [];
-    var output: [number, number] = [0, 0];
+    let structure: Structure | undefined;
+    let structureComponents: StructureComponent[] | undefined = [];
+    let structureComponentResults: Structure[] | undefined = [];
+    let output: [number, number] = [0, 0];
 
 
     structure = await StructureDescriptionService.findByStructureId(structureId).then(o => o?.descriptionStructure) ??
@@ -601,11 +601,11 @@ async function calcStructureWidthHeight(structureId: number | undefined): Promis
     // case of chu tuong hinh
     if (!structure?.structureType) return [structure?.width ?? 1, structure?.height ?? 1];
 
-    var structureTypeDescription =  structure.structureType.description;
+    let structureTypeDescription =  structure.structureType.description;
     structureComponents = await StructureComponentService.findByStructureId(structure.id)
         .then(data => data?.filter(o => o != undefined))
         .then(data => data?.map(o => {
-            var tempArr = [];
+            let tempArr = [];
             for (let i = 0; i < (o?.quantity ?? 0); i++) {
                 tempArr.push(o);
             }
@@ -644,7 +644,7 @@ async function calcStructureWidthHeight(structureId: number | undefined): Promis
 function aggregateStructureWidthHeight(structureTypeDescription: string, results : [number, number][]): [number, number] {
     if (results.length == 0) return [1, 1];
 
-    var output: [number, number] = [0, 0];
+    let output: [number, number] = [0, 0];
 
     if (([] as string[]).concat(...verticalGroup, ...horizontalGroup, ...wrapCentreGroup, ...stackGroup).includes(structureTypeDescription)) {
         // console.log(output[0] + ", " + output[1] + "  fr " + structureTypeDescription);
@@ -736,28 +736,29 @@ function DrawStructure({ structureId, fontSize , parentStructureType, index}: { 
         setStructures(arr);
     }, [structureComponents]);
 
-    var description = descriptionStructure?.structureType?.description ?? structure?.structureType?.description;
-    var firstStructure = structures?.at(0);
-    var firstStructureTypeDescription = firstStructure?.structureType?.description;
-    var output: (string | number)[];
-    const [descriptionOfFirstStructure, setDescriptionOfFirstStructure] = useState<Structure | undefined>(undefined);
-    useEffect(() => {
-        StructureDescriptionService.findByStructureId(structures?.at(0)?.id)
-            .then(o => setDescriptionOfFirstStructure(o?.descriptionStructure));
-    }, [structures]);
+    let description = descriptionStructure?.structureType?.description ?? structure?.structureType?.description ?? 'null';
+    let firstStructure = structures?.at(0);
+    let firstStTypeDes = firstStructure?.structureType?.description ?? 'null';
+    const [output, setOutput] = useState<(string | number)[]>([]);
+    // const [descriptionOfFirstStructure, setDescriptionOfFirstStructure] = useState<Structure | undefined>(undefined);
+    // useEffect(() => {
+    //     StructureDescriptionService.findByStructureId(structures?.at(0)?.id)
+    //         .then(o => setDescriptionOfFirstStructure(o?.descriptionStructure));
+    // }, [structures]);
 
-    const [firstStructureComponents, setFirstStructureComponents] = useState<Structure[] | undefined>(undefined);
-    useEffect(() => {
-        // wait for these 2 value to prevent undefined result
-        if (!descriptionOfFirstStructure?.id && !firstStructure?.id) return;
-
-        StructureComponentService.findByStructureId(descriptionOfFirstStructure?.id ?? firstStructure?.id)
-            .then(data => data?.filter(o => o != undefined))
-            .then(data => data?.map(o => o.structureComponent))
-            .then(data => data?.filter(o => o != undefined))
-            .then(data => setFirstStructureComponents(data));
-    }, [firstStructure, descriptionOfFirstStructure]);
-    var structureIds = structures?.map(o => o.id).filter(o => o != undefined);
+    // const [firstStructureComponents, setFirstStructureComponents] = useState<Structure[] | undefined>(undefined);
+    // useEffect(() => {
+    //     // wait for these 2 value to prevent undefined result
+    //     if (!descriptionOfFirstStructure?.id && !firstStructure?.id) return;
+    //
+    //     StructureComponentService.findByStructureId(descriptionOfFirstStructure?.id ?? firstStructure?.id)
+    //         .then(data => data?.filter(o => o != undefined))
+    //         .then(data => data?.map(o => o.structureComponent))
+    //         .then(data => data?.filter(o => o != undefined))
+    //         .then(data => setFirstStructureComponents(data));
+    // }, [firstStructure, descriptionOfFirstStructure]);
+    let structureIds = structures?.map(o => o.id).filter(o => o != undefined);
+    const structureIdsKey = JSON.stringify(structureIds);
 
     // 3 truong hop
     // 1: don thuan cau tao long khong co cau tao con (逐)
@@ -768,38 +769,12 @@ function DrawStructure({ structureId, fontSize , parentStructureType, index}: { 
     // => 3: xu li khac nhau:
     // 𱑐 => cau tao long + cau tao ngang (辵 long (豕 va 什))
 
-    let firstStructureIds = firstStructureComponents?.map(o => o.id ?? 0) ?? [];
-    let secondStructureId = structureIds?.at(1) ?? 0;
-    // case 1
-    // if (wrapGroup.includes(description ?? 'null') &&
-    //     !structureTypes.includes(firstStructureDescription ?? 'null')) {
-    output= [description ?? '⿰', ...(structureIds ?? [])]; // ⿰ is default
-    // }
-    // case 2
-    if (wrapGroup.includes(description ?? 'null') &&
-        structureTypes.includes(firstStructureTypeDescription ?? 'null') &&
-        !wrapGroup.includes(firstStructureTypeDescription ?? 'null')) {
-        // 𥙩
-        if (description === '⿺' && firstStructureTypeDescription === '⿰') {
-            output= ['⿰', firstStructureIds[0], '⿺', firstStructureIds[1], secondStructureId];
-        }
-        // 羅
-        else if (description === '⿹' && firstStructureTypeDescription === '⿱') {
-            output= ['⿱', firstStructureIds[0], '⿰', secondStructureId, firstStructureIds[1]];
-        }
-        // // suppose ⿹羅車
-        // else if (description === '⿹' && firstStructureTypeDescription === '⿹') {
-        //     output= ['⿱', firstStructureIds[0], '⿱', firstStructureIds[1], secondStructureId] ;
-        // }
-    }
-    else if (wrapGroup.includes(description ?? 'null') &&
-        structureTypes.includes(firstStructureTypeDescription ?? 'null') &&
-        wrapGroup.includes(firstStructureTypeDescription ?? 'null')) {
-        // 逐 ⿶什
-        if (description === '⿶' && firstStructureTypeDescription === '⿺') {
-            output= ['⿺', firstStructureIds[0], '⿰', secondStructureId, firstStructureIds[1]];
-        }
-    }
+    useEffect(() => {
+        adjustStructureTree([description ?? '⿰', ...(structureIds ?? [])])
+            .then(adjusted => setOutput(adjusted))
+            .catch(err => console.error(err));
+    }, [description, structureIdsKey]);
+    // output=  // ⿰ is default
 
     if (
         // !structureTypeId
@@ -823,20 +798,30 @@ function DrawStructure({ structureId, fontSize , parentStructureType, index}: { 
 }
 
 function PaintStructureTree({input, fontSize}: {input: (string | number)[], fontSize: [number, number]}): JSX.Element {
-    var structureType = input[0] as string;
+    let structureType = input[0] as string;
     const inputKey = JSON.stringify(input);
-    const splitSequences =
-    useMemo(() => splitStructureSequence(input), [inputKey]);
+    const [splitSequences, setSplitSequences]= useState<(string | number)[][]>([]);
+    useEffect(() => {
+        adjustStructureTree(input)
+            .then(adjusted => splitStructureSequence(adjusted))
+            .then(split => setSplitSequences(split))
+            .catch(err => console.error(err));
+    }, [inputKey]);
+    // const splitSequences =
+    // useMemo(async () => splitStructureSequence(await adjustStructureTree(input)), [inputKey]);
     const [sizeList, setSizeList]= useState<[number, number][]>(Array.of());
     const [totalSize, setTotalSize] = useState<[number, number]>([0, 0]);
     const [firstStructure, setFirstStructure] = useState<Structure | undefined>(undefined);
 
+    // console.log(splitSequences);
+
     useEffect(() => {
         let isActive = true;
-        var tempSizeList: [number, number][] = [];
+        let tempSizeList: [number, number][] = [];
         (async () => {
             for (let i = 0; i < splitSequences.length; i++) {
                 tempSizeList.push(await aggregateStructureTreeWidthHeight(splitSequences[i]));
+                // console.log('splitSequence: ' + splitSequences[i] + " size: " + tempSizeList.at(-1));
             }
             if (isActive) setSizeList(tempSizeList);
         })();
@@ -977,8 +962,8 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
             }}
         >
             {splitSequences.map((o, index) => {
-                var temp;
-                var newFontSize: [number, number] = (wrapGroup.includes(structureType) && index == 1)
+                let temp;
+                let newFontSize: [number, number] = (wrapGroup.includes(structureType) && index == 1)
                     ? [innerPercentSize[0], innerPercentSize[1]]
                     : [fontSize[0] * percentWidthList[index], fontSize[1] * percentHeightList[index]];
 
@@ -1052,11 +1037,11 @@ async function aggregateStructureTreeWidthHeight(input: (string | number)[]): Pr
         return calcStructureWidthHeight(input[0] as number);
     }
 
-    // var inputCopy = [...input.slice(1)];
-    var structureTypeDescription = input[0] as string;
-    var sizeList: [number, number][] = [];
+    // let inputCopy = [...input.slice(1)];
+    let structureTypeDescription = input[0] as string;
+    let sizeList: [number, number][] = [];
 
-    var splitSequences = splitStructureSequence(input);
+    let splitSequences = splitStructureSequence(input);
 
     for (let i = 0; i < splitSequences.length; i++) {
         sizeList.push(await aggregateStructureTreeWidthHeight(splitSequences[i]));
@@ -1066,11 +1051,11 @@ async function aggregateStructureTreeWidthHeight(input: (string | number)[]): Pr
 }
 
 function splitStructureSequence(input: (string | number)[]): (string | number)[][] {
-    var inputSequence = [...input.slice(1)];
-    var output: (string | number)[][] = [];
-    var queue: (string | number)[] = [];
-    var structureDescriptionQueue: string[] = [];
-    var tempSequence: (string | number)[] = [];
+    let inputSequence = [...input.slice(1)];
+    let output: (string | number)[][] = [];
+    let queue: (string | number)[] = [];
+    let structureDescriptionQueue: string[] = [];
+    let tempSequence: (string | number)[] = [];
 
 
     // condition to continue the loop
@@ -1119,3 +1104,103 @@ function splitStructureSequence(input: (string | number)[]): (string | number)[]
     }
     return output;
 }
+
+async function adjustStructureTree(input: (string | number)[]): Promise<(string | number)[]> {
+    let stTypeDes = input[0] as string;
+    let splitSequences = splitStructureSequence(input);
+    let output: (string | number)[] = [stTypeDes];
+
+    // base case
+    if (splitSequences.length <= 1) {
+        return input;
+    }
+
+    // console.log('input: ' + input);
+
+    let firstStTypeDes = splitSequences[0][0] as string;
+    // let secondStType = splitSequences[1][0] as string;
+    let firstStSequence = await adjustStructureTree(splitSequences[0].slice(1));
+    // let secondStSequence = await adjustStructureTree(splitSequences[1].slice(1));
+    // let fetchedFromDb = false;
+
+    if (firstStSequence.length == 0) {
+        // here means firstStTypeDes is the only structure id instead of firstStSequence
+        let tempId = Number.parseInt(firstStTypeDes, 10) as unknown as number;
+        tempId = await StructureDescriptionService.findByStructureId(tempId)
+            .then(o => o?.descriptionStructure?.id) ?? tempId;
+        let tempStDesc = await StructureService.findById(tempId)
+            .then(o => o?.structureType?.description);
+        let tempStSequence = await StructureComponentService.findByStructureId(tempId)
+            .then(data => data?.filter(o => o != undefined))
+            .then(data => data?.map(o => o.structureComponent))
+            .then(data => data?.filter(o => o != undefined))
+            .then(data => data?.map(o => o.id))
+            .then(data => data?.filter(o => o != undefined));
+        if (tempStDesc && tempStSequence) {
+            firstStTypeDes = tempStDesc;
+            firstStSequence = tempStSequence;
+            // fetchedFromDb = true; // marks that the structure fetched does exist in the db
+        }
+    }
+
+    let firstStSequences = splitStructureSequence([firstStTypeDes, ...firstStSequence]);
+
+    output = [stTypeDes, ...splitSequences[0], ...splitSequences[1]];
+    // case 1
+    if (wrapGroup.includes(stTypeDes) &&
+        !structureTypes.includes(firstStTypeDes)) {
+        console.log("case 1: " + stTypeDes + " " + firstStTypeDes);
+        // console.log('firstStTypeDes splitSequence[1]: ' + firstStTypeDes + ', ' + splitSequences[1]);
+        //⿸⿹⿵⿶'.includes(stTypeDes)) output = ['⿱', firstStTypeDes, ...splitSequences[1]];
+        // if (fetchedFromDb) {
+            output = [stTypeDes, firstStTypeDes, ...splitSequences[1]]
+        // } else {
+        //     if ('⿸⿹⿵⿶'.includes(stTypeDes)) output = ['⿱', firstStTypeDes, ...splitSequences[1]];
+        //     else if ('⿺⿽⿷⿼'.includes(stTypeDes)) output = ['⿰', firstStTypeDes, ...splitSequences[1]];
+        // }
+    }
+
+    // case 2
+    else if (wrapGroup.includes(stTypeDes) &&
+        structureTypes.includes(firstStTypeDes) &&
+        !wrapGroup.includes(firstStTypeDes)) {
+        console.log("case 2: " + stTypeDes + " " + firstStTypeDes);
+
+        if (stTypeDes === '⿺' && firstStTypeDes === '⿰') {
+            // 𥙩
+            if (findAdjustment(firstStTypeDes, '⿺', 0)) {
+                output = ['⿰', ...firstStSequences[0], '⿺', ...firstStSequences[1], ...splitSequences[1]];
+            }
+            // 𢟚
+            else output = ['⿰', ...firstStSequences[0], '⿱', ...splitSequences[1], ...firstStSequences[1]];
+        }
+        // 黙
+        else if (stTypeDes === '⿺' && firstStTypeDes === '⿱') output = ['⿱', '⿰', ...firstStSequences[0], ...splitSequences[1], ...firstStSequences[1]];
+        // 穎
+        else if (stTypeDes === '⿹' && firstStTypeDes === '⿰') output = ['⿰', '⿱', ...firstStSequences[0], ...splitSequences[1], ...firstStSequences[1]];
+        // 羅
+        else if (stTypeDes === '⿹' && firstStTypeDes === '⿱') output = ['⿱', ...firstStSequences[0], '⿰', ...splitSequences[1], ...firstStSequences[1]];
+        // 修
+        else if (stTypeDes === '⿸' && firstStTypeDes === '⿰') output = ['⿰', ...firstStSequences[0], '⿱', ...firstStSequences[1], ...splitSequences[1]];
+        //
+        else if (stTypeDes === '⿸' && firstStTypeDes === '⿱') output = ['⿱', ...firstStSequences[0], '⿰', ...firstStSequences[1], ...splitSequences[1]];
+
+    }
+    else if (wrapGroup.includes(stTypeDes) &&
+        wrapGroup.includes(firstStTypeDes)) {
+        console.log("case 3: " + stTypeDes + " " + firstStTypeDes);
+        // 逐 ⿶什
+        if (stTypeDes === '⿶' && firstStTypeDes === '⿺') {
+            output = ['⿺', ...firstStSequences[0], '⿰', ...splitSequences[1], ...firstStSequences[1]];
+        }
+        // suppose ⿹羅車
+        else if (stTypeDes === '⿹' && firstStTypeDes === '⿹') {
+            output = ['⿱', ...firstStSequences[0], '⿹', ...firstStSequences[1], ...splitSequences[1]];
+        }
+    }
+
+    // console.log("output: " + output);
+
+    return output;
+}
+
