@@ -1,6 +1,7 @@
 package com.liu.trachunom.endpoint.admin;
 
 import com.liu.trachunom.dto.MeaningExplanationDto;
+import com.liu.trachunom.entity.meaning.Meaning;
 import com.liu.trachunom.entity.meaning.MeaningExplanation;
 import com.liu.trachunom.entity.meaning.MeaningExplanationId;
 import com.liu.trachunom.mapper.EntityMapper;
@@ -10,6 +11,7 @@ import jakarta.annotation.security.RolesAllowed;
 import com.vaadin.hilla.BrowserCallable;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,7 +24,11 @@ public class MeaningExplanationEndpoint {
     private final EntityMapper entityMapper;
 
     public List<MeaningExplanationDto> findByMeaningId(Long meaningId) {
-        return meaningExplanationService.findByMeaning(meaningService.findById(meaningId)).stream()
+        Meaning tempMeaning = meaningService.findById(meaningId);
+        if (tempMeaning == null) {
+            return Collections.emptyList();
+        }
+        return meaningExplanationService.findByMeaning(tempMeaning).stream()
                         .map(entityMapper::toMeaningExplanationDto)
                         .collect(Collectors.toList());
     }

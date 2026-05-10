@@ -3,6 +3,9 @@ package com.liu.trachunom.service.entity;
 import com.liu.trachunom.entity.entity.EntityEvolution;
 import com.liu.trachunom.entity.entity.EntityEvolutionId;
 import com.liu.trachunom.repository.EntityEvolutionRepository;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.hilla.BrowserCallable;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,6 +14,8 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@BrowserCallable
+@AnonymousAllowed
 public class EntityEvolutionService {
     @Autowired
     private EntityEvolutionRepository entityEvolutionRepository;

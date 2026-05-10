@@ -20,6 +20,7 @@ public class EntityDetailDto {
     private PronunciationDto pronunciation;
     private MeaningDto meaning;
     private LanguageDto language;
+    private SourceDto source;
     private String description;
     private boolean compound;
     private boolean attested;

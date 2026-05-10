@@ -30,7 +30,8 @@ public class MeaningService extends ListRepositoryService<Meaning, Long, Meaning
     }
 
     public Meaning findById(Long id) {
-        return meaningRepository.findById(id).orElseThrow(() -> new RuntimeException("Ý nghĩa không tồn tại"));
+        if (id == null) return null;
+        return meaningRepository.findById(id).orElse(null);
     }
 
     @Transactional

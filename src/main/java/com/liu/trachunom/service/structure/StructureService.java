@@ -3,6 +3,8 @@ package com.liu.trachunom.service.structure;
 import java.util.List;
 
 import com.liu.trachunom.entity.structure.StructureComponent;
+import com.liu.trachunom.entity.structure.StructureDescription;
+import com.liu.trachunom.repository.StructureDescriptionRepository;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.BrowserCallable;
 import com.vaadin.hilla.crud.ListRepositoryService;
@@ -21,6 +23,7 @@ public class StructureService extends ListRepositoryService<Structure, Long, Str
 
     private final StructureRepository structureRepository;
     private final StructureComponentService structureComponentService;
+    private final StructureDescriptionRepository structureDescriptionRepository;
 
     public Structure findById(Long id) {
         if (id == null) {
@@ -64,6 +67,35 @@ public class StructureService extends ListRepositoryService<Structure, Long, Str
 
     public void deleteById(Long id) {
         structureRepository.deleteById(id);
+    }
+
+    public String getStructureSequence(Long id) {
+        try {
+            StringBuilder output = new StringBuilder();
+            Structure structure = findById(id);
+            if (structure.getStructureType() != null) {
+                output.append(structure.getStructureType().getDescription());
+            }
+            List<StructureComponent> components = structureComponentService.findByStructureId(structure.getId());
+            for (StructureComponent component : components) {
+                if (component.getStructureComponent() != null) {
+                    output.append(component.getStructureComponent().getCharacter().getString());
+                }
+            }
+            return output.toString();
+        } catch (Exception ignored) {
+        }
+        return "";
+    }
+
+    public String getIds(Long id) {
+        try {
+            StringBuilder output = new StringBuilder();
+            Structure description = structureDescriptionRepository.findByStructureId(id).getDescriptionStructure();
+            return getStructureSequence(description.getId());
+        } catch (Exception ignored) {
+        }
+        return "";
     }
 
 }

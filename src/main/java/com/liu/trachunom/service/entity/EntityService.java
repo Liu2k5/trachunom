@@ -130,6 +130,14 @@ public class EntityService extends ListRepositoryService<EntityX, Long, EntityRe
                 getHnomStringById(entity.getId()).equals(query) || getQnguStringById(entity.getId()).equalsIgnoreCase(query)
             )
             .collect(Collectors.toList());
+        results.addAll(
+            findAll().stream()
+                .filter(entity ->
+                    entity.getStructure() != null &&
+                    (structureService.getStructureSequence(entity.getStructure().getId()).contains(query) ||
+                    structureService.getIds(entity.getStructure().getId()).contains(query)))
+                .toList()
+        );
         results
         .addAll(
             findAll().stream()
