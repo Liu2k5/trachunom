@@ -26,6 +26,7 @@ StyleService.ts
 CharacterService.ts
 RadicalService.ts
 TradSimpStandardService.ts
+EntityEvolutionService.ts
 EntityService.ts
 EvolutionDescriptionService.ts
 ExampleService.ts

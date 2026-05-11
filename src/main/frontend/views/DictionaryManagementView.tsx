@@ -1,7 +1,7 @@
 import {ViewConfig} from '@vaadin/hilla-file-router/types.js';
 import {useEffect, useRef, useState, useMemo} from 'react';
 import {AutoForm, AutoGrid} from "@vaadin/hilla-react-crud";
-import {ComboBox, GridColumn, TextArea} from "@vaadin/react-components";
+import {ComboBox, GridColumn, TextField} from "@vaadin/react-components";
 import RadicalModel from 'Frontend/generated/com/liu/trachunom/entity/character/RadicalModel';
 import RadicalDtoModel from "Frontend/generated/com/liu/trachunom/dto/RadicalDtoModel";
 import RadicalDto from "Frontend/generated/com/liu/trachunom/dto/RadicalDto";
@@ -2827,7 +2827,7 @@ const ExampleTabContent = () => {
                         position: {
                             label: 'Vị trí',
                             renderer: ({field}) => (
-                                <TextArea
+                                <TextField
                                     {...field}
                                     // value={exampleWordDtos.length + 1 + ""}
                                     style={{ width: '100%' }}

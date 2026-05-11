@@ -1,5 +1,7 @@
 import { ViewConfig } from '@vaadin/hilla-file-router/types.js';
 import { useNavigate } from 'react-router';
+import { Button } from '@vaadin/react-components';
+import { SearchBar } from 'Frontend/views/SearchBar';
 
 export const config: ViewConfig = {
   menu: { order: 0, icon: 'la la-home' },
@@ -11,88 +13,117 @@ export default function IndexView() {
   const navigate = useNavigate();
 
   return (
-    <div
-      style={{
-        width: '100%',
-        height: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      }}
-    >
-      <div
-        style={{
-          background: 'white',
-          borderRadius: '16px',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-          padding: '40px 60px',
-          maxWidth: '600px',
-          textAlign: 'center',
-        }}
-      >
-        <h1
-          style={{
-            color: '#667eea',
-            marginBottom: '10px',
-            fontSize: '2.5rem',
-            fontWeight: 'bold',
-          }}
-        >
-          Tra Cứu Chữ Nôm
-        </h1>
+    <div className="view-container">
+      <div className="search-section">
+        <SearchBar />
+      </div>
 
-        <p
-          style={{
-            color: '#666',
-            marginBottom: '30px',
-            fontSize: '1.1rem',
-            lineHeight: '1.6',
-          }}
-        >
-          Xin chào đến với trang web Tra Chữ Nôm. Đây là nơi bạn có thể tra cứu
-          các ký tự chữ Nôm một cách dễ dàng và nhanh chóng.
-        </p>
+      <div className="content-container">
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 'var(--lumo-space-l)',
+            }}
+          >
+            <div style={{ textAlign: 'center', marginBottom: 'var(--lumo-space-l)' }}>
+              <h1>Tra Cứu Chữ Nôm</h1>
+              <p
+                style={{
+                  color: 'var(--lumo-body-text-color)',
+                  fontSize: '1.1rem',
+                  lineHeight: '1.6',
+                  maxWidth: '600px',
+                  margin: '0 auto',
+                }}
+              >
+                Công cụ tra cứu và tìm hiểu di sản chữ Nôm của Việt Nam
+              </p>
+            </div>
 
-        <MyButton text={'Quản lý từ điển'} link={'/admin/dictionary-management'}/>
-        <MyButton text={'Tìm kiếm chữ Nôm'} link={'/search'}/>
-        <MyButton text={' Giới thiệu dự án'} link={'/about'}/>
+            <div
+              style={{
+                width: '100%',
+                lineHeight: '1.8',
+                textAlign: 'left',
+                background: 'var(--lumo-base-color)',
+                padding: 'var(--lumo-space-xl)',
+                borderRadius: 'var(--lumo-border-radius-l)',
+                border: '1px solid var(--lumo-contrast-10pct)',
+                boxSizing: 'border-box'
+              }}
+            >
+              <section style={{ marginBottom: 'var(--lumo-space-l)' }}>
+                <h2 style={{ fontSize: '1.25rem', borderBottom: '1px solid var(--lumo-contrast-10pct)', paddingBottom: 'var(--lumo-space-s)' }}>Về Dự Án</h2>
+                <p>
+                  Chữ Nôm là hệ thống chữ viết truyền thống của người Việt, được sử
+                  dụng để ghi lại tiếng Việt từ thế kỷ 13 đến đầu thế kỷ 20. Dự án
+                  này nhằm xây dựng một cơ sở dữ liệu toàn diện về chữ Nôm, giúp
+                  bảo tồn và phổ biến di sản văn hóa quý báu này.
+                </p>
+              </section>
+
+              <section style={{ marginBottom: 'var(--lumo-space-l)' }}>
+                <h2 style={{ fontSize: '1.25rem', borderBottom: '1px solid var(--lumo-contrast-10pct)', paddingBottom: 'var(--lumo-space-s)' }}>Tính Năng</h2>
+                <ul
+                  style={{
+                    paddingLeft: 'var(--lumo-space-l)',
+                    listStylePosition: 'inside',
+                    color: 'var(--lumo-body-text-color)',
+                  }}
+                >
+                  <li style={{ marginBottom: 'var(--lumo-space-s)' }}>
+                    Tra cứu ký tự chữ Nôm nhanh chóng và chính xác
+                  </li>
+                  <li style={{ marginBottom: 'var(--lumo-space-s)' }}>
+                    Quản lý từ điển với hệ thống phân loại chi tiết
+                  </li>
+                  <li style={{ marginBottom: 'var(--lumo-space-s)' }}>
+                    Thông tin về cấu tạo, phát âm và ý nghĩa của từng ký tự
+                  </li>
+                </ul>
+              </section>
+
+              <section style={{ marginBottom: '0' }}>
+                <h2 style={{ fontSize: '1.25rem', borderBottom: '1px solid var(--lumo-contrast-10pct)', paddingBottom: 'var(--lumo-space-s)' }}>Công Nghệ</h2>
+                <ul
+                  style={{
+                    paddingLeft: 'var(--lumo-space-l)',
+                    listStylePosition: 'inside',
+                    color: 'var(--lumo-body-text-color)',
+                  }}
+                >
+                  <li style={{ marginBottom: 'var(--lumo-space-xs)' }}>
+                    <strong>Backend:</strong> Java Spring Boot
+                  </li>
+                  <li style={{ marginBottom: 'var(--lumo-space-xs)' }}>
+                    <strong>Frontend:</strong> Vaadin Hilla (React + TypeScript)
+                  </li>
+                  <li style={{ marginBottom: 'var(--lumo-space-xs)' }}>
+                    <strong>Database:</strong> PostgreSQL
+                  </li>
+                </ul>
+              </section>
+            </div>
+          </div>
+
+          <div
+            style={{
+              display: 'flex',
+              gap: 'var(--lumo-space-m)',
+              paddingTop: 'var(--lumo-space-l)',
+              justifyContent: 'center'
+            }}
+          >
+            <Button
+              theme="primary"
+              onClick={() => navigate('/admin/dictionary-management')}
+            >
+              Quản lý từ điển
+            </Button>
+          </div>
       </div>
     </div>
   );
-  
-    function MyButton({text, link}: {text: string, link: string}) {
-        return (
-            <button
-                onClick={() => {
-                    navigate(link);
-                }}
-                style={{
-                    marginTop: '20px',
-                    display: 'inline-block',
-                    color: '#667eea',
-                    textDecoration: 'none',
-                    fontWeight: '500',
-                    fontSize: '1rem',
-                    padding: '10px 20px',
-                    border: '2px solid #667eea',
-                    borderRadius: '8px',
-                    transition: 'all 0.3s ease',
-                    background: 'transparent',
-                    cursor: 'pointer',
-                }}
-                onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
-                    e.currentTarget.style.background = '#667eea';
-                    e.currentTarget.style.color = 'white';
-                }}
-                onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = '#667eea';
-                }}
-            >
-                {text}
-            </button>
-        );
-    }
 }
-

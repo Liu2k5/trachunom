@@ -7,11 +7,10 @@ import {
     PronunciationEvolutionService,
     PronunciationService,
     SourceService,
-    StructureService, StructureComponentService, StructureDescriptionService
+    StructureService, StructureComponentService, StructureDescriptionService, MeaningService, EntityEvolutionService
 } from "Frontend/generated/endpoints";
 import EntityEvolutionDto from "Frontend/generated/com/liu/trachunom/dto/EntityEvolutionDto";
 import {
-    getEntityEvolutionsByToEntityId,
     getGridTemplateColumnsByStructureId, getStructureDtoByStructureId
 } from "Frontend/generated/EntityDetailEndpoint";
 import type StructureDto from "Frontend/generated/com/liu/trachunom/dto/StructureDto";
@@ -24,6 +23,7 @@ import PronunciationEvolutionDto from "Frontend/generated/com/liu/trachunom/dto/
 import Structure from "Frontend/generated/com/liu/trachunom/entity/structure/Structure";
 import StructureComponent from "Frontend/generated/com/liu/trachunom/entity/structure/StructureComponent";
 import {findAdjustment, GlyphAdjustment} from "Frontend/utils/glyphAdjustment";
+import EntityEvolution from "Frontend/generated/com/liu/trachunom/entity/entity/EntityEvolution";
 
 export {
     HnomQngu as HnomQngu,
@@ -153,7 +153,22 @@ const HnomStringByExampleId = ({exampleId}: {exampleId: number | undefined}): JS
     return <span>{exampleString}</span>;
 };
 
-function DrawEvolution ({evolutions}: {evolutions: EntityEvolutionDto[] | null | undefined})  {
+function DrawEvolution ({entityId}: {entityId: number | undefined})  {
+    const [evolutions, setEvolutions] = useState<EntityEvolution[]>([]);
+    const [evolutionDtos, setEvolutionDtos] = useState<EntityEvolutionDto[] | undefined>(undefined);
+    useEffect(() => {
+        EntityEvolutionService.findByToEntityId(entityId ?? undefined)
+            .then(data => data?.filter(evolution => evolution !== undefined))
+            .then(data => setEvolutions(data ?? []));
+    }, []);
+    useEffect(() => {
+        const promises = evolutions?.map(evolution => EntityMapper.toEntityEvolutionDto(evolution))
+            .filter(dto => dto !== undefined)
+            .flat();
+        Promise.all(promises).then(dtos => dtos?.filter(dto => dto !== undefined))
+            .then(filteredDtos => setEvolutionDtos(filteredDtos ?? []));
+    }, [evolutions]);
+
     return (
         <div style={{
             display: 'flex',
@@ -161,7 +176,7 @@ function DrawEvolution ({evolutions}: {evolutions: EntityEvolutionDto[] | null |
             overflowX: 'auto',
             paddingBottom: '10px',
         }}>
-            {evolutions?.map((evolution, index) =>
+            {evolutionDtos?.map((evolution, index) =>
                 evolution ? (
                     <EvolutionRow evolution={evolution} key={index}></EvolutionRow>
                 ) : null
@@ -171,15 +186,15 @@ function DrawEvolution ({evolutions}: {evolutions: EntityEvolutionDto[] | null |
 }
 
 function EvolutionRow({evolution}: { evolution: EntityEvolutionDto | null | undefined }): JSX.Element {
-    const [evolutions, setEvolutions] = useState<EntityEvolutionDto[] | null>(null);
-    useEffect(() => {
-        getEntityEvolutionsByToEntityId(evolution?.fromEntityId)
-            .then((results: any) => {
-                setEvolutions(results ?? null);
-            })
-            .catch((error: any) => console.error('Error fetching evolutions:', error));
-    }, [evolution?.fromEntityId]);
-    const recursiveValue = evolution?.fromEntity ? <DrawEvolution evolutions={evolutions}/> : undefined;
+    // const [evolutions, setEvolutions] = useState<EntityEvolutionDto[] | null>(null);
+    // useEffect(() => {
+    //     getEntityEvolutionsByToEntityId(evolution?.fromEntityId)
+    //         .then((results: any) => {
+    //             setEvolutions(results ?? null);
+    //         })
+    //         .catch((error: any) => console.error('Error fetching evolutions:', error));
+    // }, [evolution?.fromEntityId]);
+    const recursiveValue = evolution?.fromEntity ? <DrawEvolution entityId={evolution.fromEntityId}/> : undefined;
 
     return (
         <div
@@ -228,9 +243,15 @@ function EvolutionRow({evolution}: { evolution: EntityEvolutionDto | null | unde
     )
 }
 
-function AnalyseStructure({structure}: {structure : StructureDto | undefined }): JSX.Element {
+function AnalyseStructure({structureId}: {structureId : number | undefined }): JSX.Element {
+    const [structure, setStructure] = useState<Structure | undefined>(undefined);
     const [structureComponents, setStructureComponents] = useState<StructureComponentDto[]>([]);
     const [gridTemplateColumns, setGridTemplateColumns] = useState<string>("");
+
+    useEffect(() => {
+        StructureService.findById(structureId)
+            .then(data => setStructure(data ?? undefined))
+    }, []);
 
     useEffect(() => {
         if (!structure?.id) {
@@ -289,7 +310,7 @@ function StructureRow({component}: { component: StructureComponentDto; }): JSX.E
             .catch((error) => console.error('Error fetching structure:', error));
     }, [component.structureComponentId]);
 
-    const recursiveValue = structureComponent ? <AnalyseStructure structure={structureComponent}/> : null;
+    const recursiveValue = structureComponent ? <AnalyseStructure structureId={structureComponent.id}/> : null;
 
     return (
         <div style={{alignItems: "start", verticalAlign: "top"}}>
@@ -453,7 +474,13 @@ function DrawPronunciationDescendants({pronunciationId}: {pronunciationId: numbe
     );
 }
 
-function DrawMeaningEvolution({meaning}: {meaning: Meaning | undefined}): JSX.Element {
+function DrawMeaningEvolution({meaningId}: {meaningId: number | undefined}): JSX.Element {
+    const [meaning, setMeaning] = useState<Meaning | null>(null);
+    useEffect(() => {
+        MeaningService.findById(meaningId)
+            .then(data => setMeaning(data ?? null));
+    }, []);
+
     if (!meaning) {
         return <div></div>;
     }
@@ -490,13 +517,13 @@ function DrawMeaningEvolution({meaning}: {meaning: Meaning | undefined}): JSX.El
                 <div
                     style={{
                         textAlign: 'center',
-                        fontSizw: '14px',
+                        fontSize: '14px',
                     }}
                 >
                     ↑
                 </div>
             }
-            <DrawMeaningEvolution meaning={meaning?.origin}/>
+            <DrawMeaningEvolution meaningId={meaning?.origin?.id}/>
         </>
     );
 }
@@ -708,7 +735,6 @@ function DrawStructure({ structureId, fontSize , parentStructureType, index}: { 
             .then(o => setDescriptionStructure(o?.descriptionStructure));
     }, [structure]);
 
-    const structureType = structure?.structureType;
     const [structureComponents, setStructureComponents] = useState<StructureComponent[] | undefined>(undefined);
     const [structures, setStructures] = useState<Structure[] | undefined>(undefined);
 
@@ -737,26 +763,8 @@ function DrawStructure({ structureId, fontSize , parentStructureType, index}: { 
     }, [structureComponents]);
 
     let description = descriptionStructure?.structureType?.description ?? structure?.structureType?.description ?? 'null';
-    let firstStructure = structures?.at(0);
-    let firstStTypeDes = firstStructure?.structureType?.description ?? 'null';
     const [output, setOutput] = useState<(string | number)[]>([]);
-    // const [descriptionOfFirstStructure, setDescriptionOfFirstStructure] = useState<Structure | undefined>(undefined);
-    // useEffect(() => {
-    //     StructureDescriptionService.findByStructureId(structures?.at(0)?.id)
-    //         .then(o => setDescriptionOfFirstStructure(o?.descriptionStructure));
-    // }, [structures]);
 
-    // const [firstStructureComponents, setFirstStructureComponents] = useState<Structure[] | undefined>(undefined);
-    // useEffect(() => {
-    //     // wait for these 2 value to prevent undefined result
-    //     if (!descriptionOfFirstStructure?.id && !firstStructure?.id) return;
-    //
-    //     StructureComponentService.findByStructureId(descriptionOfFirstStructure?.id ?? firstStructure?.id)
-    //         .then(data => data?.filter(o => o != undefined))
-    //         .then(data => data?.map(o => o.structureComponent))
-    //         .then(data => data?.filter(o => o != undefined))
-    //         .then(data => setFirstStructureComponents(data));
-    // }, [firstStructure, descriptionOfFirstStructure]);
     let structureIds = structures?.map(o => o.id).filter(o => o != undefined);
     const structureIdsKey = JSON.stringify(structureIds);
 
@@ -821,7 +829,7 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
         (async () => {
             for (let i = 0; i < splitSequences.length; i++) {
                 tempSizeList.push(await aggregateStructureTreeWidthHeight(splitSequences[i]));
-                // console.log('splitSequence: ' + splitSequences[i] + " size: " + tempSizeList.at(-1));
+                console.log('splitSequence: ' + splitSequences[i] + " size: " + tempSizeList.at(-1));
             }
             if (isActive) setSizeList(tempSizeList);
         })();
@@ -1046,7 +1054,7 @@ async function aggregateStructureTreeWidthHeight(input: (string | number)[]): Pr
     for (let i = 0; i < splitSequences.length; i++) {
         sizeList.push(await aggregateStructureTreeWidthHeight(splitSequences[i]));
     }
-    // console.log("aggregateStructureTreeWidthHeight: (" + structureTypeDescription + ")" + aggregateStructureWidthHeight(structureTypeDescription, sizeList));
+    // console.log("aggregateStructureTreeWidthHeight: (" + structureTypeDescription + ', ' + sizeList + "): " + aggregateStructureWidthHeight(structureTypeDescription, sizeList));
     return aggregateStructureWidthHeight(structureTypeDescription, sizeList);
 }
 

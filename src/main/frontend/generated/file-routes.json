@@ -1,15 +1,5 @@
 [
   {
-    "route": "about",
-    "menu": {
-      "order": 3,
-      "icon": "la la-info-circle"
-    },
-    "title": "Giới Thiệu",
-    "flowLayout": false,
-    "params": {}
-  },
-  {
     "route": "/admin/dictionary-management",
     "menu": {
       "order": 2,

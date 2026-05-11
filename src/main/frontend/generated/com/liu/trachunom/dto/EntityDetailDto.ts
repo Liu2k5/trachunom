@@ -6,6 +6,7 @@ import type ExampleDto_1 from "./ExampleDto.js";
 import type LanguageDto_1 from "./LanguageDto.js";
 import type MeaningDto_1 from "./MeaningDto.js";
 import type PronunciationDto_1 from "./PronunciationDto.js";
+import type SourceDto_1 from "./SourceDto.js";
 import type StructureDto_1 from "./StructureDto.js";
 interface EntityDetailDto {
     id?: number;
@@ -13,6 +14,7 @@ interface EntityDetailDto {
     pronunciation?: PronunciationDto_1;
     meaning?: MeaningDto_1;
     language?: LanguageDto_1;
+    source?: SourceDto_1;
     description?: string;
     compound: boolean;
     attested: boolean;

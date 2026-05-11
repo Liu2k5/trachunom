@@ -26,51 +26,34 @@ export default function SearchView() {
   }, [searchParams]);
 
   return (
-    <div
-      style={{
-        width: 'auto',
-        minHeight: '100vh',
-        background: '#f5f5f5',
-        padding: '20px',
-      fontFamily: 'sans-serif',
-      }}
-    >
-        <SearchBar/>
+    <div className="view-container">
+      <div className="search-section">
+        <SearchBar />
+      </div>
 
       {/* Content Area */}
-      <div
-        style={{
-          maxWidth: '1000px',
-          margin: '0 auto',
-          background: 'white',
-          borderRadius: '8px',
-          boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-          padding: '30px',
-          minHeight: '400px',
-        }}
-      >
+      <div className="content-container">
         {searchParams.get('query') ? (
           <div>
-            <h2 style={{ color: '#333', marginBottom: '20px' }}>
+            <h2>
               Kết quả tìm kiếm cho: "{searchParams.get('query')}"
             </h2>
             {searchResults.length > 0 ? (
               <div>
-                {/* Display search results here */}
                 {searchResults.map((result, index) => <ResultContent result={result} index={index} key={index}/>)}
               </div>
             ) : (
-              <p style={{ color: '#666', fontSize: '16px' }}>
+              <p>
                 Không tìm thấy kết quả nào.
               </p>
             )}
           </div>
         ) : (
-          <div style={{ textAlign: 'center', padding: '40px 0' }}>
-            <h2 style={{ color: '#667eea', marginBottom: '10px' }}>
+          <div style={{ textAlign: 'center', paddingTop: 'var(--lumo-space-l)' }}>
+            <h2>
               Tra Cứu Chữ Nôm
             </h2>
-            <p style={{ color: '#666', fontSize: '16px' }}>
+            <p>
               Nhập ký tự chữ Nôm vào ô tìm kiếm để bắt đầu tra cứu.
             </p>
           </div>
@@ -86,36 +69,38 @@ const ResultContent = ({ result, index }: { result: EntityX, index: number }) =>
         <div
             key={index}
             style={{
-                padding: '15px',
-                borderBottom: '1px solid #eee',
-                textDecoration: 'none',
-                color: '#333',
+                padding: 'var(--lumo-space-l) var(--lumo-space-m)',
+                borderBottom: '1px solid var(--lumo-contrast-10pct)',
+                background: 'var(--lumo-base-color)',
+                borderRadius: index === 0 ? 'var(--lumo-border-radius-m) var(--lumo-border-radius-m) 0 0' : '0',
+                transition: 'background-color 0.2s',
             }}
-            // href={"/entity/" + result.id}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--lumo-contrast-5pct)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--lumo-base-color)'}
         >
-            <div>
+            <div style={{ marginBottom: 'var(--lumo-space-s)' }}>
                         <span style={{
-                            fontSize: '30px',
+                            fontSize: 'var(--lumo-font-size-xxl)',
                             display: 'inline-flex',
-                            alignItems: 'start',
+                            alignItems: 'center',
+                            gap: 'var(--lumo-space-m)'
                         }}>
                             <span style={{
-                                color: 'white',
-                                backgroundColor: 'red',
-                                padding: '2px 6px',
-                                borderRadius: '4px',
-                                marginRight: '10px',
-                                fontSize: '20px',
-                                fontWeight: 'bold',
+                                backgroundColor: 'var(--lumo-contrast-10pct)',
+                                color: 'var(--lumo-body-text-color)',
+                                padding: 'var(--lumo-space-xs) var(--lumo-space-s)',
+                                borderRadius: 'var(--lumo-border-radius-s)',
+                                fontSize: 'var(--lumo-font-size-s)',
+                                fontWeight: '500',
                             }}>
                                 {result.language?.abbreviation ?? 'N/A'}
                             </span>
-                            <span>
+                            <span style={{ color: 'var(--lumo-primary-text-color)', fontWeight: 'bold' }}>
                                 <HnomQngu entityId={result.id} markedId={0}/>
                             </span>
                         </span>
             </div>
-            <div>
+            <div style={{ color: 'var(--lumo-body-text-color)' }}>
                 <span>{result.explanationsString}</span>
             </div>
         </div>

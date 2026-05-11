@@ -1,0 +1,91 @@
+html {
+    --lumo-space-xl: 2rem;
+    --lumo-space-l: 1.5rem;
+    --lumo-space-m: 1rem;
+    --lumo-space-s: 0.5rem;
+    --lumo-space-xs: 0.25rem;
+
+    --lumo-border-radius-m: 8px;
+    --lumo-border-radius-l: 12px;
+    --lumo-border-radius-s: 4px;
+
+    --lumo-box-shadow-s: none;
+    --lumo-box-shadow-m: none;
+    --lumo-box-shadow-l: none;
+    --lumo-box-shadow-xl: none;
+
+    --lumo-font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    --lumo-primary-color: #2563eb;
+    --lumo-primary-text-color: #1e40af;
+    --lumo-body-text-color: #334155;
+    --lumo-base-color: #ffffff;
+    --lumo-tint-5pct: #f8fafc;
+    --lumo-contrast-5pct: #f1f5f9;
+    --lumo-contrast-10pct: #e2e8f0;
+    --lumo-contrast-20pct: #cbd5e1;
+}
+
+body {
+    background-color: var(--lumo-tint-5pct);
+    color: var(--lumo-body-text-color);
+    font-family: var(--lumo-font-family);
+    -webkit-font-smoothing: antialiased;
+    margin: 0;
+}
+
+.view-container {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.content-container {
+    padding: var(--lumo-space-l) var(--lumo-space-m);
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.search-section {
+    background-color: var(--lumo-base-color);
+    padding: var(--lumo-space-m) var(--lumo-space-m);
+    border-bottom: 1px solid var(--lumo-contrast-10pct);
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+}
+
+.search-section > * {
+    max-width: 1200px;
+    width: 100%;
+}
+
+h1, h2, h3 {
+    margin-top: 0;
+    margin-bottom: var(--lumo-space-m);
+    color: #0f172a;
+    font-weight: 600;
+}
+
+.section-title {
+    color: var(--lumo-primary-text-color);
+    font-size: 1.5em;
+    font-weight: 600;
+    margin-bottom: var(--lumo-space-m);
+    border-left: 4px solid var(--lumo-primary-color);
+    padding-left: var(--lumo-space-m);
+}
+
+[theme~="dark"] {
+    --lumo-shade-5pct: rgba(255, 255, 255, 0.05);
+    --lumo-shade-10pct: rgba(255, 255, 255, 0.1);
+    --lumo-shade-20pct: rgba(255, 255, 255, 0.2);
+    --lumo-shade-30pct: rgba(255, 255, 255, 0.3);
+    --lumo-shade-40pct: rgba(255, 255, 255, 0.4);
+    --lumo-shade-50pct: rgba(255, 255, 255, 0.5);
+    --lumo-shade-60pct: rgba(255, 255, 255, 0.6);
+    --lumo-shade-70pct: rgba(255, 255, 255, 0.7);
+    --lumo-shade-80pct: rgba(255, 255, 255, 0.8);
+    --lumo-shade-90pct: rgba(255, 255, 255, 0.9);
+}

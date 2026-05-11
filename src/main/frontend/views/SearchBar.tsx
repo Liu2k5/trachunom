@@ -1,6 +1,7 @@
 import {useState} from "react";
 import {useNavigate, useSearchParams} from "react-router";
 import {correct} from "Frontend/utils/inputUtils";
+import {Button, TextField} from "@vaadin/react-components";
 
 export {SearchBar as SearchBar};
 
@@ -9,15 +10,17 @@ const SearchBar = () => {
     const [searchParams] = useSearchParams();
     const [searchQuery, setSearchQuery] = useState(searchParams.get('query') || '');
 
-    const handleSearch = async () => {
-        if (searchQuery.trim()) {
-            navigate(`/search?query=${encodeURIComponent(correct(searchQuery).trim())}`);
+    const handleSearch = (queryToSearch: string) => {
+        if (queryToSearch.trim()) {
+            navigate(`/search?query=${encodeURIComponent(correct(queryToSearch).trim())}`);
         }
     };
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const handleKeyDown = (e: any) => {
         if (e.key === 'Enter') {
-            handleSearch();
+            const currentVal = e.target.value;
+            setSearchQuery(currentVal);
+            handleSearch(currentVal);
         }
     };
 
@@ -25,53 +28,32 @@ const SearchBar = () => {
     return (
     <div
         style={{
-            maxWidth: '1000px',
-            margin: '0 auto 20px',
-            background: 'white',
-            borderRadius: '8px',
-            boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-            padding: '20px',
             display: 'flex',
-            gap: '10px',
+            gap: 'var(--lumo-space-m)',
+            alignItems: 'center',
         }}
     >
-        <input
-            type="text"
+        <img
+            src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/N%C3%B4m_1.png/960px-N%C3%B4m_1.png"
+            alt="Trang Chủ"
+            onClick={() => navigate('/')}
+            style={{ height: '40px', cursor: 'pointer', objectFit: 'contain' }}
+            title="Về Trang Chủ"
+        />
+        <TextField
             placeholder="Nhập ký tự chữ Nôm..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onInput={(e: any) => setSearchQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            style={{
-                flex: 1,
-                fontSize: '16px',
-                padding: '10px 15px',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-                outline: 'none',
-                width: '100%',
-            }}
+            style={{ flex: 1 }}
+            clearButtonVisible
         />
-        <button
-            onClick={handleSearch}
-            style={{
-                padding: '10px 30px',
-                fontSize: '16px',
-                background: '#667eea',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontWeight: '500',
-            }}
-            onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
-                e.currentTarget.style.background = '#5568d3';
-            }}
-            onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
-                e.currentTarget.style.background = '#667eea';
-            }}
+        <Button
+            theme="primary"
+            onClick={() => handleSearch(searchQuery)}
         >
             Tìm Kiếm
-        </button>
+        </Button>
     </div>
     );
 };

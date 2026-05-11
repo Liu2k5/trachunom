@@ -8,6 +8,7 @@ import ExampleDtoModel_1 from "./ExampleDtoModel.js";
 import LanguageDtoModel_1 from "./LanguageDtoModel.js";
 import MeaningDtoModel_1 from "./MeaningDtoModel.js";
 import PronunciationDtoModel_1 from "./PronunciationDtoModel.js";
+import SourceDtoModel_1 from "./SourceDtoModel.js";
 import StructureDtoModel_1 from "./StructureDtoModel.js";
 class EntityDetailDtoModel<T extends EntityDetailDto_1 = EntityDetailDto_1> extends ObjectModel_1<T> {
     static override createEmptyValue = makeObjectEmptyValueCreator_1(EntityDetailDtoModel);
@@ -25,6 +26,9 @@ class EntityDetailDtoModel<T extends EntityDetailDto_1 = EntityDetailDto_1> exte
     }
     get language(): LanguageDtoModel_1 {
         return this[_getPropertyModel_1]("language", (parent, key) => new LanguageDtoModel_1(parent, key, true));
+    }
+    get source(): SourceDtoModel_1 {
+        return this[_getPropertyModel_1]("source", (parent, key) => new SourceDtoModel_1(parent, key, true));
     }
     get description(): StringModel_1 {
         return this[_getPropertyModel_1]("description", (parent, key) => new StringModel_1(parent, key, true, { meta: { javaType: "java.lang.String" } }));
