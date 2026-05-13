@@ -1,6 +1,7 @@
 import {useEffect, useState} from "react";
 import Structure from "Frontend/generated/com/liu/trachunom/entity/structure/Structure";
 import {StructureService} from "Frontend/generated/endpoints";
+import {inSupportedCjkRange} from "Frontend/utils/displayTroubleshooter";
 
 export {
     GlyphAdjustment as GlyphAdjustment,
@@ -64,8 +65,10 @@ function findAdjustment(character: string, structureType: string, index: number)
     [string, number, number, number, number, number, number, number, number] {
     for (let i = 0; i < data.length; i++) {
         if (data[i][0] === character && data[i][1] === structureType && data[i][2] === index) {
-            return [data[i][3], data[i][4], data[i][5], data[i][6], data[i][7],
-                data[i][8], data[i][9], data[i][10], data[i][11]];
+            if (inSupportedCjkRange(character.codePointAt(0) ?? 0)) {
+                return [data[i][3], data[i][4], data[i][5], data[i][6], data[i][7],
+                    data[i][8], data[i][9], data[i][10], data[i][11]];
+            } else break;
         }
     }
     return ['', 1, 1, 0, 0, 0, 0, 0, 0];
@@ -77,10 +80,11 @@ const data: [string, string, number, string, number, number, number, number, num
     // as default font on each os displays these single radicals differently in position of a square
     // (centre or leftmost), it is recommended to adjust the compound characters to prevent it,
     // like 礼 in lieu of 礻
-    ['扌', '⿰',   0,  '' , 2.5,   1,   0,   0,   0,   0,   0,   0],
-    ['礻', '⿰',   0, '礼', 2.5,   1,0.25,   0, 0.75, 0.0,1.25,  1],
+    ['扌', '⿰',   0,  '' , 2,   1,   0,   0,    0,   0,   0,    0],
+    ['礻', '⿰',   0, '礼', 2,   1,0.25,   0, 0.75, 0.0,1.75,  1.1],
+    ['衤', '⿰',   0, '补', 2,   1,0.15,   0, 0.7, 0.0,1.75,  1.1],
     // ['礻', '⿰',   0,   '', 2.5,   1,0.,   0, 0.75, 0.0,1.25,  1],
-    ['女', '⿰',   0, '如', 2.5,   1,0.25,   0, 0.75, 0.0,1.25,  1],
+    ['女', '⿰',   0, '如', 2,   1,0.25,   0, 0.75, 0.0,1.25,  1],
     ['罒', '⿱',   0,   '', 1,   3,   0,   0.25,    0,   0,   0,   0],
     ['乚', '⿺',   0,  '' , 1.3,   1,   0.05,   0,   0,   0,   0,   0],
     ['辶', '⿺',   0,  '' ,   1,   1,   0,   0,   0,   0,   0,   0],

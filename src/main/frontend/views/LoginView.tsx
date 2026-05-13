@@ -84,11 +84,21 @@ export default function LoginView() {
                         label="Tên đăng nhập"
                         name="username"
                         required
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                formRef.current?.requestSubmit();
+                            }
+                        }}
                     />
                     <PasswordField
                         label="Mật khẩu"
                         name="password"
                         required
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                formRef.current?.requestSubmit();
+                            }
+                        }}
                     />
                     <Button theme="primary" onClick={() => formRef.current?.requestSubmit()}>Đăng nhập</Button>
                 </form>

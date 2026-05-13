@@ -66,9 +66,7 @@ export default function EntityDetailView() {
 
     return (
         <div className="view-container">
-            <div className="search-section">
-                <SearchBar/>
-            </div>
+            <SearchBar/>
 
             <div className="content-container">
                 <Button onClick={() => navigate(-1)} style={{marginBottom: 'var(--lumo-space-m)'}}>
@@ -217,10 +215,18 @@ export default function EntityDetailView() {
                         <section style={{marginBottom: 'var(--lumo-space-l)'}}>
                             <h2 className="section-title">Quá trình phát triển</h2>
                             <div>
-                                <HnomQngu entityId={entity.id} markedId={0}/>
+                                <div
+                                    style={{
+                                        fontSize: '2em',
+                                    }}
+                                >
+                                    <HnomQngu entityId={entity.id} markedId={0}/>
+                                </div>
                                 <p>{entity.explanationsString}</p>
                             </div>
-                            <DrawEvolution entityId={entity.id} />
+                            <div>
+                                <DrawEvolution entityId={entity.id} />
+                            </div>
                         </section>
                     )}
 

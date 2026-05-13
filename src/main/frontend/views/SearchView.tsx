@@ -15,49 +15,48 @@ export const config: ViewConfig = {
 export default function SearchView() {
   const [searchParams] = useSearchParams();
   const [searchResults, setSearchResults] = useState<EntityX[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const query = searchParams.get('query');
     if (query) {
-      findByQuery(query).then((results) => setSearchResults((results ?? []).filter((r): r is EntityX => r != null)));
+      setLoading(true);
+      findByQuery(query)
+          .then((results) => setSearchResults((results ?? [])
+              .filter((r): r is EntityX => r != null)))
+          .finally(() => setLoading(false));
     } else {
       setSearchResults([]);
+      setLoading(false);
     }
   }, [searchParams]);
 
   return (
     <div className="view-container">
-      <div className="search-section">
-        <SearchBar />
-      </div>
+      <SearchBar />
 
       {/* Content Area */}
       <div className="content-container">
-        {searchParams.get('query') ? (
           <div>
-            <h2>
-              Kết quả tìm kiếm cho: "{searchParams.get('query')}"
-            </h2>
-            {searchResults.length > 0 ? (
-              <div>
-                {searchResults.map((result, index) => <ResultContent result={result} index={index} key={index}/>)}
-              </div>
-            ) : (
-              <p>
-                Không tìm thấy kết quả nào.
-              </p>
-            )}
+              {searchResults.length > 0 ? (
+                  <div>
+                      {searchResults.map((result, index) => <ResultContent result={result} index={index} key={index}/>)}
+                  </div>
+              ) : (
+                  <div>
+                      {loading ? (
+                          <p>
+                              Đang tìm kiếm...
+                          </p>
+                      ) : (
+                          <p>
+                              Không tìm thấy kết quả nào cho truy vấn này.
+                          </p>
+                      )
+                      }
+                  </div>
+              )}
           </div>
-        ) : (
-          <div style={{ textAlign: 'center', paddingTop: 'var(--lumo-space-l)' }}>
-            <h2>
-              Tra Cứu Chữ Nôm
-            </h2>
-            <p>
-              Nhập ký tự chữ Nôm vào ô tìm kiếm để bắt đầu tra cứu.
-            </p>
-          </div>
-        )}
       </div>
     </div>
   );

@@ -15,7 +15,6 @@ import com.liu.trachunom.service.structure.StructureService;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.BrowserCallable;
 import com.vaadin.hilla.crud.ListRepositoryService;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Service;
 
 import com.liu.trachunom.repository.EntityRepository;
@@ -64,9 +63,7 @@ public class EntityService extends ListRepositoryService<EntityX, Long, EntityRe
 
     public List<EntityX> findAll() {
         return entityRepository.findAll().stream()
-                .sorted((o1, o2) -> {
-                    return o1.getPronunciationString().compareTo(o2.getPronunciationString());
-                })
+                .sorted((o1, o2) -> o1.getPronunciationString().compareTo(o2.getPronunciationString()))
                 .toList();
     }
 
@@ -86,21 +83,20 @@ public class EntityService extends ListRepositoryService<EntityX, Long, EntityRe
             try {
                 return structureService.getCharacterStringById(entity.getStructure().getId());
             } catch (Exception e) {
-                return "(trống)";
+                return " ";
             }
         } else {
             StringBuilder hnomString = new StringBuilder();
             for (EntityComposition ec : entityCompositions) {
                 try {
                     hnomString.append(ec.getChildEntity().getStructure().getCharacter().getString());
-                } catch (Exception e) {
-                    // Nếu có lỗi, bỏ qua và tiếp tục
+                } catch (Exception ignored) {
                 }
             }
             if (!entity.isCompound()) {
-                return "[" + hnomString.toString() + "]";
+                return "[" + hnomString + "]";
             }
-            return hnomString.toString().isEmpty() ? "(trống)": hnomString.toString();
+            return hnomString.toString().isEmpty() ? " ": hnomString.toString();
         }
     }
 
@@ -117,9 +113,9 @@ public class EntityService extends ListRepositoryService<EntityX, Long, EntityRe
                     qnguString.append(ec.getChildEntity().getPronunciation().getString());
                     qnguString.append(" ");
                 }
-                return qnguString.toString().trim().isEmpty() ? "(trống)" : qnguString.toString().trim();
+                return qnguString.toString().trim().isEmpty() ? "" : qnguString.toString().trim();
             }
-            return "(trống)";
+            return "";
         }
     }
 
@@ -127,22 +123,23 @@ public class EntityService extends ListRepositoryService<EntityX, Long, EntityRe
         List<EntityX> results =
         findAll().stream()
             .filter(entity ->
-                getHnomStringById(entity.getId()).equals(query) || getQnguStringById(entity.getId()).equalsIgnoreCase(query)
+                getHnomStringById(entity.getId()).equals(query) || getQnguStringById(entity.getId()).equals(query)
             )
             .collect(Collectors.toList());
         results.addAll(
             findAll().stream()
-                .filter(entity ->
-                    entity.getStructure() != null &&
-                    (structureService.getStructureSequence(entity.getStructure().getId()).contains(query) ||
-                    structureService.getIds(entity.getStructure().getId()).contains(query)))
-                .toList()
+            .filter(entity ->
+                entity.getStructure() != null &&
+                query.length() >= 2 &&
+                (structureService.getStructureSequence(entity.getStructure().getId()).contains(query) ||
+                structureService.getIds(entity.getStructure().getId()).contains(query)))
+            .toList()
         );
         results
         .addAll(
             findAll().stream()
             .filter(entity ->
-                getQnguStringById(entity.getId()).contains(query) ||
+                List.of(getQnguStringById(entity.getId()).split(" ")).contains(query) ||
                 getHnomStringById(entity.getId()).toLowerCase().contains(query.toLowerCase()))
             .toList()
         );
@@ -168,7 +165,7 @@ public class EntityService extends ListRepositoryService<EntityX, Long, EntityRe
                 .stream()
                 .filter(meaning -> meaning.getExplanations().stream().anyMatch(explanations::contains))
                 .toList();
-        return findByStandardised(true).stream()
+        return findByStandardised().stream()
                 .filter(entityX -> meanings.contains(entityX.getMeaning())
                         && !entityX.getId().equals(entity.getId())
                         && !entityX.getPronunciationString().equals(entity.getPronunciationString())
@@ -176,8 +173,8 @@ public class EntityService extends ListRepositoryService<EntityX, Long, EntityRe
                 .toList();
     }
 
-    private List<EntityX> findByStandardised(boolean b) {
-        return entityRepository.findByStandardised(b);
+    private List<EntityX> findByStandardised() {
+        return entityRepository.findByStandardised(true);
     }
 
     public EntityX findStandardByEntity(EntityX entity) {
@@ -226,10 +223,8 @@ public class EntityService extends ListRepositoryService<EntityX, Long, EntityRe
 
         List<StructureComponent> structureComponents =
                 structureComponentRepository.findByStructureComponent(entity.getStructure()).stream()
-                        .filter(sc -> {
-                            return isSemantic ? structureClassificationService.isSemanticClassification(sc.getStructureClassification()) :
-                            structureClassificationService.isPhoneticClassification(sc.getStructureClassification());
-                        })
+                        .filter(sc -> isSemantic ? structureClassificationService.isSemanticClassification(sc.getStructureClassification()) :
+                        structureClassificationService.isPhoneticClassification(sc.getStructureClassification()))
                         .toList();
         return structureComponents.stream()
                 .map(StructureComponent::getStructure)
@@ -253,10 +248,8 @@ public class EntityService extends ListRepositoryService<EntityX, Long, EntityRe
 
         // get structure components belonging to the structure of the entity, filter by semantic or phonetic classification
         List<StructureComponent> structureComponents = structureComponentRepository.findByStructure(entity.getStructure()).stream()
-                .filter(sc -> {
-                    return isSemantic ? structureClassificationService.isSemanticClassification(sc.getStructureClassification()) :
-                            structureClassificationService.isPhoneticClassification(sc.getStructureClassification());
-                })
+                .filter(sc -> isSemantic ? structureClassificationService.isSemanticClassification(sc.getStructureClassification()) :
+                        structureClassificationService.isPhoneticClassification(sc.getStructureClassification()))
                 .collect(Collectors.toList());
 
         // allow to find entities having the same phonetic component recursively
@@ -267,9 +260,7 @@ public class EntityService extends ListRepositoryService<EntityX, Long, EntityRe
             while (!queue.isEmpty()) {
                 StructureComponent sc = queue.poll();
                 List<StructureComponent> relatedComponents = structureComponentRepository.findByStructure(sc.getStructureComponent()).stream()
-                        .filter(s -> {
-                            return structureClassificationService.isPhoneticClassification(s.getStructureClassification());
-                        })
+                        .filter(s -> structureClassificationService.isPhoneticClassification(s.getStructureClassification()))
                         .toList();
                 for (StructureComponent related : relatedComponents) {
                     if (!temp.contains(related)) {

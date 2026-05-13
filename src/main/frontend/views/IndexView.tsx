@@ -14,9 +14,7 @@ export default function IndexView() {
 
   return (
     <div className="view-container">
-      <div className="search-section">
-        <SearchBar />
-      </div>
+      <SearchBar />
 
       <div className="content-container">
           <div

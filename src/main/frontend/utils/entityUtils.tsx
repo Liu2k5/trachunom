@@ -24,6 +24,7 @@ import Structure from "Frontend/generated/com/liu/trachunom/entity/structure/Str
 import StructureComponent from "Frontend/generated/com/liu/trachunom/entity/structure/StructureComponent";
 import {findAdjustment, GlyphAdjustment} from "Frontend/utils/glyphAdjustment";
 import EntityEvolution from "Frontend/generated/com/liu/trachunom/entity/entity/EntityEvolution";
+import {inSupportedCjkRange} from "Frontend/utils/displayTroubleshooter";
 
 export {
     HnomQngu as HnomQngu,
@@ -67,7 +68,7 @@ const HnomQngu = ({entityId, markedId}: {entityId: number | undefined, markedId:
                 justifyContent: 'center',
                 color: entity?.id === markedId ? 'blue' : (entity?.attested ? 'black' : 'grey'),
                 position: 'relative',
-                margin: '0'
+                marginTop: '0.5em'
             }}
         >
             <div style={{ position: 'absolute', top: '-0.6em', left: 0, width: '100%', display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
@@ -186,14 +187,6 @@ function DrawEvolution ({entityId}: {entityId: number | undefined})  {
 }
 
 function EvolutionRow({evolution}: { evolution: EntityEvolutionDto | null | undefined }): JSX.Element {
-    // const [evolutions, setEvolutions] = useState<EntityEvolutionDto[] | null>(null);
-    // useEffect(() => {
-    //     getEntityEvolutionsByToEntityId(evolution?.fromEntityId)
-    //         .then((results: any) => {
-    //             setEvolutions(results ?? null);
-    //         })
-    //         .catch((error: any) => console.error('Error fetching evolutions:', error));
-    // }, [evolution?.fromEntityId]);
     const recursiveValue = evolution?.fromEntity ? <DrawEvolution entityId={evolution.fromEntityId}/> : undefined;
 
     return (
@@ -225,7 +218,11 @@ function EvolutionRow({evolution}: { evolution: EntityEvolutionDto | null | unde
                         color: 'black',
                     }}
                 >
-                    <div>
+                    <div
+                        style={{
+                            fontSize: '2em'
+                        }}
+                    >
                         <HnomQngu entityId={evolution?.fromEntityId} markedId={0}/>
                     </div>
                     <p>{evolution?.fromEntity?.explanationsString}</p>
@@ -251,7 +248,7 @@ function AnalyseStructure({structureId}: {structureId : number | undefined }): J
     useEffect(() => {
         StructureService.findById(structureId)
             .then(data => setStructure(data ?? undefined))
-    }, []);
+    }, [structureId]);
 
     useEffect(() => {
         if (!structure?.id) {
@@ -479,7 +476,7 @@ function DrawMeaningEvolution({meaningId}: {meaningId: number | undefined}): JSX
     useEffect(() => {
         MeaningService.findById(meaningId)
             .then(data => setMeaning(data ?? null));
-    }, []);
+    }, [meaningId]);
 
     if (!meaning) {
         return <div></div>;
@@ -608,8 +605,7 @@ let verticalGroup = ['⿱', '⿳'];
 let horizontalGroup = ['⿰', '⿲'];
 let wrapGroup = ['⿸', '⿺', '⿹', '⿽', '⿵', '⿷', '⿶', '⿼', '⿴'];
 let tripleGroup = ['⿳', '⿲'];
-let wrapCentreGroup = ['⿵', '⿷', '⿶', '⿼', '⿴'];
-let wrapCornerGroup = ['⿸', '⿺', '⿹', '⿽'];
+let wrapCentreGroup = ['⿵', '⿷', '⿶', '⿼', '⿴'];;
 let stackGroup = ['⿻'];
 
 async function calcStructureWidthHeight(structureId: number | undefined): Promise<[number, number]> {
@@ -786,7 +782,7 @@ function DrawStructure({ structureId, fontSize , parentStructureType, index}: { 
 
     if (
         // !structureTypeId
-        structure?.character
+        structure?.character && inSupportedCjkRange(structure.character.unicode ?? 0)
     ) {
         return <GlyphAdjustment structureId={structureId ?? 0} structureType={parentStructureType ?? ''} blankColour={'white'} fontSize={fontSize} index={index} key={structureId}/>;
     }
@@ -829,7 +825,7 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
         (async () => {
             for (let i = 0; i < splitSequences.length; i++) {
                 tempSizeList.push(await aggregateStructureTreeWidthHeight(splitSequences[i]));
-                console.log('splitSequence: ' + splitSequences[i] + " size: " + tempSizeList.at(-1));
+                // console.log('splitSequence: ' + splitSequences[i] + " size: " + tempSizeList.at(-1));
             }
             if (isActive) setSizeList(tempSizeList);
         })();
@@ -1197,8 +1193,10 @@ async function adjustStructureTree(input: (string | number)[]): Promise<(string 
     else if (wrapGroup.includes(stTypeDes) &&
         wrapGroup.includes(firstStTypeDes)) {
         console.log("case 3: " + stTypeDes + " " + firstStTypeDes);
+        // 𱑐
+        if (stTypeDes === '⿺' && firstStTypeDes === '⿺') output = ['⿺', ...firstStSequences[0], '⿰', ...firstStSequences[1], ...splitSequences[1]];
         // 逐 ⿶什
-        if (stTypeDes === '⿶' && firstStTypeDes === '⿺') {
+        else if (stTypeDes === '⿶' && firstStTypeDes === '⿺') {
             output = ['⿺', ...firstStSequences[0], '⿰', ...splitSequences[1], ...firstStSequences[1]];
         }
         // suppose ⿹羅車

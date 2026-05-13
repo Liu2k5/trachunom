@@ -28,7 +28,7 @@ html {
 body {
     background-color: var(--lumo-tint-5pct);
     color: var(--lumo-body-text-color);
-    font-family: var(--lumo-font-family);
+    font-family: var(--lumo-font-family), serif;
     -webkit-font-smoothing: antialiased;
     margin: 0;
 }
@@ -36,6 +36,7 @@ body {
 .view-container {
     width: 100%;
     box-sizing: border-box;
+    padding-top: 80px; /* Thêm khoảng trống để không bị đè bởi thanh tìm kiếm nổi */
 }
 
 .content-container {
@@ -44,16 +45,6 @@ body {
     margin: 0 auto;
     width: 100%;
     box-sizing: border-box;
-}
-
-.search-section {
-    background-color: var(--lumo-base-color);
-    padding: var(--lumo-space-m) var(--lumo-space-m);
-    border-bottom: 1px solid var(--lumo-contrast-10pct);
-    width: 100%;
-    box-sizing: border-box;
-    display: flex;
-    justify-content: center;
 }
 
 .search-section > * {

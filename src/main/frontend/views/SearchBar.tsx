@@ -2,6 +2,7 @@ import {useState} from "react";
 import {useNavigate, useSearchParams} from "react-router";
 import {correct} from "Frontend/utils/inputUtils";
 import {Button, TextField} from "@vaadin/react-components";
+import {DisplayTroubleshooter} from "Frontend/utils/displayTroubleshooter";
 
 export {SearchBar as SearchBar};
 
@@ -24,36 +25,67 @@ const SearchBar = () => {
         }
     };
 
+    const [isDialogOpened, setDialogOpened] = useState(false);
+
 
     return (
-    <div
-        style={{
-            display: 'flex',
-            gap: 'var(--lumo-space-m)',
-            alignItems: 'center',
-        }}
-    >
-        <img
-            src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/N%C3%B4m_1.png/960px-N%C3%B4m_1.png"
-            alt="Trang Chủ"
-            onClick={() => navigate('/')}
-            style={{ height: '40px', cursor: 'pointer', objectFit: 'contain' }}
-            title="Về Trang Chủ"
-        />
-        <TextField
-            placeholder="Nhập ký tự chữ Nôm..."
-            value={searchQuery}
-            onInput={(e: any) => setSearchQuery(e.target.value)}
-            onKeyDown={handleKeyDown}
-            style={{ flex: 1 }}
-            clearButtonVisible
-        />
-        <Button
-            theme="primary"
-            onClick={() => handleSearch(searchQuery)}
+    <>
+        <div
+            style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                width: '100vw',
+                backgroundColor: 'var(--lumo-base-color)',
+                zIndex: 1000,
+                boxSizing: 'border-box',
+                borderBottom: '1px solid var(--lumo-contrast-10pct)',
+            }}
         >
-            Tìm Kiếm
-        </Button>
-    </div>
+            <div
+                style={{
+                    display: 'flex',
+                    gap: 'var(--lumo-space-m)',
+                    alignItems: 'center',
+                    maxWidth: '1200px',
+                    margin: '0 auto',
+                    padding: 'var(--lumo-space-s) var(--lumo-space-m)',
+                    boxSizing: 'border-box',
+                }}
+            >
+                <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/N%C3%B4m_1.png/960px-N%C3%B4m_1.png"
+                    alt="Trang Chủ"
+                    onClick={() => navigate('/')}
+                    style={{ height: '40px', cursor: 'pointer', objectFit: 'contain' }}
+                    title="Về Trang Chủ"
+                />
+                <TextField
+                    placeholder="Nhập ký tự chữ Nôm..."
+                    value={searchQuery}
+                    onInput={(e: any) => setSearchQuery(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    style={{ flex: 1 }}
+                    clearButtonVisible
+                />
+                <Button
+                    theme="primary"
+                    onClick={() => handleSearch(searchQuery)}
+                >
+                    Tìm Kiếm
+                </Button>
+                <Button
+                    theme="secondary"
+                    onClick={() => setDialogOpened(!isDialogOpened)}
+                >
+                    Không thấy chữ?
+                </Button>
+            </div>
+        </div>
+        <div>
+            {isDialogOpened && (<DisplayTroubleshooter onClose={() => setDialogOpened(false)} />)}
+        </div>
+    </>
     );
 };

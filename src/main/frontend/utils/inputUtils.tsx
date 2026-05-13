@@ -85,7 +85,7 @@ function correct(input: string) {
         let finalConsonant = getFinalConsonant(word);
         let tone = separatedWordsAndTones.at(i)?.at(1) as number;
 
-        console.log(splitStrings[i] +  ": " + initialConsonant + " " + vowel + " " + finalConsonant + " " + tone);
+        // console.log(splitStrings[i] +  ": " + initialConsonant + " " + vowel + " " + finalConsonant + " " + tone);
 
         // case 1: clear combinations
         if (!confusingConsonants.includes(initialConsonant)) {
