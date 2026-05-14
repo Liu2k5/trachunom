@@ -1,5 +1,7 @@
 import {useState} from "react";
 import {Button, Dialog, RadioButton, RadioGroup} from "@vaadin/react-components";
+import Cookie from "js-cookie";
+
 const cjkData: [string, [number, number]][] = [
     ['0', [  0x4e00,     0x9fff]],
     ['A', [  0x3400,     0x4dbf]],
@@ -20,10 +22,10 @@ export {
 };
 const DisplayTroubleshooter = ({ onClose }: { onClose?: () => void }) => {
     const [cjkExt, setCjkExt] = useState<string>(() => {
-        return sessionStorage.getItem('cjkExt') ?? 'J';
+        return Cookie.get('cjkExt') ?? 'J';
     });
     const applyCjkExt = () => {
-        sessionStorage.setItem('cjkExt', cjkExt);
+        Cookie.set('cjkExt', cjkExt, {expires: 365});
         if (onClose) onClose();
         window.location.reload();
     }
@@ -75,7 +77,7 @@ const DisplayTroubleshooter = ({ onClose }: { onClose?: () => void }) => {
 }
 
 function inSupportedCjkRange(codepoint: number) {
-    let selectedCjkExt = sessionStorage.getItem('cjkExt') ?? 'J';
+    let selectedCjkExt = Cookie.get('cjkExt') ?? 'J';
     let realityCjkExt = 'J';
     for (let i = 0; i < cjkData.length; i++) {
         if (cjkData[i][1][0] <= codepoint && codepoint <= cjkData[i][1][1]) {

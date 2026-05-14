@@ -62,24 +62,18 @@ const SearchBar = () => {
                     title="Về Trang Chủ"
                 />
                 <TextField
-                    placeholder="Nhập ký tự chữ Nôm..."
+                    placeholder="trời 𡗶 天上"
                     value={searchQuery}
                     onInput={(e: any) => setSearchQuery(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    style={{ flex: 1 }}
+                    style={{ width: '100%', minWidth: '100px' }}
                     clearButtonVisible
                 />
-                <Button
-                    theme="primary"
-                    onClick={() => handleSearch(searchQuery)}
-                >
-                    Tìm Kiếm
-                </Button>
                 <Button
                     theme="secondary"
                     onClick={() => setDialogOpened(!isDialogOpened)}
                 >
-                    Không thấy chữ?
+                    空𧡊字？
                 </Button>
             </div>
         </div>

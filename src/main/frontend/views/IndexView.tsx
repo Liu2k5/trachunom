@@ -103,6 +103,15 @@ export default function IndexView() {
                   </li>
                 </ul>
               </section>
+
+                <section style={{ marginBottom: 'var(--lumo-space-l)' }}>
+                    <h2 style={{ fontSize: '1.25rem', borderBottom: '1px solid var(--lumo-contrast-10pct)', paddingBottom: 'var(--lumo-space-s)' }}>Nguồn dữ liệu</h2>
+                    <p>
+                        Xin gửi lời cảm ơn trân trọng tới Hội Bảo tồn Di sản Nôm vì những dữ liệu quý giá đã cung cấp, giúp dự án có thể phát triển và hoàn thiện hơn.
+                        Dữ liệu này là nền tảng quan trọng để xây dựng cơ sở dữ liệu chữ Nôm toàn diện và chính xác.
+                        Ngoài ra còn có sự đóng góp của các tài liệu được Thư viện Quốc gia công khai, từ điển tiếng Việt, cũng như từ các nhà nghiên cứu Hán Nôm.
+                    </p>
+                </section>
             </div>
           </div>
 

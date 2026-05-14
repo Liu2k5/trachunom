@@ -605,7 +605,7 @@ let verticalGroup = ['⿱', '⿳'];
 let horizontalGroup = ['⿰', '⿲'];
 let wrapGroup = ['⿸', '⿺', '⿹', '⿽', '⿵', '⿷', '⿶', '⿼', '⿴'];
 let tripleGroup = ['⿳', '⿲'];
-let wrapCentreGroup = ['⿵', '⿷', '⿶', '⿼', '⿴'];;
+let wrapCentreGroup = ['⿵', '⿷', '⿶', '⿼', '⿴'];
 let stackGroup = ['⿻'];
 
 async function calcStructureWidthHeight(structureId: number | undefined): Promise<[number, number]> {
@@ -795,13 +795,13 @@ function DrawStructure({ structureId, fontSize , parentStructureType, index}: { 
                 display: 'flex',
             }}
         >
-            <PaintStructureTree input={output} fontSize={fontSize} key={structureIds?.at(0) ?? 0}/>
+            <DrawStructureTree input={output} fontSize={fontSize} key={structureIds?.at(0) ?? 0}/>
         </div>
     );
 
 }
 
-function PaintStructureTree({input, fontSize}: {input: (string | number)[], fontSize: [number, number]}): JSX.Element {
+function DrawStructureTree({input, fontSize}: {input: (string | number)[], fontSize: [number, number]}): JSX.Element {
     let structureType = input[0] as string;
     const inputKey = JSON.stringify(input);
     const [splitSequences, setSplitSequences]= useState<(string | number)[][]>([]);
@@ -976,7 +976,7 @@ function PaintStructureTree({input, fontSize}: {input: (string | number)[], font
                     // if (temp == <div></div>)
                         temp = <DrawStructure structureId={o[0] as number} fontSize={newFontSize} parentStructureType={structureType} index={index}/>; // receive glyph adjustment here
                 } else {
-                    temp = <PaintStructureTree input={o} fontSize={newFontSize} />;
+                    temp = <DrawStructureTree input={o} fontSize={newFontSize} />;
                 }
                 
                 let childTop = '0%';
