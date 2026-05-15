@@ -3,7 +3,11 @@ import {Button, Dialog, RadioButton, RadioGroup} from "@vaadin/react-components"
 import Cookie from "js-cookie";
 
 const cjkData: [string, [number, number]][] = [
-    ['0', [  0x4e00,     0x9fff]],
+    ['0', [  0x2e80,     0xfaff]], // be careful of other chars not CJK
+    // ['0', [  0x4e00,     0x9fff]],
+    // ['SymbPunc', [  0x3000,     0x303f]],
+    // ['Comp', [  0xf900,     0xfaff]],
+    // ['Sup', [  0x2e80,     0x2eff]],
     ['A', [  0x3400,     0x4dbf]],
     ['B', [ 0x20000,    0x2a6df]],
     ['C', [ 0x2a700,    0x2b73f]],
@@ -47,7 +51,7 @@ const DisplayTroubleshooter = ({ onClose }: { onClose?: () => void }) => {
                     alignItems: 'start',
                 }}
             >
-                <span><h5>CJK Ext0</h5> <p>{String.fromCodePoint(cjkData[0][1][0], cjkData[0][1][0] + 1, cjkData[0][1][0] + 2)}</p></span>
+                <span><h5>CJK Main+Sup/Com</h5> <p>{String.fromCodePoint(cjkData[0][1][0], cjkData[0][1][0] + 1, cjkData[0][1][0] + 2)}</p></span>
                 <span><h5>CJK ExtA</h5> <p>{String.fromCodePoint(cjkData[1][1][0], cjkData[1][1][0] + 1, cjkData[1][1][0] + 2)}</p></span>
                 <span><h5>CJK ExtB</h5> <p>{String.fromCodePoint(cjkData[2][1][0], cjkData[2][1][0] + 1, cjkData[2][1][0] + 2)}</p></span>
                 <span><h5>CJK ExtC</h5> <p>{String.fromCodePoint(cjkData[3][1][0], cjkData[3][1][0] + 1, cjkData[3][1][0] + 2)}</p></span>
@@ -67,7 +71,7 @@ const DisplayTroubleshooter = ({ onClose }: { onClose?: () => void }) => {
             >
                 {['0', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'].map(ext => (
                     <RadioButton
-                        key={ext} value={ext} label={'Ext ' + ext}
+                        key={ext} value={ext} label={ext}
                     />
                 ))}
             </RadioGroup>

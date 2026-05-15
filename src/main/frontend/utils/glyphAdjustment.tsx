@@ -7,7 +7,7 @@ export {
     GlyphAdjustment as GlyphAdjustment,
     findAdjustment as findAdjustment,
 };
-function GlyphAdjustment({structureId, structureType, blankColour, fontSize, index}: {structureId: number, structureType: string, blankColour: string, fontSize: [number, number], index: number}): JSX.Element | undefined {
+function GlyphAdjustment({structureId, structureType, fontSize, index}: {structureId: number, structureType: string, blankColour: string, fontSize: [number, number], index: number}): JSX.Element | undefined {
     const [structure, setStructure] = useState<Structure | undefined>(undefined);
     useEffect(() => {
         StructureService.findById(structureId).then(o => setStructure(o));
@@ -28,35 +28,31 @@ function GlyphAdjustment({structureId, structureType, blankColour, fontSize, ind
     let blankEndX = adjustment[7];
     let blankEndY = adjustment[8];
 
+    let width = (blankEndX - blankStartX) + 'em';
+    let height = (blankEndY - blankStartY) + 'em';
+
     return (
         <div
             style={{
                 position: 'relative',
+                transform: 'scale(' + scaleX * fontSize[0] + ', ' + scaleY * fontSize[1] + ')',
+                WebkitMaskImage: `linear-gradient(#000, #000), linear-gradient(#000, #000)`,
+                WebkitMaskSize: `${width} ${height}, 100% 100%`,
+                WebkitMaskPosition: `${blankStartX}em ${blankStartY}em, 0 0`,
+                WebkitMaskRepeat: `no-repeat`,
+                WebkitMaskComposite: `destination-out`,
+                maskComposite: `exclude`,
             }}
         >
             <div
                 style={{
                     position: 'relative',
-                    transform: 'scale(' + scaleX * fontSize[0] + ', ' + scaleY * fontSize[1] + ')',
                     left: rightMove + 'em',
                     top: bottomMove + 'em',
                 }}
             >
                 {glyph}
             </div>
-            <div
-                style={{
-                    position: 'absolute',
-                    backgroundColor: blankColour,
-                    width: blankEndX - blankStartX + 'em',
-                    height: blankEndY - blankStartY + 'em',
-                    // left: '⿸⿺⿷'.includes(structureType) ? (blankStartX + 'em') : ('⿵⿶⿴'.includes(structureType) ? ((blankStartX) / 2 + 'em') : 'unset'),
-                    // top: '⿸⿹⿵'.includes(structureType) ? (blankStartY + 'em') : ('⿷⿶⿼⿴'.includes(structureType) ? ((blankStartY) / 2 + 'em') : 'unset'),
-                    left: blankStartX + 'em',
-                    top: blankStartY + 'em',
-                    // opacity: '0.5'
-                }}
-            />
         </div>
     );
 }
@@ -81,12 +77,18 @@ const data: [string, string, number, string, number, number, number, number, num
     // (centre or leftmost), it is recommended to adjust the compound characters to prevent it,
     // like 礼 in lieu of 礻
     ['扌', '⿰',   0,  '' , 2,   1,   0,   0,    0,   0,   0,    0],
-    ['礻', '⿰',   0, '礼', 2,   1,0.25,   0, 0.75, 0.0,1.75,  1.1],
-    ['衤', '⿰',   0, '补', 2,   1,0.15,   0, 0.7, 0.0,1.75,  1.1],
+    ['礻', '⿰',   0, '礼', 2,   1,0.15,   0, 0.70, 0.0,1.75,  1.1],
+    ['衤', '⿰',   0, '补', 2,   1,0.15,   0, 0.75, 0.0,1.75,  1.1],
     // ['礻', '⿰',   0,   '', 2.5,   1,0.,   0, 0.75, 0.0,1.25,  1],
-    ['女', '⿰',   0, '如', 2,   1,0.25,   0, 0.75, 0.0,1.25,  1],
-    ['罒', '⿱',   0,   '', 1,   3,   0,   0.25,    0,   0,   0,   0],
-    ['乚', '⿺',   0,  '' , 1.3,   1,   0.05,   0,   0,   0,   0,   0],
+    ['彳', '⿰',   0,  '' , 2,   1,   0,   0,    0,   0,   0,    0],
+    ['女', '⿰',   0, '如', 2,   1,0.25,   0, 0.8, 0.0,1.25,  1.1],
+    ['米', '⿰',   0, '粑', 2.5,   1,0.25,   0, 0.71, 0.0,1.25,  1.1],
+    ['口', '⿰',   0, '叫', 2,   1,0.25,   0, 0.7, 0.0,1.5,  1.1],
+    ['日', '⿰',   0, '旰', 2,   1,0.25,   0, 0.6, 0.0,1.5,  1.1],
+    ['罒', '⿱',   0,   '', 1,   2,   0,   0.25,    0,   0,   0,   0],
+    ['⻗', '⿱',   0,   '', 1,   2,   0,   0.25,    0,   0,   0,   0],
+    // ['雨', '⿱',   0, '雷', 1,   2,   0,   0.25,    0, 0.77,   1, 1.5],
+    ['乚', '⿺',   0,  '' , 1.0,   1,   0.05,   0,   0,   0,   0,   0],
     ['辶', '⿺',   0,  '' ,   1,   1,   0,   0,   0,   0,   0,   0],
     ['囗', '⿴',   0,  '' ,   1,   1,   0,   0, 0.1, 0.1, 0.9, 0.9],
     ['门', '⿵',   0,  '' ,   1,   1,   0,   0, 0.1, 0.3, 0.9, 1.0],

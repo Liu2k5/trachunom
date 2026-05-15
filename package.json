@@ -121,9 +121,9 @@
       "workbox-core": "7.3.0",
       "workbox-precaching": "7.3.0"
     },
-    "hash": "e15f672f502b52ad048c2f32f5eee84a7d4c3919b1e00d7e99416e4089cbf333"
+    "hash": "4f48567a20bf70319b3b415bc2b257544fad5ed7aac5154bb010a8054cbba071"
   },
-  "pnpm": {},
+  "pnpm": { },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
     "@vaadin/polymer-legacy-adapter": "$@vaadin/polymer-legacy-adapter",

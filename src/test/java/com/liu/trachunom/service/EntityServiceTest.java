@@ -4,21 +4,17 @@ package com.liu.trachunom.service;
 import com.liu.trachunom.entity.entity.EntityX;
 import com.liu.trachunom.service.entity.EntityCompositionService;
 import com.liu.trachunom.service.entity.EntityService;
+import com.liu.trachunom.service.structure.StructureService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.util.List;
-
 import static com.helger.commons.mock.CommonsAssert.assertEquals;
-import static reactor.core.publisher.Mono.when;
 
 @SpringBootTest
 public class EntityServiceTest {
     @Autowired
     private EntityService entityService;
-    @Autowired
-    private EntityCompositionService entityCompositionService;
 
 //    @Test
 //    public void test() {
@@ -48,4 +44,11 @@ public class EntityServiceTest {
 //        when(meaningService.findAll()).then(return )
 //        System.out.println(synoyms.size());
 //    }
+
+    @Test
+    public void test4() {
+        String charString = entityService.getHnomStringById(709L);
+//        assertEquals(charString.codePointAt(0), 0x2ed7);
+        System.out.println(charString);
+    }
 }

@@ -71,7 +71,7 @@ const HnomQngu = ({entityId, markedId}: {entityId: number | undefined, markedId:
                 marginTop: '0.5em'
             }}
         >
-            <div style={{ position: 'absolute', top: '-0.6em', left: 0, width: '100%', display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
+            <div style={{ position: 'absolute', top: '-0.6em', left: 0, width: '100%', display: 'flex', justifyContent: 'center', pointerEvents: 'none', zIndex : 1 }}>
                 <span style={{ fontSize: '0.6em', margin: '0px', lineHeight: '1em', transform: 'scale(0.5, 1)', transformOrigin: '50% 50%', whiteSpace: 'nowrap' }}>
                     {qnguString}
                 </span>
@@ -623,6 +623,7 @@ async function calcStructureWidthHeight(structureId: number | undefined): Promis
     // console.log(structureId + " " + structure?.structureType?.description + " " + structure?.characterString);
     // case of chu tuong hinh
     if (!structure?.structureType) return [structure?.width ?? 1, structure?.height ?? 1];
+    if (structure.width && structure.height) return [structure.width, structure.height];
 
     let structureTypeDescription =  structure.structureType.description;
     structureComponents = await StructureComponentService.findByStructureId(structure.id)
@@ -656,8 +657,6 @@ async function calcStructureWidthHeight(structureId: number | undefined): Promis
         })();
 
     }
-    if (structure.width) output = [structure.width, output[1]];
-    if (structure.height) output = [output[0], structure.height];
     // console.log(structure.characterString + " " +  structure.width + ", " + structure.height);
 
     // console.log('here is the output of ' + structure.characterString + ': '+ output.at(0) + ", "  + output.at(1));
@@ -784,7 +783,7 @@ function DrawStructure({ structureId, fontSize , parentStructureType, index}: { 
         // !structureTypeId
         structure?.character && inSupportedCjkRange(structure.character.unicode ?? 0)
     ) {
-        return <GlyphAdjustment structureId={structureId ?? 0} structureType={parentStructureType ?? ''} blankColour={'white'} fontSize={fontSize} index={index} key={structureId}/>;
+        return <GlyphAdjustment structureId={structureId ?? 0} structureType={parentStructureType ?? ''} fontSize={fontSize} index={index} key={structureId}/>;
     }
 
     return (
@@ -974,6 +973,7 @@ function DrawStructureTree({input, fontSize}: {input: (string | number)[], fontS
                 if (o.length == 1 && !structureTypes.includes(o[0] as string)) {
                     // temp = <GlyphAdjustment structureId={o[0] as number} structureType={structureType} blankColour={'white'} fontSize={fontSize}/>;
                     // if (temp == <div></div>)
+                    // console.log('call DrawStructure with structureId= ' + o[0]);
                         temp = <DrawStructure structureId={o[0] as number} fontSize={newFontSize} parentStructureType={structureType} index={index}/>; // receive glyph adjustment here
                 } else {
                     temp = <DrawStructureTree input={o} fontSize={newFontSize} />;
@@ -1153,7 +1153,7 @@ async function adjustStructureTree(input: (string | number)[]): Promise<(string 
     // case 1
     if (wrapGroup.includes(stTypeDes) &&
         !structureTypes.includes(firstStTypeDes)) {
-        console.log("case 1: " + stTypeDes + " " + firstStTypeDes);
+        // console.log("case 1: " + stTypeDes + " " + firstStTypeDes);
         // console.log('firstStTypeDes splitSequence[1]: ' + firstStTypeDes + ', ' + splitSequences[1]);
         //⿸⿹⿵⿶'.includes(stTypeDes)) output = ['⿱', firstStTypeDes, ...splitSequences[1]];
         // if (fetchedFromDb) {
@@ -1168,7 +1168,7 @@ async function adjustStructureTree(input: (string | number)[]): Promise<(string 
     else if (wrapGroup.includes(stTypeDes) &&
         structureTypes.includes(firstStTypeDes) &&
         !wrapGroup.includes(firstStTypeDes)) {
-        console.log("case 2: " + stTypeDes + " " + firstStTypeDes);
+        // console.log("case 2: " + stTypeDes + " " + firstStTypeDes);
 
         if (stTypeDes === '⿺' && firstStTypeDes === '⿰') {
             // 𥙩
@@ -1190,9 +1190,11 @@ async function adjustStructureTree(input: (string | number)[]): Promise<(string 
         else if (stTypeDes === '⿸' && firstStTypeDes === '⿱') output = ['⿱', ...firstStSequences[0], '⿰', ...firstStSequences[1], ...splitSequences[1]];
 
     }
+
+    // case 3
     else if (wrapGroup.includes(stTypeDes) &&
         wrapGroup.includes(firstStTypeDes)) {
-        console.log("case 3: " + stTypeDes + " " + firstStTypeDes);
+        // console.log("case 3: " + stTypeDes + " " + firstStTypeDes);
         // 𱑐
         if (stTypeDes === '⿺' && firstStTypeDes === '⿺') output = ['⿺', ...firstStSequences[0], '⿰', ...firstStSequences[1], ...splitSequences[1]];
         // 逐 ⿶什
@@ -1202,6 +1204,18 @@ async function adjustStructureTree(input: (string | number)[]): Promise<(string 
         // suppose ⿹羅車
         else if (stTypeDes === '⿹' && firstStTypeDes === '⿹') {
             output = ['⿱', ...firstStSequences[0], '⿹', ...firstStSequences[1], ...splitSequences[1]];
+        }
+    }
+
+    // case 4
+    else if (tripleGroup.includes(stTypeDes)) {
+        // console.log("case 4: " + stTypeDes + " " + firstStTypeDes);
+        // 𧗱
+        if (stTypeDes === '⿲') {
+            output = ['⿰', ...splitSequences[0], '⿰', ...splitSequences[1], ...splitSequences[2]];
+        }
+        else if (stTypeDes === '⿳') {
+            output = ['⿱', ...splitSequences[0], '⿱', ...splitSequences[1], ...splitSequences[2]];
         }
     }
 
