@@ -24,7 +24,7 @@ class StructureComponentDtoModel<T extends StructureComponentDto_1 = StructureCo
         return this[_getPropertyModel_1]("quantity", (parent, key) => new NumberModel_1(parent, key, true, { meta: { javaType: "java.lang.Integer" } }));
     }
     get position(): NumberModel_1 {
-        return this[_getPropertyModel_1]("position", (parent, key) => new NumberModel_1(parent, key, true, { meta: { javaType: "java.lang.Integer" } }));
+        return this[_getPropertyModel_1]("position", (parent, key) => new NumberModel_1(parent, key, true, { meta: { javaType: "java.lang.Long" } }));
     }
 }
 export default StructureComponentDtoModel;

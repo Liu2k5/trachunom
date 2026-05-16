@@ -101,7 +101,7 @@ const HnomQngu = ({entityId, markedId}: {entityId: number | undefined, markedId:
                                 // marginTop: '-1%',
                                 padding: '0',
                                 // position: 'absolute',
-                                // backgroundColor: 'lightgray',
+                                backgroundColor: 'lightgray',
                             }}
                         >
                             <DrawStructureInitialiser structureId={Number.parseInt(entity?.structureId ?? 0 as unknown as string)}/>
@@ -743,7 +743,7 @@ function DrawStructure({ structureId, fontSize , parentStructureType, index}: { 
         StructureComponentService.findByStructureId(fetchedId)
             .then(data => data?.filter(o => o != undefined))
             .then(data =>
-                data?.sort((o1, o2) => (o1.position ?? 0) - (o2.position ?? 0)))
+                data?.sort((o1, o2) => (o1.id?.position ?? 0) - (o2.id?.position ?? 0)))
             .then(filtered => setStructureComponents(filtered ?? undefined))
             .catch(err => console.error(err));
     }, [descriptionStructure?.id, structureId]);
@@ -758,7 +758,7 @@ function DrawStructure({ structureId, fontSize , parentStructureType, index}: { 
     }, [structureComponents]);
 
     let description = descriptionStructure?.structureType?.description ?? structure?.structureType?.description ?? 'null';
-    const [output, setOutput] = useState<(string | number)[]>([]);
+    let output: (string | number)[] = [];
 
     let structureIds = structures?.map(o => o.id).filter(o => o != undefined);
     const structureIdsKey = JSON.stringify(structureIds);
@@ -772,11 +772,11 @@ function DrawStructure({ structureId, fontSize , parentStructureType, index}: { 
     // => 3: xu li khac nhau:
     // 𱑐 => cau tao long + cau tao ngang (辵 long (豕 va 什))
 
-    useEffect(() => {
-        adjustStructureTree([description ?? '⿰', ...(structureIds ?? [])])
-            .then(adjusted => setOutput(adjusted))
-            .catch(err => console.error(err));
-    }, [description, structureIdsKey]);
+    if (!structure?.character || !structureIdsKey) {
+        return (<div></div>);
+    }
+
+    output = [description ?? '⿰', ...(structureIds ?? [])];
     // output=  // ⿰ is default
 
     if (
@@ -895,6 +895,17 @@ function DrawStructureTree({input, fontSize}: {input: (string | number)[], fontS
     else if (stackGroup.includes(structureType)) {
         percentWidthList = [1, 1];
         percentHeightList = [1, 1];
+    }
+    // example: 吅， 棗, ... have the first component a little narrower
+    else if (!wrapGroup.includes(structureType) &&
+            !tripleGroup.includes(structureType)) {
+        if (horizontalGroup.includes(structureType) &&
+        percentWidthList[0] == percentWidthList[1]) {
+            percentWidthList = [0.44, 0.56];
+        } else if (verticalGroup.includes(structureType) &&
+        percentHeightList[0] == percentHeightList[1]) {
+            percentHeightList = [0.44, 0.56];
+        }
     }
     // example: 咾 and 𦒵
     else if (horizontalGroup.includes(structureType) &&
@@ -1149,7 +1160,7 @@ async function adjustStructureTree(input: (string | number)[]): Promise<(string 
 
     let firstStSequences = splitStructureSequence([firstStTypeDes, ...firstStSequence]);
 
-    output = [stTypeDes, ...splitSequences[0], ...splitSequences[1]];
+    output = [stTypeDes, ...splitSequences.flat()];
     // case 1
     if (wrapGroup.includes(stTypeDes) &&
         !structureTypes.includes(firstStTypeDes)) {
@@ -1204,18 +1215,6 @@ async function adjustStructureTree(input: (string | number)[]): Promise<(string 
         // suppose ⿹羅車
         else if (stTypeDes === '⿹' && firstStTypeDes === '⿹') {
             output = ['⿱', ...firstStSequences[0], '⿹', ...firstStSequences[1], ...splitSequences[1]];
-        }
-    }
-
-    // case 4
-    else if (tripleGroup.includes(stTypeDes)) {
-        // console.log("case 4: " + stTypeDes + " " + firstStTypeDes);
-        // 𧗱
-        if (stTypeDes === '⿲') {
-            output = ['⿰', ...splitSequences[0], '⿰', ...splitSequences[1], ...splitSequences[2]];
-        }
-        else if (stTypeDes === '⿳') {
-            output = ['⿱', ...splitSequences[0], '⿱', ...splitSequences[1], ...splitSequences[2]];
         }
     }
 

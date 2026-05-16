@@ -21,6 +21,6 @@ public class StructureComponentDto {
     private Long classificationId;
     private String classificationDescription;
     private Integer quantity;
-    private Integer position;
+    private Long position;
 }
 

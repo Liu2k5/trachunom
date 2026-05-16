@@ -188,7 +188,7 @@ public class EntityMapper {
                 .classificationDescription(structureComponent.getStructureClassification() != null ?
                         structureComponent.getStructureClassification().getDescription() : null)
                 .quantity(structureComponent.getQuantity())
-                .position(structureComponent.getId() != null ? structureComponent.getPosition() : 0)
+                .position(structureComponent.getId() != null ? structureComponent.getId().getPosition() : 0)
                 .build();
     }
 
@@ -525,6 +525,7 @@ public class EntityMapper {
                 .structureId(structureComponentDto.getStructureId())
                 .structureComponentId(structureComponentDto.getStructureComponentId())
                 .classificationId(structureComponentDto.getClassificationId())
+                .position(structureComponentDto.getPosition())
                 .build();
 
         return StructureComponent.builder()
@@ -536,7 +537,6 @@ public class EntityMapper {
                 .structureClassification(structureComponentDto.getClassificationId() != null ?
                     structureClassificationService.findById(structureComponentDto.getClassificationId()) : null)
                 .quantity(structureComponentDto.getQuantity())
-                .position(structureComponentDto.getPosition())
                 .build();
     }
 

@@ -7,7 +7,7 @@ export {
     GlyphAdjustment as GlyphAdjustment,
     findAdjustment as findAdjustment,
 };
-function GlyphAdjustment({structureId, structureType, fontSize, index}: {structureId: number, structureType: string, blankColour: string, fontSize: [number, number], index: number}): JSX.Element | undefined {
+function GlyphAdjustment({structureId, structureType, fontSize, index}: {structureId: number, structureType: string, fontSize: [number, number], index: number}): JSX.Element | undefined {
     const [structure, setStructure] = useState<Structure | undefined>(undefined);
     useEffect(() => {
         StructureService.findById(structureId).then(o => setStructure(o));
@@ -84,10 +84,15 @@ const data: [string, string, number, string, number, number, number, number, num
     ['女', '⿰',   0, '如', 2,   1,0.25,   0, 0.8, 0.0,1.25,  1.1],
     ['米', '⿰',   0, '粑', 2.5,   1,0.25,   0, 0.71, 0.0,1.25,  1.1],
     ['口', '⿰',   0, '叫', 2,   1,0.25,   0, 0.7, 0.0,1.5,  1.1],
-    ['日', '⿰',   0, '旰', 2,   1,0.25,   0, 0.6, 0.0,1.5,  1.1],
+    ['日', '⿰',   0, '旰', 2.5,   1,0.25,   0, 0.61, 0.0,1.5,  1.1],
     ['罒', '⿱',   0,   '', 1,   2,   0,   0.25,    0,   0,   0,   0],
     ['⻗', '⿱',   0,   '', 1,   2,   0,   0.25,    0,   0,   0,   0],
     // ['雨', '⿱',   0, '雷', 1,   2,   0,   0.25,    0, 0.77,   1, 1.5],
+
+    ['彳', '⿲',   0,  '' , 2,   1,   0,   0,    0,   0,   0,    0],
+    ['米', '⿲',   1, '粑', 2.5,   1,0.25,   0, 0.71, 0.0,1.25,  1.1],
+    ['爫', '⿱',   0, '',   1,   2,   0.,   0.2,    1,   0,   1.2,   1],
+
     ['乚', '⿺',   0,  '' , 1.0,   1,   0.05,   0,   0,   0,   0,   0],
     ['辶', '⿺',   0,  '' ,   1,   1,   0,   0,   0,   0,   0,   0],
     ['囗', '⿴',   0,  '' ,   1,   1,   0,   0, 0.1, 0.1, 0.9, 0.9],

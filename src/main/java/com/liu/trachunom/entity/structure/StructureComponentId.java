@@ -14,4 +14,5 @@ public class StructureComponentId implements Serializable {
     private Long structureId;
     private Long structureComponentId;
     private Long classificationId;
+    private Long position;
 }

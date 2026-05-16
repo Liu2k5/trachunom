@@ -2,12 +2,14 @@ import {useState} from "react";
 import {Button, Dialog, RadioButton, RadioGroup} from "@vaadin/react-components";
 import Cookie from "js-cookie";
 
-const cjkData: [string, [number, number]][] = [
-    ['0', [  0x2e80,     0xfaff]], // be careful of other chars not CJK
-    // ['0', [  0x4e00,     0x9fff]],
-    // ['SymbPunc', [  0x3000,     0x303f]],
-    // ['Comp', [  0xf900,     0xfaff]],
-    // ['Sup', [  0x2e80,     0x2eff]],
+const cjkMainCpRangeData: [number, number][] = [
+    [  0x4e00,    0x9fff], // cjk
+    [  0x3000,    0x303f], // symb & punct
+    [  0xf900,    0xfaff], // comp
+    [  0x2e80,    0x2eff]  // sup
+];
+
+const cjkExtCpRangeData: [string, [number, number]][] = [
     ['A', [  0x3400,     0x4dbf]],
     ['B', [ 0x20000,    0x2a6df]],
     ['C', [ 0x2a700,    0x2b73f]],
@@ -18,6 +20,11 @@ const cjkData: [string, [number, number]][] = [
     ['H', [ 0x31350,    0x323af]],
     ['I', [ 0x2ebf0,    0x2ee5f]],
     ['J', [ 0x323b0,    0x3347f]]
+];
+
+// characters which were encoded into one of the previous cjk extensions at meantime
+const cpPlaceException: [number, string][] = [
+    [0x2b735, 'H'],
 ];
 
 export {
@@ -51,17 +58,10 @@ const DisplayTroubleshooter = ({ onClose }: { onClose?: () => void }) => {
                     alignItems: 'start',
                 }}
             >
-                <span><h5>CJK Main+Sup/Com</h5> <p>{String.fromCodePoint(cjkData[0][1][0], cjkData[0][1][0] + 1, cjkData[0][1][0] + 2)}</p></span>
-                <span><h5>CJK ExtA</h5> <p>{String.fromCodePoint(cjkData[1][1][0], cjkData[1][1][0] + 1, cjkData[1][1][0] + 2)}</p></span>
-                <span><h5>CJK ExtB</h5> <p>{String.fromCodePoint(cjkData[2][1][0], cjkData[2][1][0] + 1, cjkData[2][1][0] + 2)}</p></span>
-                <span><h5>CJK ExtC</h5> <p>{String.fromCodePoint(cjkData[3][1][0], cjkData[3][1][0] + 1, cjkData[3][1][0] + 2)}</p></span>
-                <span><h5>CJK ExtD</h5> <p>{String.fromCodePoint(cjkData[4][1][0], cjkData[4][1][0] + 1, cjkData[4][1][0] + 2)}</p></span>
-                <span><h5>CJK ExtE</h5> <p>{String.fromCodePoint(cjkData[5][1][0], cjkData[5][1][0] + 1, cjkData[5][1][0] + 2)}</p></span>
-                <span><h5>CJK ExtF</h5> <p>{String.fromCodePoint(cjkData[6][1][0], cjkData[6][1][0] + 1, cjkData[6][1][0] + 2)}</p></span>
-                <span><h5>CJK ExtG</h5> <p>{String.fromCodePoint(cjkData[7][1][0], cjkData[7][1][0] + 1, cjkData[7][1][0] + 2)}</p></span>
-                <span><h5>CJK ExtH</h5> <p>{String.fromCodePoint(cjkData[8][1][0], cjkData[8][1][0] + 1, cjkData[8][1][0] + 2)}</p></span>
-                <span><h5>CJK ExtI</h5> <p>{String.fromCodePoint(cjkData[9][1][0], cjkData[9][1][0] + 1, cjkData[9][1][0] + 2)}</p></span>
-                <span><h5>CJK ExtJ</h5> <p>{String.fromCodePoint(cjkData[10][1][0],cjkData[10][1][0] + 1,cjkData[10][1][0] + 2)}</p></span>
+                <span><h5>CJK Cơ bản</h5> <p>{String.fromCodePoint(cjkMainCpRangeData[0][0], cjkMainCpRangeData[0][0] + 1, cjkMainCpRangeData[0][0] + 2)}</p></span>
+                {cjkExtCpRangeData.map((ext) => (
+                    <span><h5>CJK Ext{ext[0]}</h5> <p>{String.fromCodePoint(ext[1][0], ext[1][0] + 1, ext[1][0] + 2)}</p></span>
+                ))}
             </div>
             <RadioGroup
                 label={'Chọn phần mở rộng chữ Hán cao nhất bạn có thể thấy:'}
@@ -69,7 +69,7 @@ const DisplayTroubleshooter = ({ onClose }: { onClose?: () => void }) => {
                 onValueChanged={(e) => setCjkExt(e.detail.value ?? '???')}
                 style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--lumo-space-m)' }}
             >
-                {['0', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'].map(ext => (
+                {['0', ...cjkExtCpRangeData.map(ext => ext[0]).flat()].map(ext => (
                     <RadioButton
                         key={ext} value={ext} label={ext}
                     />
@@ -83,13 +83,36 @@ const DisplayTroubleshooter = ({ onClose }: { onClose?: () => void }) => {
 function inSupportedCjkRange(codepoint: number) {
     let selectedCjkExt = Cookie.get('cjkExt') ?? 'J';
     let realityCjkExt = 'J';
-    for (let i = 0; i < cjkData.length; i++) {
-        if (cjkData[i][1][0] <= codepoint && codepoint <= cjkData[i][1][1]) {
-            realityCjkExt = cjkData[i][0];
+    let hasCpPlaceException = false;
+    let isInCjkMainCpRange = false;
+
+    // if the char is one of the exception of cjk extension place
+    for (let i = 0; i < cpPlaceException.length; i++) {
+        if (cpPlaceException[i][0] == codepoint) {
+            realityCjkExt = cpPlaceException[i][1];
+            hasCpPlaceException = true;
             break;
         }
     }
-    let cjkExtName = cjkData.map(x => x[0]);
+    if (!hasCpPlaceException) {
+        // if the char is in base codepoint ranges
+        for (let i = 0; i < cjkMainCpRangeData.length; i++) {
+            if (cjkMainCpRangeData[i][0] <= codepoint && codepoint <= cjkMainCpRangeData[i][1]) {
+                realityCjkExt = "0";
+                isInCjkMainCpRange = true;
+                break;
+            }
+        }
+        if (!isInCjkMainCpRange) {
+            for (let i = 0; i < cjkExtCpRangeData.length; i++) {
+                if (cjkExtCpRangeData[i][1][0] <= codepoint && codepoint <= cjkExtCpRangeData[i][1][1]) {
+                    realityCjkExt = cjkExtCpRangeData[i][0];
+                    break;
+                }
+            }
+        }
+    }
+    let cjkExtName = cjkExtCpRangeData.map(x => x[0]);
     return cjkExtName.indexOf(realityCjkExt) <= cjkExtName.indexOf(selectedCjkExt);
 
 }

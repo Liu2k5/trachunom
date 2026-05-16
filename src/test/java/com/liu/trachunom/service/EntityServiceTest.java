@@ -2,9 +2,7 @@ package com.liu.trachunom.service;
 
 
 import com.liu.trachunom.entity.entity.EntityX;
-import com.liu.trachunom.service.entity.EntityCompositionService;
 import com.liu.trachunom.service.entity.EntityService;
-import com.liu.trachunom.service.structure.StructureService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -45,10 +43,4 @@ public class EntityServiceTest {
 //        System.out.println(synoyms.size());
 //    }
 
-    @Test
-    public void test4() {
-        String charString = entityService.getHnomStringById(709L);
-//        assertEquals(charString.codePointAt(0), 0x2ed7);
-        System.out.println(charString);
-    }
 }

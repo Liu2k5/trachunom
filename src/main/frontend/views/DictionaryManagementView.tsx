@@ -1154,12 +1154,13 @@ const StructureTabContent = () => {
                             path: 'structureClassification.description',
                         },
                         quantity: {header: 'Số lượng', filterable: false},
-                        position: {
-                            header: 'Vị trí',
-                            filterable: false,
-                        }
                     }}
                     customColumns={[
+                        <GridColumn header="Vị trí" renderer={({item}) => {
+                            const position = item.id.position;
+                            if (position == null) return 'N/A';
+                            return position;
+                        }} />,
                         <GridColumn header="Xóa" renderer={deleteStructureComponentRenderer} />,
                     ]}
                     hiddenColumns={['structure']}
