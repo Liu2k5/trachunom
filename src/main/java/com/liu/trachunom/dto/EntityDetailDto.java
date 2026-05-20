@@ -1,7 +1,6 @@
 package com.liu.trachunom.dto;
 
 import com.liu.trachunom.entity.entity.EntityX;
-import com.liu.trachunom.entity.structure.Structure;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -35,7 +34,7 @@ public class EntityDetailDto {
     private List<EntityCompositionDto> compositions;
     private List<EntityEvolutionDto> evolutions;
     private List<EntityDto> synonyms;
-    private List<EntityDto> variances;
+    private List<EntityDto> variants;
     private List<ExampleDto> examples;
     private List<EntityDto> compositionComponents;
     private List<EntityDto> beingSemanticComponents;

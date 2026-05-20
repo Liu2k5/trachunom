@@ -5,7 +5,6 @@ import java.util.List;
 import com.liu.trachunom.entity.structure.StructureComponentId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.liu.trachunom.entity.structure.Structure;
@@ -23,6 +22,8 @@ public interface StructureComponentRepository extends JpaRepository<StructureCom
     void deleteByStructure(Structure structure);
 
     List<StructureComponent> findByStructureComponent(Structure structure);
+
+    List<StructureComponent> findByStructureComponentId(Long structureComponentId);
 
 //    @Override
 //    @Query("SELECT sc FROM StructureComponent sc " +

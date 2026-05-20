@@ -103,8 +103,8 @@ public class EntityDetailEndpoint {
         dto.setSynonyms(entityMapper.toEntityDtoList(synonyms));
 
         // Get variances
-        List<EntityX> variances = entityService.findVariances(entity);
-        dto.setVariances(entityMapper.toEntityDtoList(variances));
+        List<EntityX> variances = entityService.findVariants(entity);
+        dto.setVariants(entityMapper.toEntityDtoList(variances));
 
         // Get examples
         List<Example> examples = exampleService.findByEntityId(id);
@@ -139,7 +139,7 @@ public class EntityDetailEndpoint {
 
     public List<EntityDto> getVariancesByEntityId(Long entityId) {
         EntityX entity = entityService.findById(entityId);
-        List<EntityX> variances = entityService.findVariances(entity);
+        List<EntityX> variances = entityService.findVariants(entity);
         return entityMapper.toEntityDtoList(variances);
     }
 

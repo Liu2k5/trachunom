@@ -231,13 +231,13 @@ export default function EntityDetailView() {
                     )}
 
                     {/* Variances */}
-                    {entity.variances && entity.variances.length > 0 && (
+                    {entity.variants && entity.variants.length > 0 && (
                         <section style={{marginBottom: 'var(--lumo-space-l)'}}>
                             <h2 className="section-title">Biến thể</h2>
                             <div style={{display: 'flex', flexWrap: 'wrap', gap: 'var(--lumo-space-m)', fontSize: '2em'}}>
-                                {entity.variances.map(variance =>
-                                    variance ? (
-                                        <HnomQngu key={variance.id} entityId={variance.id} markedId={0}/>
+                                {entity.variants.map(variant =>
+                                    variant ? (
+                                        <HnomQngu key={variant.id} entityId={variant.id} markedId={0}/>
                                     ) : null
                                 )}
                             </div>

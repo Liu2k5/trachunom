@@ -25,7 +25,7 @@ interface EntityDetailDto {
     compositions?: Array<EntityCompositionDto_1 | undefined>;
     evolutions?: Array<EntityEvolutionDto_1 | undefined>;
     synonyms?: Array<EntityDto_1 | undefined>;
-    variances?: Array<EntityDto_1 | undefined>;
+    variants?: Array<EntityDto_1 | undefined>;
     examples?: Array<ExampleDto_1 | undefined>;
     compositionComponents?: Array<EntityDto_1 | undefined>;
     beingSemanticComponents?: Array<EntityDto_1 | undefined>;

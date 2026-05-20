@@ -60,8 +60,8 @@ class EntityDetailDtoModel<T extends EntityDetailDto_1 = EntityDetailDto_1> exte
     get synonyms(): ArrayModel_1<EntityDtoModel_1> {
         return this[_getPropertyModel_1]("synonyms", (parent, key) => new ArrayModel_1(parent, key, true, (parent, key) => new EntityDtoModel_1(parent, key, true), { meta: { javaType: "java.util.List" } }));
     }
-    get variances(): ArrayModel_1<EntityDtoModel_1> {
-        return this[_getPropertyModel_1]("variances", (parent, key) => new ArrayModel_1(parent, key, true, (parent, key) => new EntityDtoModel_1(parent, key, true), { meta: { javaType: "java.util.List" } }));
+    get variants(): ArrayModel_1<EntityDtoModel_1> {
+        return this[_getPropertyModel_1]("variants", (parent, key) => new ArrayModel_1(parent, key, true, (parent, key) => new EntityDtoModel_1(parent, key, true), { meta: { javaType: "java.util.List" } }));
     }
     get examples(): ArrayModel_1<ExampleDtoModel_1> {
         return this[_getPropertyModel_1]("examples", (parent, key) => new ArrayModel_1(parent, key, true, (parent, key) => new ExampleDtoModel_1(parent, key, true), { meta: { javaType: "java.util.List" } }));

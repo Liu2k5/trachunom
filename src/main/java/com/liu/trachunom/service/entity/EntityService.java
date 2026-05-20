@@ -43,7 +43,7 @@ public class EntityService extends ListRepositoryService<EntityX, Long, EntityRe
     public void save(EntityX entity) {
         entityRepository.save(entity);
         if (entity.isStandardised()) {
-            List<EntityX> variances = findVariances(entity);
+            List<EntityX> variances = findVariants(entity);
             for (EntityX variance : variances) {
                 if (!variance.getId().equals(entity.getId())) {
                     variance.setStandardised(false);
@@ -189,7 +189,10 @@ public class EntityService extends ListRepositoryService<EntityX, Long, EntityRe
         return null;
     }
 
-    public List<EntityX> findVariances(EntityX entity) {
+    public List<EntityX> findVariants(EntityX entity) {
+        if (entity == null || entity.isCompound() || entity.getStructure() == null || entity.getStructure().getCharacter() == null) {
+            return List.of();
+        }
         return findAll().stream()
                 .filter((EntityX entityX) -> !entityX.isCompound() // di the khong phai tu ghep
                 && !entityX.getId().equals(entity.getId())
@@ -223,8 +226,9 @@ public class EntityService extends ListRepositoryService<EntityX, Long, EntityRe
 
         List<StructureComponent> structureComponents =
                 structureComponentRepository.findByStructureComponent(entity.getStructure()).stream()
-                        .filter(sc -> isSemantic ? structureClassificationService.isSemanticClassification(sc.getStructureClassification()) :
-                        structureClassificationService.isPhoneticClassification(sc.getStructureClassification()))
+                        .filter(sc -> isSemantic ?
+                            structureClassificationService.isSemanticClassification(sc.getStructureClassification()) :
+                            structureClassificationService.isPhoneticClassification(sc.getStructureClassification()))
                         .toList();
         return structureComponents.stream()
                 .map(StructureComponent::getStructure)
@@ -247,8 +251,11 @@ public class EntityService extends ListRepositoryService<EntityX, Long, EntityRe
         ) return Map.of();
 
         // get structure components belonging to the structure of the entity, filter by semantic or phonetic classification
-        List<StructureComponent> structureComponents = structureComponentRepository.findByStructure(entity.getStructure()).stream()
-                .filter(sc -> isSemantic ? structureClassificationService.isSemanticClassification(sc.getStructureClassification()) :
+        List<Structure> variantStructures = structureService.getAllVariantStructuresByStructureId(entity.getStructure().getId());
+        List<StructureComponent> structureComponents = variantStructures.stream().map(v -> structureComponentRepository.findByStructure(v))
+                .flatMap(Collection::stream)
+                .filter(sc -> isSemantic ?
+                        structureClassificationService.isSemanticClassification(sc.getStructureClassification()) :
                         structureClassificationService.isPhoneticClassification(sc.getStructureClassification()))
                 .collect(Collectors.toList());
 
@@ -259,7 +266,13 @@ public class EntityService extends ListRepositoryService<EntityX, Long, EntityRe
             queue.addAll(structureComponents);
             while (!queue.isEmpty()) {
                 StructureComponent sc = queue.poll();
-                List<StructureComponent> relatedComponents = structureComponentRepository.findByStructure(sc.getStructureComponent()).stream()
+                List<Structure> variantStructures2 = structureService.getAllVariantStructuresByStructureId(sc.getStructureComponent().getId());
+                for (int i = 0; i < variantStructures2.size(); i++) {
+                    System.out.println("variant structure " + i + ": " + variantStructures2.get(i).getCharacterString());
+                }
+                System.out.println();
+                List<StructureComponent> relatedComponents = variantStructures2.stream().map(v -> structureComponentRepository.findByStructure(v))
+                        .flatMap(Collection::stream)
                         .filter(s -> structureClassificationService.isPhoneticClassification(s.getStructureClassification()))
                         .toList();
                 for (StructureComponent related : relatedComponents) {
@@ -276,9 +289,14 @@ public class EntityService extends ListRepositoryService<EntityX, Long, EntityRe
         // fetch entities having the same semantic or phonetic component, group by the component structure
         Map<String, List<EntityX>> result = new HashMap<>();
         for (StructureComponent sc : structureComponents) {
-            List<StructureComponent> relatedComponents = structureComponentRepository.findByStructureComponent(sc.getStructureComponent());
+            List<Structure> variantStructures2 = structureService.getAllVariantStructuresByStructureId(sc.getStructureComponent().getId());
+            List<StructureComponent> relatedComponents = variantStructures2.stream()
+                    .map(v -> structureComponentRepository.findByStructureComponent(v))
+                    .flatMap(Collection::stream)
+                    .toList();
             List<EntityX> relatedEntities = relatedComponents.stream()
                     .map(StructureComponent::getStructure)
+                    .flatMap(structure -> structureService.getAllVariantStructuresByStructureId(structure.getId()).stream())
                     .map(entityRepository::findByStructure)
                     .filter(entities -> !entities.isEmpty())
                     .map(List::getFirst) // Assuming one entity per structure, adjust if necessary
