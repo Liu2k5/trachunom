@@ -81,7 +81,7 @@ function correct(input: string) {
     for (let i = 0; i < separatedWordsAndTones.length; i++) {
         let word = separatedWordsAndTones.at(i)?.at(0) as string;
         let initialConsonant = getInitialConsonant(word);
-        let vowel = getVowel(word);
+        let vowel = getVowel(word.slice(initialConsonant.length));
         let finalConsonant = getFinalConsonant(word);
         let tone = separatedWordsAndTones.at(i)?.at(1) as number;
 

@@ -7,7 +7,6 @@ import java.util.Queue;
 
 import com.liu.trachunom.entity.structure.StructureComponent;
 import com.liu.trachunom.repository.StructureComponentRepository;
-import com.liu.trachunom.repository.StructureDescriptionRepository;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.BrowserCallable;
 import com.vaadin.hilla.crud.ListRepositoryService;
@@ -26,7 +25,7 @@ public class StructureService extends ListRepositoryService<Structure, Long, Str
 
     private final StructureRepository structureRepository;
     private final StructureComponentService structureComponentService;
-    private final StructureDescriptionRepository structureDescriptionRepository;
+    private final StructureDescriptionService structureDescriptionService;
     private final StructureComponentRepository structureComponentRepository;
 
     public Structure findById(Long id) {
@@ -57,7 +56,7 @@ public class StructureService extends ListRepositoryService<Structure, Long, Str
                     characterString.append(getCharacterStringById(component.getStructureComponent().getId()));
                 }
             }
-            return "[" + characterString.toString() + "]";
+            return "[" + characterString + "]";
         }
     }
 
@@ -94,7 +93,7 @@ public class StructureService extends ListRepositoryService<Structure, Long, Str
 
     public String getIds(Long id) {
         try {
-            Structure description = structureDescriptionRepository.findByStructureId(id).getDescriptionStructure();
+            Structure description = structureDescriptionService.findByStructureId(id).getDescriptionStructure();
             return getStructureSequence(description.getId());
         } catch (Exception ignored) {
         }

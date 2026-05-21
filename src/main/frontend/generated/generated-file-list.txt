@@ -70,7 +70,6 @@ com/liu/trachunom/entity/Source.ts
 com/liu/trachunom/entity/structure/StructureComponentId.ts
 com/liu/trachunom/dto/StructureComponentDto.ts
 com/liu/trachunom/dto/StructureDescriptionDto.ts
-com/liu/trachunom/entity/structure/StructureDescription.ts
 com/liu/trachunom/dto/StructureDto.ts
 com/liu/trachunom/dto/StyleDto.ts
 com/liu/trachunom/entity/Style.ts
@@ -92,6 +91,7 @@ com/liu/trachunom/entity/structure/Structure.ts
 com/liu/trachunom/entity/structure/StructureClassification.ts
 com/liu/trachunom/dto/StructureClassificationDto.ts
 com/liu/trachunom/entity/structure/StructureComponent.ts
+com/liu/trachunom/entity/structure/StructureDescription.ts
 com/liu/trachunom/entity/character/TradSimpStandard.ts
 com/vaadin/hilla/crud/filter/Filter.ts
 com/vaadin/hilla/crud/filter/FilterUnion.ts
@@ -136,7 +136,6 @@ com/liu/trachunom/entity/SourceModel.ts
 com/liu/trachunom/entity/structure/StructureComponentIdModel.ts
 com/liu/trachunom/dto/StructureComponentDtoModel.ts
 com/liu/trachunom/dto/StructureDescriptionDtoModel.ts
-com/liu/trachunom/entity/structure/StructureDescriptionModel.ts
 com/liu/trachunom/dto/StructureDtoModel.ts
 com/liu/trachunom/dto/StyleDtoModel.ts
 com/liu/trachunom/entity/StyleModel.ts
@@ -158,6 +157,7 @@ com/liu/trachunom/entity/structure/StructureModel.ts
 com/liu/trachunom/entity/structure/StructureClassificationModel.ts
 com/liu/trachunom/dto/StructureClassificationDtoModel.ts
 com/liu/trachunom/entity/structure/StructureComponentModel.ts
+com/liu/trachunom/entity/structure/StructureDescriptionModel.ts
 com/liu/trachunom/entity/character/TradSimpStandardModel.ts
 com/vaadin/hilla/crud/filter/FilterModel.ts
 com/vaadin/hilla/crud/filter/OrFilterModel.ts
