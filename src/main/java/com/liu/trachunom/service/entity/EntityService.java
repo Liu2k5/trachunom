@@ -267,10 +267,6 @@ public class EntityService extends ListRepositoryService<EntityX, Long, EntityRe
             while (!queue.isEmpty()) {
                 StructureComponent sc = queue.poll();
                 List<Structure> variantStructures2 = structureService.getAllVariantStructuresByStructureId(sc.getStructureComponent().getId());
-                for (int i = 0; i < variantStructures2.size(); i++) {
-                    System.out.println("variant structure " + i + ": " + variantStructures2.get(i).getCharacterString());
-                }
-                System.out.println();
                 List<StructureComponent> relatedComponents = variantStructures2.stream().map(v -> structureComponentRepository.findByStructure(v))
                         .flatMap(Collection::stream)
                         .filter(s -> structureClassificationService.isPhoneticClassification(s.getStructureClassification()))

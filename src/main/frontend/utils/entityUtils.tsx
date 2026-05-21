@@ -789,8 +789,6 @@ function DrawStructure({ structureId, fontSize , parentStructureType, index}: { 
     return (
         <div
             style={{
-                width: '1em',
-                height: '1em',
                 display: 'flex',
             }}
         >
