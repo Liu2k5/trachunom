@@ -25,6 +25,7 @@ import StructureComponent from "Frontend/generated/com/liu/trachunom/entity/stru
 import {findAdjustment, GlyphAdjustment} from "Frontend/utils/glyphAdjustment";
 import EntityEvolution from "Frontend/generated/com/liu/trachunom/entity/entity/EntityEvolution";
 import {inSupportedCjkRange} from "Frontend/utils/displayTroubleshooter";
+import structureType from "Frontend/generated/com/liu/trachunom/entity/structure/StructureType";
 
 export {
     HnomQngu as HnomQngu,
@@ -653,7 +654,7 @@ async function calcStructureWidthHeight(structureId: number | undefined): Promis
                 .map(o => o);
             const results: [number, number][] = await Promise.all(promises);
             // console.log(results);
-            output = aggregateStructureWidthHeight(structureTypeDescription, results);
+            output = await aggregateStructureWidthHeight(structureTypeDescription, results, structureComponentResults[0]?.id ?? 0);
         })();
 
     }
@@ -663,8 +664,8 @@ async function calcStructureWidthHeight(structureId: number | undefined): Promis
     return output;
 }
 
-function aggregateStructureWidthHeight(structureTypeDescription: string, results : [number, number][]): [number, number] {
-    if (results.length == 0) return [1, 1];
+async function aggregateStructureWidthHeight(structureTypeDescription: string, results: [number, number][], firstCompId: number): Promise<[number, number]> {
+    if (results.length == 0 || firstCompId == 0) return [1, 1];
 
     let output: [number, number] = [0, 0];
 
@@ -688,19 +689,26 @@ function aggregateStructureWidthHeight(structureTypeDescription: string, results
     } else {
         const stComp = [results?.at(0)?.at(0) ?? 1, results.at(0)?.at(1) ?? 1];
         const ndComp = [results.at(1)?.at(0) ?? 1, results.at(1)?.at(1) ?? 1];
+
+        let innerSize: [number, number] = [0, 0];
+        if (wrapGroup.includes(structureTypeDescription)) {
+            await StructureService.findById(firstCompId)
+                .then(data =>  innerSize = [data?.innerWidth ?? 0, data?.innerHeight ?? 0])
+        }
+
         switch (structureTypeDescription) {
             // wrap components will be recursive until returning values, so ill solve the others (horizon, vertical)
             case '⿸':
-                output = [max(stComp[0], ndComp[0] + 1), max(stComp[1], ndComp[1] + 1)];
+                output = [max(stComp[0], ndComp[0] + (stComp[0] - innerSize[0])), max(stComp[1], ndComp[1] + (stComp[1] - innerSize[1]))];
                 break;
             case '⿺':
-                output = [max(stComp[0], ndComp[0] + 1), max(stComp[1], ndComp[1] + 1)];
+                output = [max(stComp[0], ndComp[0] + (stComp[0] - innerSize[0])), max(stComp[1], ndComp[1] + (stComp[1] - innerSize[1]))];
                 break;
             case '⿹':
-                output = [max(stComp[0], ndComp[0] + 1), max(stComp[1], ndComp[1] + 1)];
+                output = [max(stComp[0], ndComp[0] + (stComp[0] - innerSize[0])), max(stComp[1], ndComp[1] + (stComp[1] - innerSize[1]))];
                 break;
             case '⿽':
-                output = [max(stComp[0], ndComp[0] + 1), max(stComp[1], ndComp[1] + 1)];
+                output = [max(stComp[0], ndComp[0] + (stComp[0] - innerSize[0])), max(stComp[1], ndComp[1] + (stComp[1] - innerSize[1]))];
                 break;
         }
     }
@@ -721,9 +729,12 @@ function DrawStructureInitialiser({ structureId }: { structureId: number | undef
 
 function DrawStructure({ structureId, fontSize , parentStructureType, index}: { structureId: number | undefined, fontSize: [number, number], parentStructureType: string, index: number }): JSX.Element {
     const [structure, setStructure] = useState<Structure | undefined>(undefined);
+    const [loadingStructure, setLoadingStructure] = useState<boolean>(true);
+    const [loadingStructureComponents, setLoadingStructureComponents] = useState<boolean>(true);
+
     useEffect(() => {
-        StructureService.findById(structureId).then(o => setStructure(o));
-    }, []);
+        StructureService.findById(structureId).then(o => setStructure(o)).finally(() => setLoadingStructure(false));
+    }, [structureId]);
     const [descriptionStructure, setDescriptionStructure] = useState<Structure | undefined>(undefined);
     useEffect(() => {
         StructureDescriptionService.findByStructureId(structure?.id)
@@ -745,7 +756,7 @@ function DrawStructure({ structureId, fontSize , parentStructureType, index}: { 
             .then(data =>
                 data?.sort((o1, o2) => (o1.id?.position ?? 0) - (o2.id?.position ?? 0)))
             .then(filtered => setStructureComponents(filtered ?? undefined))
-            .catch(err => console.error(err));
+            .catch(err => console.error(err)).finally(() => setLoadingStructureComponents(false));
     }, [descriptionStructure?.id, structureId]);
 
     // update structures when structureComponents changes
@@ -772,20 +783,30 @@ function DrawStructure({ structureId, fontSize , parentStructureType, index}: { 
     // => 3: xu li khac nhau:
     // 𱑐 => cau tao long + cau tao ngang (辵 long (豕 va 什))
 
-    if (!structure?.character || !structureIdsKey) {
+    // console.log(structure?.character + " " + structureIdsKey + " " + loadingStructure + " " + loadingStructureComponents);
+    if (
+        !structure ||
+        // !structure?.character ||
+        !structureIdsKey) {
         return (<div></div>);
     }
 
+    // console.log(description);
+    // console.log(structureIds);
     output = [description ?? '⿰', ...(structureIds ?? [])];
     // output=  // ⿰ is default
+    // console.log("output: " + output);
 
     if (
         // !structureTypeId
         structure?.character && inSupportedCjkRange(structure.character.unicode ?? 0)
     ) {
+        // console.log("entered this case");
+
         return <GlyphAdjustment structureId={structureId ?? 0} structureType={parentStructureType ?? ''} fontSize={fontSize} index={index} key={structureId}/>;
     }
 
+    // console.log("entered the last case");
     return (
         <div
             style={{
@@ -799,15 +820,23 @@ function DrawStructure({ structureId, fontSize , parentStructureType, index}: { 
 }
 
 function DrawStructureTree({input, fontSize}: {input: (string | number)[], fontSize: [number, number]}): JSX.Element {
-    let structureType = input[0] as string;
+    console.log("input: " + input);
+    // let structureType = input[0] as string;
+    const [structureType, setStructureType] = useState<string>("null");
     const inputKey = JSON.stringify(input);
     const [splitSequences, setSplitSequences]= useState<(string | number)[][]>([]);
+    const [adjustedStructureSequences, setAdjustedStructureSequences] = useState<(string | number)[]>([]);
     useEffect(() => {
         adjustStructureTree(input)
-            .then(adjusted => splitStructureSequence(adjusted))
-            .then(split => setSplitSequences(split))
+            .then(adjusted => setAdjustedStructureSequences(adjusted))
             .catch(err => console.error(err));
     }, [inputKey]);
+    useEffect(() => {
+        setStructureType(adjustedStructureSequences[0] as string);
+    }, [adjustedStructureSequences]);
+    useEffect(() => {
+        setSplitSequences(splitStructureSequence(adjustedStructureSequences));
+    }, [adjustedStructureSequences]);
     // const splitSequences =
     // useMemo(async () => splitStructureSequence(await adjustStructureTree(input)), [inputKey]);
     const [sizeList, setSizeList]= useState<[number, number][]>(Array.of());
@@ -822,7 +851,7 @@ function DrawStructureTree({input, fontSize}: {input: (string | number)[], fontS
         (async () => {
             for (let i = 0; i < splitSequences.length; i++) {
                 tempSizeList.push(await aggregateStructureTreeWidthHeight(splitSequences[i]));
-                // console.log('splitSequence: ' + splitSequences[i] + " size: " + tempSizeList.at(-1));
+                console.log('splitSequence: ' + splitSequences[i] + " size: " + tempSizeList.at(-1));
             }
             if (isActive) setSizeList(tempSizeList);
         })();
@@ -831,11 +860,11 @@ function DrawStructureTree({input, fontSize}: {input: (string | number)[], fontS
 
     useEffect(() => {
         let isActive = true;
-        aggregateStructureTreeWidthHeight(input).then(o => {
+        aggregateStructureTreeWidthHeight(adjustedStructureSequences).then(o => {
             if (isActive) setTotalSize(o);
         });
         return () => { isActive = false; };
-    }, [input]);
+    }, [adjustedStructureSequences]);
 
     useEffect(() => {
         let isActive = true;
@@ -874,8 +903,8 @@ function DrawStructureTree({input, fontSize}: {input: (string | number)[], fontS
     let innerPercentSize = [(firstStructure?.innerWidth ?? 1) / (firstStructure?.width ?? 1) * fontSize[0],
         (firstStructure?.innerHeight ?? 1) / (firstStructure?.height ?? 1) * fontSize[1]];
 
-    if (sizeList.length !== splitSequences.length || totalSize[0] === 0 || totalSize[1] === 0) {
-        return <div style={{ width: fontSize[0] + 'em', height: fontSize[1] + 'em' }} />;
+    if (!sizeList || !splitSequences || sizeList.length !== splitSequences.length || totalSize[0] === 0 || totalSize[1] === 0 || !firstStructure) {
+        return <div style={{ width: fontSize[0] + 'em', height: fontSize[1] + 'em' }} ></div>;
     }
 
     // rescale width/height to 100% for the opposite structure type (vertical versus horizontal)
@@ -894,29 +923,23 @@ function DrawStructureTree({input, fontSize}: {input: (string | number)[], fontS
         percentWidthList = [1, 1];
         percentHeightList = [1, 1];
     }
-    // example: 吅， 棗, ... have the first component a little narrower
-    else if (!wrapGroup.includes(structureType) &&
-            !tripleGroup.includes(structureType)) {
-        if (horizontalGroup.includes(structureType) &&
-        percentWidthList[0] == percentWidthList[1]) {
-            percentWidthList = [0.44, 0.56];
-        } else if (verticalGroup.includes(structureType) &&
+    else if (!tripleGroup.includes(structureType)) {
+        if (horizontalGroup.includes(structureType)) {
+            // example: 吅， 棗, ... have the first component a little narrower
+            if (percentWidthList[0] == percentWidthList[1]) {
+                percentWidthList = [0.44, 0.56];
+            }
+            // example: 咾 and 𦒵
+            else if (percentWidthList[0] > percentWidthList[1]) {
+                percentWidthList = [0.5, 0.5];
+            }
+        }
+        else if (verticalGroup.includes(structureType) &&
         percentHeightList[0] == percentHeightList[1]) {
             percentHeightList = [0.44, 0.56];
         }
     }
-    // example: 咾 and 𦒵
-    else if (horizontalGroup.includes(structureType) &&
-            !tripleGroup.includes(structureType) &&
-        percentWidthList[0] > percentWidthList[1]) {
-        percentWidthList = [0.5, 0.5];
-    }
 
-    // console.log(description);
-    // console.log('total size: ' + totalSize);
-    // console.log('size list: ' + sizeList.map(o => '[' + o[0] + ', ' + o[1] + "]"));
-    // console.log('width list: ' + percentWidthList);
-    // console.log('height list ' + percentHeightList);
 
     let marginTop= 0;
     let marginLeft = 0;
@@ -961,7 +984,13 @@ function DrawStructureTree({input, fontSize}: {input: (string | number)[], fontS
                 break;
         }
     }
-
+    // console.log("input(): " + input);
+    // console.log("structureType(): " + structureType);
+    // console.log("splitSequences()(): " + splitSequences);
+    // console.log("sizeList: " + sizeList);
+    // console.log("totalSize: " + totalSize);
+    // console.log("percentWidthList: " + percentWidthList);
+    // console.log("percentHeightList: " + percentHeightList);
 
     return (
         <div
@@ -1059,8 +1088,10 @@ async function aggregateStructureTreeWidthHeight(input: (string | number)[]): Pr
     for (let i = 0; i < splitSequences.length; i++) {
         sizeList.push(await aggregateStructureTreeWidthHeight(splitSequences[i]));
     }
+    // console.log("input of aggre...: ", input);
     // console.log("aggregateStructureTreeWidthHeight: (" + structureTypeDescription + ', ' + sizeList + "): " + aggregateStructureWidthHeight(structureTypeDescription, sizeList));
-    return aggregateStructureWidthHeight(structureTypeDescription, sizeList);
+    let firstCompId = input[1];
+    return aggregateStructureWidthHeight(structureTypeDescription, sizeList, firstCompId as number);
 }
 
 function splitStructureSequence(input: (string | number)[]): (string | number)[][] {

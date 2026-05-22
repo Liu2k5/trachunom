@@ -82,6 +82,7 @@ function correct(input: string) {
         let word = separatedWordsAndTones.at(i)?.at(0) as string;
         let initialConsonant = getInitialConsonant(word);
         let vowel = getVowel(word.slice(initialConsonant.length));
+        if (vowel === '') vowel = getVowel(initialConsonant);
         let finalConsonant = getFinalConsonant(word);
         let tone = separatedWordsAndTones.at(i)?.at(1) as number;
 
@@ -121,13 +122,17 @@ function correct(input: string) {
         }
         // case 2: gi/qu combinations
         else {
-            if (['gịa', 'gỵa', 'gìn', 'quốc'].includes(splitStrings[i])) {
+            if (['gịa', 'gỵa', 'quốc'].includes(splitStrings[i])) {
                 output.push(splitStrings[i])
             } else if (initialConsonant === 'gi') {
+                if (vowel.charAt(0) === 'i') {
+                    initialConsonant = 'g'; // delete one redundant 'i'
+                }
                 vowel = combineToneDiacritic(
-                    vowel.charAt(0) === 'i'
-                        ? vowel.slice(1)
-                        : vowel
+                    // vowel.charAt(0) === 'i'
+                    //     ? vowel.slice(1)
+                    //     :
+                        vowel
                     , tone); // eliminate the redundant 'i'
                 output.push(initialConsonant + vowel + finalConsonant);
             } else if (initialConsonant === 'qu') {

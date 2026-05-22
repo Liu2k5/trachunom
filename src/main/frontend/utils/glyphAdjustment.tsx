@@ -61,10 +61,11 @@ function findAdjustment(character: string, structureType: string, index: number)
     [string, number, number, number, number, number, number, number, number] {
     for (let i = 0; i < data.length; i++) {
         if (data[i][0] === character && data[i][1] === structureType && data[i][2] === index) {
-            if (inSupportedCjkRange(character.codePointAt(0) ?? 0)) {
+            if (inSupportedCjkRange(character.codePointAt(0) ?? 0) &&
+                (data[i][3] === '' || inSupportedCjkRange(data[i][3].codePointAt(0) ?? 0))) {
                 return [data[i][3], data[i][4], data[i][5], data[i][6], data[i][7],
                     data[i][8], data[i][9], data[i][10], data[i][11]];
-            } else break;
+            }
         }
     }
     return ['', 1, 1, 0, 0, 0, 0, 0, 0];
@@ -77,14 +78,14 @@ const data: [string, string, number, string, number, number, number, number, num
     // (centre or leftmost), it is recommended to adjust the compound characters to prevent it,
     // like 礼 in lieu of 礻
     ['扌', '⿰',   0,  '' , 2,   1,   0,   0,    0,   0,   0,    0],
-    ['礻', '⿰',   0, '礼', 2,   1,0.15,   0, 0.70, 0.0,1.75,  1.1],
+    ['礻', '⿰',   0, '礼', 2,   1,0.2,   0, 0.7, 0.0,1.75,  1.1],
     ['衤', '⿰',   0, '补', 2,   1,0.15,   0, 0.75, 0.0,1.75,  1.1],
     // ['礻', '⿰',   0,   '', 2.5,   1,0.,   0, 0.75, 0.0,1.25,  1],
     ['彳', '⿰',   0,  '' , 2,   1,   0,   0,    0,   0,   0,    0],
-    ['女', '⿰',   0, '如', 2,   1,0.25,   0, 0.8, 0.0,1.25,  1.1],
+    ['女', '⿰',   0, '如', 2,   1,0.25,   0, 0.75, 0.0,1.25,  1.1],
     ['米', '⿰',   0, '粑', 2.5,   1,0.25,   0, 0.71, 0.0,1.25,  1.1],
     ['口', '⿰',   0, '叫', 2,   1,0.25,   0, 0.7, 0.0,1.5,  1.1],
-    ['日', '⿰',   0, '旰', 2.75,   1,0.25,   0, 0.65, 0.0,1.5,  1.1],
+    ['日', '⿰',   0, '时', 2.75,   1,0.30,   0, 0.7, 0.0,1.5,  1.1],
     // ['日', '⿱',   0, '旦', 1,  1.5,   0,   0,    0,   0,   0,   0],
     ['日', '⿱',   1, '昔', 1,  1.5,   0, -0.2,    0,   0,   1,   0.25],
     ['罒', '⿱',   0,   '', 1,   2,   0,   0.25,    0,   0,   0,   0],
@@ -96,7 +97,7 @@ const data: [string, string, number, string, number, number, number, number, num
     ['米', '⿲',   1, '粑', 2.5,   1,0.25,   0, 0.71, 0.0,1.25,  1.1],
     ['爫', '⿱',   0, '',   1,   2,   0.,   0.25,    0,   0,   0,   0],
 
-    ['乚', '⿺',   0,  '' , 1.0,   1,   0.05,   0,   0,   0,   0,   0],
+    ['乚', '⿺',   0,'礼' , 2,   1,   -0.25,   0,   0,   0,   0.25,   1],
     ['辶', '⿺',   0,  '' ,   1,   1,   0,   0,   0,   0,   0,   0],
     ['囗', '⿴',   0,  '' ,   1,   1,   0,   0, 0.1, 0.1, 0.9, 0.9],
     ['门', '⿵',   0,  '' ,   1,   1,   0,   0, 0.1, 0.3, 0.9, 1.0],
