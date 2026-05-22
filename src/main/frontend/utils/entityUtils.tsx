@@ -25,7 +25,6 @@ import StructureComponent from "Frontend/generated/com/liu/trachunom/entity/stru
 import {findAdjustment, GlyphAdjustment} from "Frontend/utils/glyphAdjustment";
 import EntityEvolution from "Frontend/generated/com/liu/trachunom/entity/entity/EntityEvolution";
 import {inSupportedCjkRange} from "Frontend/utils/displayTroubleshooter";
-import structureType from "Frontend/generated/com/liu/trachunom/entity/structure/StructureType";
 
 export {
     HnomQngu as HnomQngu,
@@ -90,19 +89,14 @@ const HnomQngu = ({entityId, markedId}: {entityId: number | undefined, markedId:
                     (
                         <div
                             style={{
-                                // width: '200px',
-                                // height: '200px',
                                 width: '1em',
                                 height: '1em',
-                                // aspectRatio: '1 / 1',
                                 display: 'flex',
                                 alignItems: 'stretch',
                                 justifyContent: 'stretch',
-                                // marginLeft: '-1%',
-                                // marginTop: '-1%',
                                 padding: '0',
                                 // position: 'absolute',
-                                backgroundColor: 'lightgray',
+                                // backgroundColor: 'lightgray',
                             }}
                         >
                             <DrawStructureInitialiser structureId={Number.parseInt(entity?.structureId ?? 0 as unknown as string)}/>
@@ -162,7 +156,7 @@ function DrawEvolution ({entityId}: {entityId: number | undefined})  {
         EntityEvolutionService.findByToEntityId(entityId ?? undefined)
             .then(data => data?.filter(evolution => evolution !== undefined))
             .then(data => setEvolutions(data ?? []));
-    }, []);
+    }, [entityId]);
     useEffect(() => {
         const promises = evolutions?.map(evolution => EntityMapper.toEntityEvolutionDto(evolution))
             .filter(dto => dto !== undefined)
@@ -728,12 +722,25 @@ function DrawStructureInitialiser({ structureId }: { structureId: number | undef
 }
 
 function DrawStructure({ structureId, fontSize , parentStructureType, index}: { structureId: number | undefined, fontSize: [number, number], parentStructureType: string, index: number }): JSX.Element {
-    const [structure, setStructure] = useState<Structure | undefined>(undefined);
-    const [loadingStructure, setLoadingStructure] = useState<boolean>(true);
-    const [loadingStructureComponents, setLoadingStructureComponents] = useState<boolean>(true);
+    const [renderTick, setRenderTick] = useState(0);
 
     useEffect(() => {
-        StructureService.findById(structureId).then(o => setStructure(o)).finally(() => setLoadingStructure(false));
+        const handleCjkChange = () => {
+            setRenderTick(prev => prev + 1);
+        };
+
+        window.addEventListener('cjkExtChanged', handleCjkChange);
+
+        return () => {
+            window.removeEventListener('cjkExtChanged', handleCjkChange);
+        };
+    }, []);
+
+
+    const [structure, setStructure] = useState<Structure | undefined>(undefined);
+
+    useEffect(() => {
+        StructureService.findById(structureId).then(o => setStructure(o));
     }, [structureId]);
     const [descriptionStructure, setDescriptionStructure] = useState<Structure | undefined>(undefined);
     useEffect(() => {
@@ -756,7 +763,7 @@ function DrawStructure({ structureId, fontSize , parentStructureType, index}: { 
             .then(data =>
                 data?.sort((o1, o2) => (o1.id?.position ?? 0) - (o2.id?.position ?? 0)))
             .then(filtered => setStructureComponents(filtered ?? undefined))
-            .catch(err => console.error(err)).finally(() => setLoadingStructureComponents(false));
+            .catch(err => console.error(err));
     }, [descriptionStructure?.id, structureId]);
 
     // update structures when structureComponents changes
@@ -908,8 +915,8 @@ function DrawStructureTree({input, fontSize}: {input: (string | number)[], fontS
     }
 
     // rescale width/height to 100% for the opposite structure type (vertical versus horizontal)
-    let percentWidthList = sizeList.map(o => ('⿱⿳'.includes(structureType)) ? 1 : (o[0] / totalSize[0]));
-    let percentHeightList = sizeList.map(o => ('⿰⿲'.includes(structureType)) ? 1 : (o[1] / totalSize[1]));
+    let percentWidthList = sizeList.map(o => (verticalGroup.includes(structureType)) ? 1 : (o[0] / totalSize[0]));
+    let percentHeightList = sizeList.map(o => (horizontalGroup.includes(structureType)) ? 1 : (o[1] / totalSize[1]));
 
     // rescale to 100% for both width and height when the structure type is wrapping the other
     if (wrapGroup.includes(structureType)) {

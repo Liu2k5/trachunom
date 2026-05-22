@@ -38,7 +38,7 @@ const DisplayTroubleshooter = ({ onClose }: { onClose?: () => void }) => {
     const applyCjkExt = () => {
         Cookie.set('cjkExt', cjkExt, {expires: 365});
         if (onClose) onClose();
-        window.location.reload();
+        window.dispatchEvent(new Event('cjkExtChanged'));
     }
 
     return (
