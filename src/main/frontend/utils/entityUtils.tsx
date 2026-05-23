@@ -7,7 +7,8 @@ import {
     PronunciationEvolutionService,
     PronunciationService,
     SourceService,
-    StructureService, StructureComponentService, StructureDescriptionService, MeaningService, EntityEvolutionService
+    StructureService, StructureComponentService, StructureDescriptionService, MeaningService, EntityEvolutionService,
+    EntityDetailEndpoint
 } from "Frontend/generated/endpoints";
 import EntityEvolutionDto from "Frontend/generated/com/liu/trachunom/dto/EntityEvolutionDto";
 import {
@@ -252,7 +253,7 @@ function AnalyseStructure({structureId}: {structureId : number | undefined }): J
         }
 
         // Fetch structure components
-        StructureEndpoint.getStructureComponentsByStructureId(structure.id)
+        StructureEndpoint.findStructureComponentsByStructureId(structure.id)
             .then((data: (StructureComponentDto | undefined)[] | undefined) => {
                 const filtered = (data || []).filter((c): c is StructureComponentDto => c !== undefined);
                 setStructureComponents(filtered);
@@ -663,7 +664,7 @@ async function aggregateStructureWidthHeight(structureTypeDescription: string, r
 
     let output: [number, number] = [0, 0];
 
-    if (([] as string[]).concat(...verticalGroup, ...horizontalGroup, ...wrapCentreGroup, ...stackGroup).includes(structureTypeDescription)) {
+    if (!wrapGroup.includes(structureTypeDescription)) {
         // console.log(output[0] + ", " + output[1] + "  fr " + structureTypeDescription);
         // console.log(results[0]);
         // console.log(results[1]);
@@ -672,12 +673,9 @@ async function aggregateStructureWidthHeight(structureTypeDescription: string, r
                 output = [max(output[0], o[0]), sum(output[1], o[1])];
             } else if (horizontalGroup.includes(structureTypeDescription)) {
                 output = [sum(output[0], o[0]), max(output[1], o[1])];
-            } else if (wrapCentreGroup.includes(structureTypeDescription)) {
-                output = [sum(output[0], o[0]), sum(output[1], o[1])];
             } else if (stackGroup.includes(structureTypeDescription)) {
                 output = [max(output[0], o[0]), max(output[1], o[1])];
                 // console.log(output[0] + ", " + output[1] + "   dm");
-
             }
         });
     } else {
@@ -686,24 +684,20 @@ async function aggregateStructureWidthHeight(structureTypeDescription: string, r
 
         let innerSize: [number, number] = [0, 0];
         if (wrapGroup.includes(structureTypeDescription)) {
-            await StructureService.findById(firstCompId)
+            await StructureEndpoint.findStructureById(firstCompId)
                 .then(data =>  innerSize = [data?.innerWidth ?? 0, data?.innerHeight ?? 0])
         }
 
-        switch (structureTypeDescription) {
-            // wrap components will be recursive until returning values, so ill solve the others (horizon, vertical)
-            case '⿸':
-                output = [max(stComp[0], ndComp[0] + (stComp[0] - innerSize[0])), max(stComp[1], ndComp[1] + (stComp[1] - innerSize[1]))];
-                break;
-            case '⿺':
-                output = [max(stComp[0], ndComp[0] + (stComp[0] - innerSize[0])), max(stComp[1], ndComp[1] + (stComp[1] - innerSize[1]))];
-                break;
-            case '⿹':
-                output = [max(stComp[0], ndComp[0] + (stComp[0] - innerSize[0])), max(stComp[1], ndComp[1] + (stComp[1] - innerSize[1]))];
-                break;
-            case '⿽':
-                output = [max(stComp[0], ndComp[0] + (stComp[0] - innerSize[0])), max(stComp[1], ndComp[1] + (stComp[1] - innerSize[1]))];
-                break;
+        if (!wrapCentreGroup.includes(structureTypeDescription)) {
+            output = [max(stComp[0], ndComp[0] + (stComp[0] - innerSize[0])), max(stComp[1], ndComp[1] + (stComp[1] - innerSize[1]))];
+        } else {
+            switch (structureTypeDescription) {
+                case '⿵': case '⿶':
+                    output = [sum(ndComp[0], (stComp[0] - innerSize[0])), max(stComp[1], ndComp[1] + (stComp[1] - innerSize[1]))]; break;
+                case '⿷': case '⿼':
+                    output = [max(stComp[0], ndComp[0] + (stComp[0] - innerSize[0])), sum(ndComp[1], (stComp[1] - innerSize[1]))]; break;
+            }
+            output = [max(stComp[0], ndComp[0] + (stComp[0] - innerSize[0])), max(stComp[1], ndComp[1] + (stComp[1] - innerSize[1]))];
         }
     }
     return output;

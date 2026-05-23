@@ -31,7 +31,7 @@ public class StructureEndpoint {
         structureService.deleteById(id);
     }
 
-    public List<StructureComponentDto> getStructureComponentsByStructureId(Long structureId) {
+    public List<StructureComponentDto> findStructureComponentsByStructureId(Long structureId) {
         if (structureId == null) {
             return List.of();
         }
@@ -41,7 +41,7 @@ public class StructureEndpoint {
                 .collect(Collectors.toList());
     }
 
-    public StructureDto getStructureById(Long structureId) {
+    public StructureDto findStructureById(Long structureId) {
         Structure structure = structureService.findById(structureId);
         return entityMapper.toStructureDto(structure);
     }
