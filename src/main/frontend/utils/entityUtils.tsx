@@ -8,7 +8,6 @@ import {
     PronunciationService,
     SourceService,
     StructureService, StructureComponentService, StructureDescriptionService, MeaningService, EntityEvolutionService,
-    EntityDetailEndpoint
 } from "Frontend/generated/endpoints";
 import EntityEvolutionDto from "Frontend/generated/com/liu/trachunom/dto/EntityEvolutionDto";
 import {
@@ -19,7 +18,7 @@ import StructureComponentDto from "Frontend/generated/com/liu/trachunom/dto/Stru
 import * as StructureEndpoint from "Frontend/generated/StructureEndpoint";
 import Pronunciation from "Frontend/generated/com/liu/trachunom/entity/pronunciation/Pronunciation";
 import Meaning from "Frontend/generated/com/liu/trachunom/entity/meaning/Meaning";
-import Source from "Frontend/generated/com/liu/trachunom/entity/Source";
+import Source from "Frontend/generated/com/liu/trachunom/entity/evidence/Source";
 import PronunciationEvolutionDto from "Frontend/generated/com/liu/trachunom/dto/PronunciationEvolutionDto";
 import Structure from "Frontend/generated/com/liu/trachunom/entity/structure/Structure";
 import StructureComponent from "Frontend/generated/com/liu/trachunom/entity/structure/StructureComponent";

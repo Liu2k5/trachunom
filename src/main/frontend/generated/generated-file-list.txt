@@ -23,15 +23,17 @@ AuthEndpoint.ts
 EntityDetailEndpoint.ts
 SearchEndpoint.ts
 EntityMapper.ts
-LanguageService.ts
-SourceService.ts
-StyleService.ts
 CharacterService.ts
 RadicalService.ts
 TradSimpStandardService.ts
 EntityEvolutionService.ts
 EntityService.ts
 EvolutionDescriptionService.ts
+LanguageService.ts
+ImageService.ts
+MarkService.ts
+SourceService.ts
+StyleService.ts
 ExampleService.ts
 ExampleWordService.ts
 ExplanationService.ts
@@ -58,7 +60,7 @@ com/liu/trachunom/entity/entity/EvolutionDescription.ts
 com/liu/trachunom/dto/ExplanationDto.ts
 com/liu/trachunom/entity/meaning/Explanation.ts
 com/liu/trachunom/dto/LanguageDto.ts
-com/liu/trachunom/entity/Language.ts
+com/liu/trachunom/entity/entity/Language.ts
 com/liu/trachunom/dto/MeaningDto.ts
 com/liu/trachunom/entity/meaning/Meaning.ts
 com/liu/trachunom/dto/MeaningExplanationDto.ts
@@ -70,7 +72,7 @@ com/liu/trachunom/dto/QuocNguDto.ts
 com/liu/trachunom/dto/RadicalDto.ts
 com/liu/trachunom/entity/character/Radical.ts
 com/liu/trachunom/dto/SourceDto.ts
-com/liu/trachunom/entity/Source.ts
+com/liu/trachunom/entity/evidence/Source.ts
 com/liu/trachunom/entity/structure/StructureClassification.ts
 com/liu/trachunom/entity/structure/StructureComponentId.ts
 com/liu/trachunom/dto/StructureComponentDto.ts
@@ -78,7 +80,7 @@ com/liu/trachunom/dto/StructureDescriptionDto.ts
 com/liu/trachunom/dto/StructureDto.ts
 com/liu/trachunom/entity/structure/StructureType.ts
 com/liu/trachunom/dto/StyleDto.ts
-com/liu/trachunom/entity/Style.ts
+com/liu/trachunom/entity/evidence/Style.ts
 com/liu/trachunom/entity/character/TradSimpStandardId.ts
 com/liu/trachunom/dto/TradSimpStandardDto.ts
 com/liu/trachunom/endpoint/guest/AuthEndpoint/AuthInfo.ts
@@ -104,6 +106,8 @@ com/vaadin/hilla/crud/filter/OrFilter.ts
 com/vaadin/hilla/crud/filter/AndFilter.ts
 com/vaadin/hilla/crud/filter/PropertyStringFilter.ts
 com/vaadin/hilla/mappedtypes/Pageable.ts
+com/liu/trachunom/entity/evidence/Image.ts
+com/liu/trachunom/entity/evidence/Mark.ts
 com/liu/trachunom/entity/example/ExampleWordId.ts
 com/liu/trachunom/entity/meaning/MeaningExplanationId.ts
 com/vaadin/hilla/crud/filter/PropertyStringFilter/Matcher.ts
@@ -124,7 +128,7 @@ com/liu/trachunom/entity/entity/EvolutionDescriptionModel.ts
 com/liu/trachunom/dto/ExplanationDtoModel.ts
 com/liu/trachunom/entity/meaning/ExplanationModel.ts
 com/liu/trachunom/dto/LanguageDtoModel.ts
-com/liu/trachunom/entity/LanguageModel.ts
+com/liu/trachunom/entity/entity/LanguageModel.ts
 com/liu/trachunom/dto/MeaningDtoModel.ts
 com/liu/trachunom/entity/meaning/MeaningModel.ts
 com/liu/trachunom/dto/MeaningExplanationDtoModel.ts
@@ -136,7 +140,7 @@ com/liu/trachunom/dto/QuocNguDtoModel.ts
 com/liu/trachunom/dto/RadicalDtoModel.ts
 com/liu/trachunom/entity/character/RadicalModel.ts
 com/liu/trachunom/dto/SourceDtoModel.ts
-com/liu/trachunom/entity/SourceModel.ts
+com/liu/trachunom/entity/evidence/SourceModel.ts
 com/liu/trachunom/entity/structure/StructureClassificationModel.ts
 com/liu/trachunom/entity/structure/StructureComponentIdModel.ts
 com/liu/trachunom/dto/StructureComponentDtoModel.ts
@@ -144,7 +148,7 @@ com/liu/trachunom/dto/StructureDescriptionDtoModel.ts
 com/liu/trachunom/dto/StructureDtoModel.ts
 com/liu/trachunom/entity/structure/StructureTypeModel.ts
 com/liu/trachunom/dto/StyleDtoModel.ts
-com/liu/trachunom/entity/StyleModel.ts
+com/liu/trachunom/entity/evidence/StyleModel.ts
 com/liu/trachunom/entity/character/TradSimpStandardIdModel.ts
 com/liu/trachunom/dto/TradSimpStandardDtoModel.ts
 com/liu/trachunom/endpoint/guest/AuthEndpoint/AuthInfoModel.ts
@@ -169,6 +173,8 @@ com/vaadin/hilla/crud/filter/OrFilterModel.ts
 com/vaadin/hilla/crud/filter/AndFilterModel.ts
 com/vaadin/hilla/crud/filter/PropertyStringFilterModel.ts
 com/vaadin/hilla/mappedtypes/PageableModel.ts
+com/liu/trachunom/entity/evidence/ImageModel.ts
+com/liu/trachunom/entity/evidence/MarkModel.ts
 com/liu/trachunom/entity/example/ExampleWordIdModel.ts
 com/liu/trachunom/entity/meaning/MeaningExplanationIdModel.ts
 com/vaadin/hilla/crud/filter/PropertyStringFilter/MatcherModel.ts

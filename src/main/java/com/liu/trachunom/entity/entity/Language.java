@@ -1,6 +1,4 @@
-package com.liu.trachunom.entity;
-
-import org.hibernate.annotations.Nationalized;
+package com.liu.trachunom.entity.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

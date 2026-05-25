@@ -26,7 +26,7 @@ html {
 }
 
 body {
-    background-color: var(--lumo-tint-5pct);
+    /*background-color: var(--lumo-tint-5pct);*/
     color: var(--lumo-body-text-color);
     font-family: var(--lumo-font-family), serif;
     -webkit-font-smoothing: antialiased;

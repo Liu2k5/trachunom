@@ -2538,8 +2538,8 @@ public class DictionaryManagementView extends VerticalLayout {
 
         // Sửa hình ảnh
         editPictureButton.addClickListener(cl -> {
-            Picture picture = pictureGrid.getSelectedItems().stream().findFirst().orElse(null);
-            if (picture == null) {
+            Picture image = pictureGrid.getSelectedItems().stream().findFirst().orElse(null);
+            if (image == null) {
                 return;
             }
 
@@ -2552,23 +2552,23 @@ public class DictionaryManagementView extends VerticalLayout {
             ComboBox<CharacterX> characterField = new ComboBox<>("Ký tự");
             characterField.setItems(characterService.findAll());
             characterField.setItemLabelGenerator(CharacterX::getString);
-            characterField.setValue(picture.getCharacter());
+            characterField.setValue(image.getCharacter());
             characterField.setWidth("100%");
 
             ComboBox<Source> sourceField = new ComboBox<>("Nguồn");
             sourceField.setItems(sourceService.findAll());
             sourceField.setItemLabelGenerator(Source::getName);
-            sourceField.setValue(picture.getSource());
+            sourceField.setValue(image.getSource());
             sourceField.setWidth("100%");
 
             ComboBox<Style> styleField = new ComboBox<>("Phong cách");
             styleField.setItems(styleService.findAll());
             styleField.setItemLabelGenerator(Style::getDescription);
-            styleField.setValue(picture.getStyle());
+            styleField.setValue(image.getStyle());
             styleField.setWidth("100%");
 
             TextField linkField = new TextField("Liên kết");
-            linkField.setValue(picture.getLink() != null ? picture.getLink() : "");
+            linkField.setValue(image.getLink() != null ? image.getLink() : "");
             linkField.setWidth("100%");
             linkField.setPlaceholder("Nhập URL hình ảnh");
 
@@ -2580,11 +2580,11 @@ public class DictionaryManagementView extends VerticalLayout {
             Button cancelButton = new Button("Hủy");
 
             saveButton.addClickListener(e -> {
-                picture.setCharacter(characterField.getValue());
-                picture.setSource(sourceField.getValue());
-                picture.setStyle(styleField.getValue());
-                picture.setLink(linkField.getValue());
-                pictureService.save(picture);
+                image.setCharacter(characterField.getValue());
+                image.setSource(sourceField.getValue());
+                image.setStyle(styleField.getValue());
+                image.setLink(linkField.getValue());
+                pictureService.save(image);
                 pictureGrid.setItems(pictureService.findAll());
                 dialog.close();
             });
@@ -2597,11 +2597,11 @@ public class DictionaryManagementView extends VerticalLayout {
 
         // Xóa hình ảnh
         deletePictureButton.addClickListener(cl -> {
-            Picture picture = pictureGrid.getSelectedItems().stream().findFirst().orElse(null);
-            if (picture == null) {
+            Picture image = pictureGrid.getSelectedItems().stream().findFirst().orElse(null);
+            if (image == null) {
                 return;
             }
-            pictureService.delete(picture.getId());
+            pictureService.delete(image.getId());
             pictureGrid.setItems(pictureService.findAll());
         });
 

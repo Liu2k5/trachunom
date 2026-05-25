@@ -1,9 +1,5 @@
-package com.liu.trachunom.entity;
+package com.liu.trachunom.entity.evidence;
 
-import org.hibernate.annotations.Nationalized;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -14,28 +10,18 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Entity
-@Table(name = "source")
+@jakarta.persistence.Entity
+@Table(name = "style")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Source {
+public class Style {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
-
-    @Column(columnDefinition = "TEXT")
     private String description;
-
-    @Column(name = "start_year")
-    private Integer startYear;
-
-    @Column(name = "end_year")
-    private Integer endYear;
-
 }

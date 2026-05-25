@@ -1,4 +1,4 @@
-package com.liu.trachunom.entity;
+package com.liu.trachunom.entity.evidence;
 
 import com.liu.trachunom.entity.character.CharacterX;
 import jakarta.persistence.Entity;
@@ -15,13 +15,13 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "picture")
+@Table(name = "image")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Picture {
+public class Image {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,11 +34,9 @@ public class Picture {
     @ManyToOne
     @JoinColumn(name = "source_id")
     private Source source;
-    
-    @ManyToOne
-    @JoinColumn(name = "style_id")
-    private Style style;
-    
+
+    private Integer page;
+
     private String link;
     
 }

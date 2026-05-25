@@ -1,6 +1,6 @@
-package com.liu.trachunom.service;
+package com.liu.trachunom.service.evidence;
 
-import com.liu.trachunom.entity.Style;
+import com.liu.trachunom.entity.evidence.Style;
 import com.liu.trachunom.repository.StyleRepository;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.BrowserCallable;

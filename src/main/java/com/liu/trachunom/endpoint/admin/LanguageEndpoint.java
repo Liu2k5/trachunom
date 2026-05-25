@@ -1,9 +1,9 @@
 package com.liu.trachunom.endpoint.admin;
 
 import com.liu.trachunom.dto.LanguageDto;
-import com.liu.trachunom.entity.Language;
+import com.liu.trachunom.entity.entity.Language;
 import com.liu.trachunom.mapper.EntityMapper;
-import com.liu.trachunom.service.LanguageService;
+import com.liu.trachunom.service.entity.LanguageService;
 import jakarta.annotation.security.RolesAllowed;
 import com.vaadin.hilla.BrowserCallable;
 import lombok.RequiredArgsConstructor;

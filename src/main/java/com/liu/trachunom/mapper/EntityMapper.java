@@ -1,12 +1,13 @@
 package com.liu.trachunom.mapper;
 
 import com.liu.trachunom.dto.*;
-import com.liu.trachunom.entity.*;
 import com.liu.trachunom.entity.character.CharacterX;
 import com.liu.trachunom.entity.character.Radical;
 import com.liu.trachunom.entity.character.TradSimpStandard;
 import com.liu.trachunom.entity.character.TradSimpStandardId;
 import com.liu.trachunom.entity.entity.*;
+import com.liu.trachunom.entity.evidence.Source;
+import com.liu.trachunom.entity.evidence.Style;
 import com.liu.trachunom.entity.example.Example;
 import com.liu.trachunom.entity.example.ExampleWord;
 import com.liu.trachunom.entity.example.ExampleWordId;
@@ -19,11 +20,12 @@ import com.liu.trachunom.entity.pronunciation.PronunciationEvolution;
 import com.liu.trachunom.entity.pronunciation.PronunciationEvolutionId;
 import com.liu.trachunom.entity.pronunciation.QuocNgu;
 import com.liu.trachunom.entity.structure.*;
-import com.liu.trachunom.service.*;
 import com.liu.trachunom.service.character.CharacterService;
 import com.liu.trachunom.service.character.RadicalService;
 import com.liu.trachunom.service.entity.EntityService;
 import com.liu.trachunom.service.entity.EvolutionDescriptionService;
+import com.liu.trachunom.service.entity.LanguageService;
+import com.liu.trachunom.service.evidence.SourceService;
 import com.liu.trachunom.service.example.ExampleService;
 import com.liu.trachunom.service.example.ExampleWordService;
 import com.liu.trachunom.service.meaning.ExplanationService;

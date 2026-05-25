@@ -26,21 +26,21 @@ import type TradSimpStandard_1 from "./com/liu/trachunom/entity/character/TradSi
 import type EntityComposition_1 from "./com/liu/trachunom/entity/entity/EntityComposition.js";
 import type EntityEvolution_1 from "./com/liu/trachunom/entity/entity/EntityEvolution.js";
 import type EntityX_1 from "./com/liu/trachunom/entity/entity/EntityX.js";
+import type Language_1 from "./com/liu/trachunom/entity/entity/Language.js";
+import type Source_1 from "./com/liu/trachunom/entity/evidence/Source.js";
+import type Style_1 from "./com/liu/trachunom/entity/evidence/Style.js";
 import type Example_1 from "./com/liu/trachunom/entity/example/Example.js";
 import type ExampleWord_1 from "./com/liu/trachunom/entity/example/ExampleWord.js";
-import type Language_1 from "./com/liu/trachunom/entity/Language.js";
 import type Explanation_1 from "./com/liu/trachunom/entity/meaning/Explanation.js";
 import type Meaning_1 from "./com/liu/trachunom/entity/meaning/Meaning.js";
 import type MeaningExplanation_1 from "./com/liu/trachunom/entity/meaning/MeaningExplanation.js";
 import type Pronunciation_1 from "./com/liu/trachunom/entity/pronunciation/Pronunciation.js";
 import type PronunciationEvolution_1 from "./com/liu/trachunom/entity/pronunciation/PronunciationEvolution.js";
 import type QuocNgu_1 from "./com/liu/trachunom/entity/pronunciation/QuocNgu.js";
-import type Source_1 from "./com/liu/trachunom/entity/Source.js";
 import type Structure_1 from "./com/liu/trachunom/entity/structure/Structure.js";
 import type StructureClassification_1 from "./com/liu/trachunom/entity/structure/StructureClassification.js";
 import type StructureComponent_1 from "./com/liu/trachunom/entity/structure/StructureComponent.js";
 import type StructureDescription_1 from "./com/liu/trachunom/entity/structure/StructureDescription.js";
-import type Style_1 from "./com/liu/trachunom/entity/Style.js";
 import client_1 from "./connect-client.default.js";
 async function getNewStructureComponentDto_1(init?: EndpointRequestInit_1): Promise<StructureComponentDto_1 | undefined> { return client_1.call("EntityMapper", "getNewStructureComponentDto", {}, init); }
 async function getNewStructureComponentDtoWithStructureId_1(structureId: number | undefined, init?: EndpointRequestInit_1): Promise<StructureComponentDto_1 | undefined> { return client_1.call("EntityMapper", "getNewStructureComponentDtoWithStructureId", { structureId }, init); }

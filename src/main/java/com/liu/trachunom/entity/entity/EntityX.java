@@ -1,6 +1,5 @@
 package com.liu.trachunom.entity.entity;
 
-import com.liu.trachunom.entity.Language;
 import com.liu.trachunom.entity.meaning.Meaning;
 import com.liu.trachunom.entity.pronunciation.Pronunciation;
 import com.liu.trachunom.entity.structure.Structure;

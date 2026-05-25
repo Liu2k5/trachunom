@@ -1,9 +1,9 @@
 package com.liu.trachunom.endpoint.admin;
 
 import com.liu.trachunom.dto.StyleDto;
-import com.liu.trachunom.entity.Style;
+import com.liu.trachunom.entity.evidence.Style;
 import com.liu.trachunom.mapper.EntityMapper;
-import com.liu.trachunom.service.StyleService;
+import com.liu.trachunom.service.evidence.StyleService;
 import jakarta.annotation.security.RolesAllowed;
 import com.vaadin.hilla.BrowserCallable;
 import lombok.RequiredArgsConstructor;

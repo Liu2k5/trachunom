@@ -1,6 +1,6 @@
-package com.liu.trachunom.service;
+package com.liu.trachunom.service.evidence;
 
-import com.liu.trachunom.entity.Source;
+import com.liu.trachunom.entity.evidence.Source;
 import com.liu.trachunom.entity.entity.EntityComposition;
 import com.liu.trachunom.entity.entity.EntityX;
 import com.liu.trachunom.entity.example.Example;
@@ -9,8 +9,6 @@ import com.liu.trachunom.repository.EntityCompositionRepository;
 import com.liu.trachunom.repository.EntityRepository;
 import com.liu.trachunom.repository.ExampleWordRepository;
 import com.liu.trachunom.repository.SourceRepository;
-import com.liu.trachunom.service.entity.EntityService;
-import com.liu.trachunom.service.example.ExampleWordService;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.BrowserCallable;
 import com.vaadin.hilla.crud.ListRepositoryService;

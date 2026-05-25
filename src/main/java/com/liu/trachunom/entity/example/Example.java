@@ -1,6 +1,6 @@
 package com.liu.trachunom.entity.example;
 
-import com.liu.trachunom.entity.Source;
+import com.liu.trachunom.entity.evidence.Source;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;

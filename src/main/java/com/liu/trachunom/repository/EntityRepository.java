@@ -1,14 +1,13 @@
 package com.liu.trachunom.repository;
 
-import com.liu.trachunom.entity.*;
 import com.liu.trachunom.entity.character.CharacterX;
 import com.liu.trachunom.entity.entity.EntityX;
+import com.liu.trachunom.entity.entity.Language;
 import com.liu.trachunom.entity.meaning.Meaning;
 import com.liu.trachunom.entity.pronunciation.Pronunciation;
 import com.liu.trachunom.entity.structure.Structure;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

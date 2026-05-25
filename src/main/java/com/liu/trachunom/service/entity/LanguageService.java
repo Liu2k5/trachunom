@@ -1,4 +1,4 @@
-package com.liu.trachunom.service;
+package com.liu.trachunom.service.entity;
 
 import java.util.List;
 
@@ -7,7 +7,7 @@ import com.vaadin.hilla.BrowserCallable;
 import com.vaadin.hilla.crud.ListRepositoryService;
 import org.springframework.stereotype.Service;
 
-import com.liu.trachunom.entity.Language;
+import com.liu.trachunom.entity.entity.Language;
 import com.liu.trachunom.repository.LanguageRepository;
 
 import lombok.RequiredArgsConstructor;
