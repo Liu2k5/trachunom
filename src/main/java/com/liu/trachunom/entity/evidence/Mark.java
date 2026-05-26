@@ -15,14 +15,15 @@ import lombok.Builder;
 @AllArgsConstructor
 @Builder
 public class Mark {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @EmbeddedId
+    private MarkId id;
 
+    @MapsId("imageId")
     @ManyToOne
     @JoinColumn(name = "image_id")
     private Image image;
 
+    @MapsId("entityId")
     @OneToOne
     @JoinColumn(name = "entity_id")
     private EntityX entity;

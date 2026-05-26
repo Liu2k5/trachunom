@@ -6,8 +6,7 @@ import com.liu.trachunom.entity.character.Radical;
 import com.liu.trachunom.entity.character.TradSimpStandard;
 import com.liu.trachunom.entity.character.TradSimpStandardId;
 import com.liu.trachunom.entity.entity.*;
-import com.liu.trachunom.entity.evidence.Source;
-import com.liu.trachunom.entity.evidence.Style;
+import com.liu.trachunom.entity.evidence.*;
 import com.liu.trachunom.entity.example.Example;
 import com.liu.trachunom.entity.example.ExampleWord;
 import com.liu.trachunom.entity.example.ExampleWordId;
@@ -25,6 +24,7 @@ import com.liu.trachunom.service.character.RadicalService;
 import com.liu.trachunom.service.entity.EntityService;
 import com.liu.trachunom.service.entity.EvolutionDescriptionService;
 import com.liu.trachunom.service.entity.LanguageService;
+import com.liu.trachunom.service.evidence.ImageService;
 import com.liu.trachunom.service.evidence.SourceService;
 import com.liu.trachunom.service.example.ExampleService;
 import com.liu.trachunom.service.example.ExampleWordService;
@@ -69,6 +69,7 @@ public class EntityMapper {
     private final PronunciationEvolutionService pronunciationEvolutionService;
     private final EvolutionDescriptionService evolutionDescriptionService;
     private final StructureTypeService structureTypeService;
+    private final ImageService imageService;
 
     public LanguageDto toLanguageDto(Language entity) {
         if (entity == null) {
@@ -917,6 +918,75 @@ public class EntityMapper {
         return pronunciationEvolutions.stream()
                 .map(this::toPronunciationEvolutionDto)
                 .collect(Collectors.toList());
+    }
+
+    public ImageDto toImageDto(Image image) {
+        if (image == null) {
+            return null;
+        }
+        return ImageDto
+                .builder()
+                .id(image.getId())
+                .sourceId(image.getSource() != null ? image.getSource().getId() : null)
+                .page(image.getPage())
+                .link(image.getLink())
+                .sourceName(image.getSource() != null ? image.getSource().getName() : null)
+                .build();
+    }
+
+    public Image toImage(ImageDto imageDto) {
+        if (imageDto == null) {
+            return null;
+        }
+        Source source = imageDto.getSourceId() != null ? sourceService.findById(imageDto.getSourceId()) : null;
+        return Image
+                .builder()
+                .id(imageDto.getId())
+                .source(source)
+                .page(imageDto.getPage())
+                .link(imageDto.getLink())
+                .build();
+    }
+
+    public MarkDto toMarkDto(Mark mark) {
+        if (mark == null) {
+            return null;
+        }
+        return MarkDto
+                .builder()
+                .imageId(mark.getId() != null ? mark.getId().getImageId() : null)
+                .entityId(mark.getId() != null ? mark.getId().getEntityId() : null)
+                .x(mark.getX())
+                .y(mark.getY())
+                .width(mark.getWidth())
+                .height(mark.getHeight())
+                .image(mark.getImage() != null ? toImageDto(mark.getImage()) : null)
+                .entityString(mark.getEntity() != null ?
+                        entityService.getQnguStringById(mark.getEntity().getId()) + " " +
+                                entityService.getQnguStringById(mark.getEntity().getId()) :
+                        null)
+                .build();
+    }
+
+    public Mark toMark(MarkDto markDto) {
+        if (markDto == null) {
+            return null;
+        }
+        MarkId markId = MarkId.builder()
+                .imageId(markDto.getImageId())
+                .entityId(markDto.getEntityId())
+                .build();
+        Image image = markDto.getImageId() != null ? imageService.findById(markDto.getImageId()) : null;
+        EntityX entity = markDto.getEntityId() != null ? entityService.findById(markDto.getEntityId()) : null;
+        return Mark.builder()
+                .id(markId)
+                .image(image)
+                .entity(entity)
+                .x(markDto.getX())
+                .y(markDto.getY())
+                .width(markDto.getWidth())
+                .height(markDto.getHeight())
+                .build();
     }
 }
 

@@ -112,6 +112,7 @@ com/liu/trachunom/entity/example/ExampleWordId.ts
 com/liu/trachunom/entity/meaning/MeaningExplanationId.ts
 com/vaadin/hilla/crud/filter/PropertyStringFilter/Matcher.ts
 com/vaadin/hilla/mappedtypes/Sort.ts
+com/liu/trachunom/entity/evidence/MarkId.ts
 com/vaadin/hilla/mappedtypes/Order.ts
 org/springframework/data/domain/Sort/Direction.ts
 org/springframework/data/domain/Sort/NullHandling.ts
@@ -179,6 +180,7 @@ com/liu/trachunom/entity/example/ExampleWordIdModel.ts
 com/liu/trachunom/entity/meaning/MeaningExplanationIdModel.ts
 com/vaadin/hilla/crud/filter/PropertyStringFilter/MatcherModel.ts
 com/vaadin/hilla/mappedtypes/SortModel.ts
+com/liu/trachunom/entity/evidence/MarkIdModel.ts
 com/vaadin/hilla/mappedtypes/OrderModel.ts
 org/springframework/data/domain/Sort/DirectionModel.ts
 org/springframework/data/domain/Sort/NullHandlingModel.ts

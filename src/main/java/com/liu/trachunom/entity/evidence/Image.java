@@ -1,6 +1,5 @@
 package com.liu.trachunom.entity.evidence;
 
-import com.liu.trachunom.entity.character.CharacterX;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -26,11 +25,7 @@ public class Image {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
-    @ManyToOne
-    @JoinColumn(name = "unicode")
-    private CharacterX character;
-    
+
     @ManyToOne
     @JoinColumn(name = "source_id")
     private Source source;
