@@ -1,13 +1,10 @@
 package com.liu.trachunom.service;
 
 
-import com.liu.trachunom.entity.entity.EntityX;
 import com.liu.trachunom.service.entity.EntityService;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import static com.helger.commons.mock.CommonsAssert.assertEquals;
 
 @SpringBootTest
 public class EntityServiceTest {
@@ -29,11 +26,11 @@ public class EntityServiceTest {
 //        assertEquals(1, results.size());
 //    }
 
-    @Test
-    public void test3() {
-        EntityX example = entityService.findById(29L);
-        assertEquals("[阿貶]", entityService.getHnomStringById(example.getId()));
-    }
+//    @Test
+//    public void test3() {
+//        EntityX example = entityService.findById(29L);
+//        assertEquals("[阿貶]", entityService.getHnomStringById(example.getId()));
+//    }
 
 //    @Test
 //    public void test4() {

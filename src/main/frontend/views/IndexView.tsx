@@ -2,6 +2,7 @@ import { ViewConfig } from '@vaadin/hilla-file-router/types.js';
 import { useNavigate } from 'react-router';
 import { Button } from '@vaadin/react-components';
 import { SearchBar } from 'Frontend/views/SearchBar';
+import {ImagePosUtil} from "Frontend/utils/imageUtils";
 
 export const config: ViewConfig = {
   menu: { order: 0, icon: 'la la-home' },
@@ -129,6 +130,9 @@ export default function IndexView() {
             >
               Quản lý từ điển
             </Button>
+          </div>
+          <div>
+              <ImagePosUtil imgLink={"https://lib.nomfoundation.org/site_media/nom/nlvnpf-0026/large/nlvnpf-0026-001.jpg"} />
           </div>
       </div>
     </div>
