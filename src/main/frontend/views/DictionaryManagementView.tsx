@@ -124,6 +124,13 @@ import PronunciationDto from "Frontend/generated/com/liu/trachunom/dto/Pronuncia
 import EvolutionDescription from "Frontend/generated/com/liu/trachunom/entity/entity/EvolutionDescription";
 import StructureType from "Frontend/generated/com/liu/trachunom/entity/structure/StructureType";
 
+import { ImagePosUtil } from "Frontend/utils/imageUtils";
+import { ImageService, MarkService } from "Frontend/generated/endpoints";
+import ImageEntity from "Frontend/generated/com/liu/trachunom/entity/evidence/Image";
+import MarkEntity from "Frontend/generated/com/liu/trachunom/entity/evidence/Mark";
+import ImageModel from "Frontend/generated/com/liu/trachunom/entity/evidence/ImageModel";
+import MarkModel from "Frontend/generated/com/liu/trachunom/entity/evidence/MarkModel";
+
 export const config: ViewConfig = {
     menu: {order: 2, icon: 'la la-book'},
     title: 'Quản Lý Từ Điển',
@@ -168,7 +175,7 @@ export default function DictionaryManagementView() {
         {id: 'meanings', label: 'Ý nghĩa'},
         {id: 'entities', label: 'Thực thể'},
         {id: 'examples', label: 'Ví dụ'},
-        {id: 'additional', label: 'Bổ sung'},
+        {id: 'addition', label: 'Bổ sung'},
     ];
 
 
@@ -303,16 +310,8 @@ export default function DictionaryManagementView() {
                         <ExampleTabContent />
                     )}
 
-                    {activeTab === 'additional' && (
-                        <div>
-                            <h2 style={{color: '#333', marginBottom: '20px'}}>
-                                Thông tin bổ sung
-                            </h2>
-                            <p style={{color: '#666'}}>
-                                Quản lý ví dụ, hình ảnh và các thông tin bổ sung khác.
-                            </p>
-                            {/* TODO: Add additional management features */}
-                        </div>
+                    {activeTab === 'addition' && (
+                        <AdditionTabContent />
                     )}
                 </div>
             </div>
@@ -325,6 +324,13 @@ const BasicsTabContent = () => {
     const sourceGridRef = useRef<any>(null);
     const languageGridRef = useRef<any>(null);
     const styleGridRef = useRef<any>(null);
+
+    const [allStyles, setAllStyles] = useState<Style[] | undefined>(undefined);
+    useEffect(() => {
+        StyleService.findAll()
+        .then(data => data?.filter(o => o !== undefined))
+        .then(setAllStyles);
+    }, []);
 
     const [selectedRadical, setSelectedRadical] = useState<Radical | undefined | null>(null);
     const [seletedRadicalDto, setSelectedRadicalDto] = useState<any>(null);
@@ -405,7 +411,7 @@ const BasicsTabContent = () => {
     useEffect(() => {
         EntityMapper.toLanguageDto(selectedLanguage ?? undefined).then(dto => setSelectedLanguageDto(dto))
             .catch(error => console.error('Error mapping Language to DTO:', error));
-    })
+    }, [selectedLanguage]);
     const deleteLanguageRenderer = ({item} : {item: Language}) => {
         const handleDelete = async () => {
             if (item.id) {
@@ -442,7 +448,7 @@ const BasicsTabContent = () => {
     useEffect(() => {
         EntityMapper.toStyleDto(selectedStyle ?? undefined).then(dto => setSelectedStyleDto(dto))
             .catch(error => console.error('Error mapping Style to DTO:', error));
-    })
+    }, [selectedStyle]);
     const deleteStyleRenderer = ({item}: {item: any}) => {
         const handleDelete = async () => {
             if (item.id) {
@@ -494,7 +500,7 @@ const BasicsTabContent = () => {
                           strokeNumber: {header: 'Số nét'},
                       }}
                       customColumns={[
-                          <GridColumn header="Xóa" renderer={deleteRadicalRenderer} />,
+                          <GridColumn key="del-radical" header="Xóa" renderer={deleteRadicalRenderer} />,
                       ]}
                       hiddenColumns={['string']}
             />
@@ -502,12 +508,11 @@ const BasicsTabContent = () => {
             <AutoForm service={RadicalEndpoint}
                       model={RadicalDtoModel}
                       item={seletedRadicalDto}
-                      hiddenFields={['string']}
                       onSubmitSuccess={() => {
                           setSelectedRadicalDto(null);
                           radicalGridRef.current?.refresh();
                       }}
-                      onSubmitError={error => window.alert('Lỗi khi lưu bộ thủ: ' + error.error.message)}
+                      onSubmitError={(error: any) => window.alert('Lỗi khi lưu bộ thủ: ' + error.error.message)}
                         fieldOptions={{
                             radicalUnicode: {label: 'Unicode bộ thủ'},
                             unicode: {label: 'Unicode'},
@@ -521,11 +526,21 @@ const BasicsTabContent = () => {
                       selectedItems={[selectedSource]}
                       onActiveItemChanged={i => setSelectedSource(i.detail.value)}
                       columnOptions={{
-                          name: {header: 'Tên nguồn'},
-                          description: {header: 'Mô tả'},
+                          nameQngu: {header: 'Tên (QN)'},
+                          nqmeHnom: {header: 'Tên (HN)'},
+                          fullNameQngu: {header: 'Tên đầy đủ (QN)'},
+                          fullNameHnom: {header: 'Tên đầy đủ (HN)'},
+                          authorQngu: {header: 'Tác giả (QN)'},
+                          authorHnom: {header: 'Tác giả (HN)'},
+                          writerQngu: {header: 'Người chép (QN)'},
+                          writerHnom: {header: 'Người chép (HN)'},
+                          'style.description': {header: 'Phong cách'},
+                          startYear: {header: 'Năm bắt đầu'},
+                          endYear: {header: 'Năm kết thúc'},
+                          description: {header: 'Mô tả', width: '200px'},
                       }}
                       customColumns={[
-                            <GridColumn header="Xóa" renderer={deleteSourceRenderer} />
+                            <GridColumn key="del-source" header="Xóa" renderer={deleteSourceRenderer} />
                       ]}
             />
 
@@ -536,11 +551,33 @@ const BasicsTabContent = () => {
                           setSelectedSourceDto(null);
                           sourceGridRef.current?.refresh();
                       }}
-                      onSubmitError={error => window.alert('Lỗi khi lưu nguồn: ' + error.error.message)}
+                      onSubmitError={(error: any) => window.alert('Lỗi khi lưu nguồn: ' + error.error.message)}
                       fieldOptions={{
-                          name: {label: 'Tên nguồn'},
+                          nameQngu: {label: 'Tên (Quốc ngữ)'},
+                          nqmeHnom: {label: 'Tên (Hán Nôm)'},
+                          fullNameQngu: {label: 'Tên đầy đủ (Quốc ngữ)'},
+                          fullNameHnom: {label: 'Tên đầy đủ (Hán Nôm)'},
+                          authorQngu: {label: 'Tác giả (Quốc ngữ)'},
+                          authorHnom: {label: 'Tác giả (Hán Nôm)'},
+                          writerQngu: {label: 'Người chép (Quốc ngữ)'},
+                          writerHnom: {label: 'Người chép (Hán Nôm)'},
+                          styleId: {
+                              label: 'Phong cách',
+                              renderer: ({field} : any) => (
+                                  <ComboBox
+                                      {...field}
+                                      label="Phong cách"
+                                      items={allStyles}
+                                      itemLabelPath="description"
+                                      itemValuePath="id"
+                                  />
+                              )
+                          },
+                          startYear: {label: 'Năm bắt đầu'},
+                          endYear: {label: 'Năm kết thúc'},
                           description: {label: 'Mô tả'},
                       }}
+                      hiddenFields={['styleDescription']}
             />
 
             <AutoGrid service={LanguageService}
@@ -552,7 +589,7 @@ const BasicsTabContent = () => {
                           abbreviation: {header: 'Viết tắt'},
                       }}
                       customColumns={[
-                          <GridColumn header="Xóa" renderer={deleteLanguageRenderer} />
+                          <GridColumn key="del-lang" header="Xóa" renderer={deleteLanguageRenderer} />
                       ]}
             />
 
@@ -563,7 +600,7 @@ const BasicsTabContent = () => {
                           setSelectedLanguageDto(null);
                           languageGridRef.current?.refresh();
                       }}
-                      onSubmitError={error => window.alert('Lỗi khi lưu ngôn ngữ: ' + error.error.message)}
+                      onSubmitError={(error: any) => window.alert('Lỗi khi lưu ngôn ngữ: ' + error.error.message)}
                       fieldOptions={{
                           abbreviation: {label: 'Viết tắt'},
                       }}
@@ -575,10 +612,10 @@ const BasicsTabContent = () => {
                       selectedItems={[selectedStyle]}
                       onActiveItemChanged={i => setSelectedStyle(i.detail.value)}
                       columnOptions={{
-                          description: {header: 'Mô tả'},
+                          description: {header: 'Phong cách'},
                       }}
                       customColumns={[
-                          <GridColumn header="Xóa" renderer={deleteStyleRenderer} />
+                          <GridColumn key="del-style" header="Xóa" renderer={deleteStyleRenderer} />
                       ]}
             />
 
@@ -589,9 +626,9 @@ const BasicsTabContent = () => {
                           setSelectedStyleDto(null);
                           styleGridRef.current?.refresh();
                       }}
-                      onSubmitError={error => window.alert('Lỗi khi lưu phong cách: ' + error.error.message)}
+                      onSubmitError={(error: any) => window.alert('Lỗi khi lưu phong cách: ' + error.error.message)}
                       fieldOptions={{
-                          description: {label: 'Mô tả'},
+                          description: {label: 'Phong cách'},
                       }}
             />
         </div>
@@ -743,7 +780,7 @@ const CharactersTabContent = () => {
                         radical: {
                             label: 'Bộ thủ',
                             renderer:
-                                ({field}) => {
+                                ({field} : any) => {
                                     return (
                                         <ComboBox
                                             label='Bộ thủ'
@@ -780,7 +817,7 @@ const CharactersTabContent = () => {
                     // visibleColumns={['traditionalCharacter', 'simplifiedCharacter',]}
                     hiddenColumns={['id',]}
                     customColumns={[
-                        <GridColumn header={'Xóa'} renderer={deleteTradSimpStandardRenderer} />,
+                        <GridColumn key="del-trad" header={'Xóa'} renderer={deleteTradSimpStandardRenderer} />,
                     ]}
                 />
 
@@ -1082,7 +1119,7 @@ const StructureTabContent = () => {
                         }
                     }}
                     customColumns={[
-                        <GridColumn key="delete-structure" path="delete" header="Xóa" renderer={deleteStructureRenderer} flexGrow={0} width="90px" />,
+                        <GridColumn key="del-structure" path="delete" header="Xóa" renderer={deleteStructureRenderer} flexGrow={0} width="90px" />,
                     ]}
                     hiddenColumns={['characterString']}
                 />
@@ -1269,7 +1306,7 @@ const StructureTabContent = () => {
                                         itemValuePath="id"
                                         items={structureDtos || []}
                                         renderer={item =>
-                                            <span>{item.item.characterWithPronunciationsString}</span>}
+                                            <span>{item.item.id + ' - ' + item.item.characterWithPronunciationsString}</span>}
                                     />
                                 );
                             },
@@ -1285,7 +1322,7 @@ const StructureTabContent = () => {
                                         itemValuePath="id"
                                         items={structureDtos || []}
                                         renderer={item =>
-                                            <span>{item.item.characterWithPronunciationsString}</span>}
+                                            <span>{item.item.id + ' - ' + item.item.characterWithPronunciationsString}</span>}
                                     />
                                 );
                             },
@@ -1481,7 +1518,7 @@ const PronunciationTabContent = () => {
                         description: {header: 'Hợp lệ'},
                     }}
                     customColumns={[
-                        <GridColumn header="Xóa" renderer={deleteQuocNguRenderer} />,
+                        <GridColumn key="del-qn-grid" header="Xóa" renderer={deleteQuocNguRenderer} />,
                     ]}
                 />
                 <AutoForm
@@ -1493,7 +1530,7 @@ const PronunciationTabContent = () => {
                         quocNguGridRef.current?.refresh();
                         refreshQuocNgusTrigger();
                     }}
-                    onSubmitError={error => window.alert('Lỗi khi lưu quốc ngữ: ' + error.error.message)}
+                    onSubmitError={(error: any) => window.alert('Lỗi khi lưu quốc ngữ: ' + error.error.message)}
                     fieldOptions={{
                         description: {label: 'Quốc ngữ'},
                     }}
@@ -1516,7 +1553,7 @@ const PronunciationTabContent = () => {
                         },
                     }}
                     customColumns={[
-                        <GridColumn header="Xóa" renderer={deletePronunciationRenderer} />,
+                        <GridColumn key="del-pron-grid" header="Xóa" renderer={deletePronunciationRenderer} />,
                     ]}
                     hiddenColumns={['string']}
                 />
@@ -1529,11 +1566,11 @@ const PronunciationTabContent = () => {
                         pronunciationGridRef.current?.refresh();
                         pronunciationsTrigger();
                     }}
-                    onSubmitError={error => window.alert('Lỗi khi lưu phát âm: ' + error.error.message)}
+                    onSubmitError={(error: any) => window.alert('Lỗi khi lưu phát âm: ' + error.error.message)}
                     fieldOptions={{
                         quocNguId: {
                             label: 'Quốc ngữ',
-                            renderer: ({field}) => {
+                            renderer: ({field} : any) => {
                                 return (
                                     <ComboBox
                                         {...field}
@@ -1541,7 +1578,7 @@ const PronunciationTabContent = () => {
                                         itemLabelPath="description"
                                         itemValuePath="id"
                                         items={quocNgus || []}
-                                        renderer={item =>
+                                        renderer={(item : any) =>
                                             <div>{item.item.id + ' - ' + item.item.description}</div>}
                                     />
                                 );
@@ -1573,7 +1610,7 @@ const PronunciationTabContent = () => {
                         }
                     }}
                     customColumns={[
-                        <GridColumn header="Xóa" renderer={deletePronunciationEvolutionRenderer} />,
+                        <GridColumn key="del-pevol-grid" header="Xóa" renderer={deletePronunciationEvolutionRenderer} />,
                     ]}
                 />
                 <AutoForm
@@ -1584,11 +1621,11 @@ const PronunciationTabContent = () => {
                         setSelectedPronunciationEvolution(null);
                         pronunciationEvolutionGridRef.current?.refresh();
                     }}
-                    onSubmitError={error => window.alert('Lỗi lưu phát triển âm đọc: ' + error.error.message)}
+                    onSubmitError={(error: any) => window.alert('Lỗi lưu phát triển âm đọc: ' + error.error.message)}
                     fieldOptions={{
                         fromPronunciationId: {
                             label: 'Phát âm gốc',
-                            renderer: ({field}) => {
+                            renderer: ({field} : any) => {
                                 return (
                                     <ComboBox
                                         {...field}
@@ -1596,7 +1633,7 @@ const PronunciationTabContent = () => {
                                         itemLabelPath="characterWithPronunciationsString"
                                         itemValuePath="id"
                                         items={pronunciationDtos || []}
-                                        renderer={item =>
+                                        renderer={(item : any) =>
                                             <div>{item.item.characterWithPronunciationsString}</div>}
                                     />
                                 );
@@ -1604,7 +1641,7 @@ const PronunciationTabContent = () => {
                         },
                         toPronunciationId: {
                             label: 'Phát âm đích',
-                            renderer: ({field}) => {
+                            renderer: ({field} : any) => {
                                 return (
                                     <ComboBox
                                         {...field}
@@ -1612,7 +1649,7 @@ const PronunciationTabContent = () => {
                                         itemLabelPath="characterWithPronunciationsString"
                                         itemValuePath="id"
                                         items={pronunciationDtos || []}
-                                        renderer={item =>
+                                        renderer={(item : any) =>
                                             <div>{item.item.id + ' - ' + item.item.characterWithPronunciationsString}</div>}
                                     />
                                 );
@@ -1642,7 +1679,6 @@ const MeaningTabContent = () => {
     const [selectedMeaningExplanationDto, setSelectedMeaningExplanationDto] = useState<MeaningExplanationDto | undefined | null>(null);
 
     const [explanations, setExplanations] = useState<Explanation[]>([]);
-    const [meaningExplanations, setMeaningExplanations] = useState<MeaningExplanation[]>([]);
     const [meanings, setMeanings] = useState<Meaning[]>([]);
 
     useEffect(() => {
@@ -1663,6 +1699,8 @@ const MeaningTabContent = () => {
             setMeaningExplanations([]);
         }
     };
+
+    const [meaningExplanations, setMeaningExplanations] = useState<MeaningExplanation[]>([]);
     useEffect(refreshMeaningExplanationsTrigger, [selectedMeaning]);
 
     useEffect(() => {
@@ -1794,13 +1832,7 @@ const MeaningTabContent = () => {
     };
 
     return (
-        <div
-            style={{
-                display: 'grid',
-                gridTemplateColumns: '2fr 1fr 2fr',
-                gridGap: '20px',
-            }}
-        >
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 2fr', gridGap: '20px' }}>
             <div>
                 <h3>Giải nghĩa</h3>
                 <AutoGrid
@@ -1810,10 +1842,7 @@ const MeaningTabContent = () => {
                     selectedItems={[selectedExplanation]}
                     onActiveItemChanged={i => setSelectedExplanation(i.detail.value)}
                     customColumns={[
-                        <GridColumn
-                            header="Xóa"
-                            renderer={deleteExplanationRenderer}
-                        />
+                        <GridColumn key="del-expl-grid" header="Xóa" renderer={deleteExplanationRenderer} />
                     ]}
                 />
                 <AutoForm
@@ -1825,7 +1854,7 @@ const MeaningTabContent = () => {
                         explanationGridRef.current?.refresh();
                         setExplanationTrigger(!explanationTrigger);
                     }}
-                    onSubmitError={error => window.alert('Lỗi lưu giải nghĩa: ' + error.error.message)}
+                    onSubmitError={(error: any) => window.alert('Lỗi lưu giải nghĩa: ' + error.error.message)}
                 />
             </div>
             <div>
@@ -1848,10 +1877,7 @@ const MeaningTabContent = () => {
                         }
                     }}
                     customColumns={[
-                        <GridColumn
-                            header="Xóa"
-                            renderer={deleteMeaningRenderer}
-                        />
+                        <GridColumn key="del-meaning-grid" header="Xóa" renderer={deleteMeaningRenderer} />
                     ]}
                     hiddenColumns={['origin']}
                 />
@@ -1863,19 +1889,19 @@ const MeaningTabContent = () => {
                         setSelectedMeaning(null);
                         meaningGridRef.current?.refresh();
                     }}
-                    onSubmitError={error => window.alert('Lỗi lưu ý nghĩa: ' + error.error.message)}
+                    onSubmitError={(error: any) => window.alert('Lỗi lưu ý nghĩa: ' + error.error.message)}
                     hiddenFields={['explanationsString', 'origin']}
                     fieldOptions={{
                         originId: {
                             label: 'Ý nghĩa nguồn gốc',
-                            renderer: ({field}) => (
+                            renderer: ({field} : any) => (
                                 <ComboBox
                                     label='Ý nghĩa nguồn gốc'
                                     itemLabelPath='explanationsString'
                                     itemValuePath='id'
                                     items={meanings || []}
                                     {...field}
-                                    renderer={item =>
+                                    renderer={(item : any) =>
                                         <span>{item.item.id + ' - ' + item.item.explanationsString}</span>}
                                 />
                             )
@@ -1900,13 +1926,11 @@ const MeaningTabContent = () => {
                             columnOptions={{
                                 id: { path: 'id.explanationId' },
                                 meaning: { hidden: true },
-                                explanation: {
-                                    header: 'Giải nghĩa',
-                                    path: 'explanation.description',
-                                }
+                                explanation: { header: 'Giải nghĩa', path: 'explanation.description' }
                             }}
                             customColumns={[
                                 <GridColumn
+                                    key="del-mexpl-grid"
                                     header="Xóa"
                                     renderer={deleteMeaningExplanationRenderer}
                                 />
@@ -1920,30 +1944,31 @@ const MeaningTabContent = () => {
                                         await MeaningExplanationEndpoint.delete(item.meaningId, item.explanationId);
                                     }
                                 }
-                            }}
+                            } as any}
                             model={MeaningExplanationDtoModel}
                             item={selectedMeaningExplanationDto}
                             onSubmitSuccess={() => {
                                 setSelectedMeaningExplanation(null);
                                 // Reload the filtered list
                                 refreshMeaningExplanationsTrigger();
-                                meaningGridRef.current?.refresh();
+                                if (meaningGridRef.current) meaningGridRef.current.refresh();
                                 setExplanationGroupTrigger(!explanationGroupTrigger);
                             }}
-                            onSubmitError={error => window.alert('Lỗi lưu nhóm giải nghĩa: ' + error.error.message)}
+                            onSubmitError={(error: any) => window.alert('Lỗi lưu nhóm giải nghĩa: ' + error.error.message)}
                             visibleFields={['explanationId']}
                             fieldOptions={{
                                 explanationId: {
                                     label: 'Giải nghĩa',
-                                    renderer: ({field}) => (
+                                    renderer: ({field} : any) => (
                                         <ComboBox
                                             label='Giải nghĩa'
                                             itemLabelPath='description'
                                             itemValuePath='id'
                                             items={explanations || []}
                                             {...field}
-                                            renderer={item =>
-                                        <span>{item.item.id + ' - ' + item.item.description}</span>}
+                                            renderer={(item : any) =>
+                                                <span>{item.item.id + ' - ' + item.item.description}</span>
+                                            }
                                         />
                                     )
                                 }
@@ -1958,7 +1983,7 @@ const MeaningTabContent = () => {
             </div>
         </div>
     );
-}
+};
 
 const EntityTabContent = () => {
     const entityGridRef = useRef<any>(null);
@@ -1983,7 +2008,6 @@ const EntityTabContent = () => {
     const [pronunciationDtos, setPronunciationDtos] = useState<PronunciationDto[]>([]);
     const [evolutionDescriptions, setEvolutionDescriptions] = useState<EvolutionDescription[]>([]);
 
-    // Create stable service wrappers using useMemo
     const compositionService = useMemo(() => ({
         ...EntityCompositionEndpoint,
         list: async () => compositions
@@ -2004,7 +2028,10 @@ const EntityTabContent = () => {
             .then(data => EntityMapper.toEntityDtoList(data))
             .then(promises => Promise.all(promises || []))
             .then(dtos => dtos.filter(dto => dto !== undefined))
-            .then(dtos => setEntityDtos(dtos as EntityDto[]));
+            .then(dtos => {
+                const checkedDtos = dtos as EntityDto[];
+                setEntityDtos(checkedDtos);
+            });
     };
     useEffect(refreshEntitiesTrigger, []);
 
@@ -2041,8 +2068,8 @@ const EntityTabContent = () => {
             EntityEvolutionEndpoint.findByFromEntityId(selectedEntity.id)
                 .then(async (dtos: any) => {
                     EntityMapper.toEntityEvolutionList(dtos)
-                        .then(data => data?.filter(e => e !== undefined) as EntityEvolution[])
-                        .then(data => setEvolutions(data));
+                        .then(data => data?.filter(e => e !== undefined))
+                        .then(data => setEvolutions(data as EntityEvolution[]));
                 })
                 .catch((error: any) => console.error('Error loading EntityEvolutions:', error));
         } else {
@@ -2138,8 +2165,6 @@ const EntityTabContent = () => {
             if (item.id) {
                 try {
                     await EntityEndpoint.delete(item.id);
-                    // Reload entities list
-                    // EntityService.findAll().then(data => setEntities((data || []).filter(e => e !== undefined)));
                     entityGridRef.current?.refresh();
                     if (selectedEntity?.id === item.id) {
                         setSelectedEntity(null);
@@ -2154,12 +2179,8 @@ const EntityTabContent = () => {
             <button
                 onClick={handleDelete}
                 style={{
-                    background: 'red',
-                    color: 'white',
-                    border: 'none',
-                    padding: '5px 10px',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
+                    background: 'red', color: 'white', border: 'none',
+                    padding: '5px 10px', borderRadius: '4px', cursor: 'pointer',
                 }}
             >
                 Xóa
@@ -2177,8 +2198,8 @@ const EntityTabContent = () => {
                         EntityCompositionEndpoint.findByParentEntityId(selectedEntity.id)
                             .then(async (dtos: any) => {
                                 EntityMapper.toEntityCompositionList(dtos)
-                                    .then(data => data?.filter(c => c !== undefined) as EntityComposition[])
-                                    .then(data => setCompositions(data));
+                                    .then(dtos => dtos?.filter(c => c !== undefined))
+                                    .then(c => setCompositions(c as EntityComposition[]));
                             })
                             .catch((error: any) => console.error('Error reloading EntityCompositions:', error));
                     }
@@ -2197,12 +2218,8 @@ const EntityTabContent = () => {
             <button
                 onClick={handleDelete}
                 style={{
-                    background: 'red',
-                    color: 'white',
-                    border: 'none',
-                    padding: '5px 10px',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
+                    background: 'red', color: 'white', border: 'none',
+                    padding: '5px 10px', borderRadius: '4px', cursor: 'pointer',
                 }}
             >
                 Xóa
@@ -2215,13 +2232,12 @@ const EntityTabContent = () => {
             if (item.id?.fromEntityId && item.id?.toEntityId) {
                 try {
                     await EntityEvolutionEndpoint.deleteByEachId(item.id.fromEntityId, item.id.toEntityId, item.id.descriptionId);
-                    // Reload the filtered list
                     if (selectedEntity?.id) {
                         EntityEvolutionEndpoint.findByFromEntityId(selectedEntity.id)
                             .then(async (dtos: any) => {
                                 EntityMapper.toEntityEvolutionList(dtos)
-                                    .then(data => data?.filter(e => e !== undefined) as EntityEvolution[])
-                                    .then(data => setEvolutions(data));
+                                    .then(data => data?.filter(e => e !== undefined))
+                                    .then(data => setEvolutions(data as EntityEvolution[]));
                             })
                             .catch((error: any) => console.error('Error reloading EntityEvolutions:', error));
                     }
@@ -2240,12 +2256,8 @@ const EntityTabContent = () => {
             <button
                 onClick={handleDelete}
                 style={{
-                    background: 'red',
-                    color: 'white',
-                    border: 'none',
-                    padding: '5px 10px',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
+                    background: 'red', color: 'white', border: 'none',
+                    padding: '5px 10px', borderRadius: '4px', cursor: 'pointer',
                 }}
             >
                 Xóa
@@ -2254,13 +2266,7 @@ const EntityTabContent = () => {
     };
 
     return (
-        <div
-            style={{
-                display: 'grid',
-                gridTemplateColumns: '3fr 1fr 1fr',
-                gridGap: '20px',
-            }}
-        >
+        <div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr 1fr', gridGap: '20px' }}>
             <div>
                 <h3>Thực thể</h3>
                 <ComboBox
@@ -2277,7 +2283,6 @@ const EntityTabContent = () => {
                         if (id == null || isNaN(id)) {
                             setSelectedEntity(null);
                         } else {
-                            // fetch full entity model and set as selected
                             EntityService.findById(id)
                                 .then(ent => setSelectedEntity(ent))
                                 .catch(err => console.error('Error fetching entity by id:', err));
@@ -2287,111 +2292,83 @@ const EntityTabContent = () => {
                 <AutoGrid
                     service={EntityService}
                     ref={entityGridRef}
-                    model={EntityXModel}
+                    model={EntityXModel as any}
                     selectedItems={[selectedEntity]}
                     onActiveItemChanged={i => setSelectedEntity(i.detail.value)}
                     columnOptions={{
-                        id: {
-                            filterable: false,
-                        },
-                        structure: {
-                            path: 'structure.characterString',
-                        },
-                        pronunciation: {
-                            path: 'pronunciation.string',
-                        },
-                        meaning: {
-                            path: 'meaning.explanationsString',
-                            width: '200px',
-                        },
-                        language: {
-                            path: 'language.abbreviation',
-                        },
+                        id: { filterable: false },
+                        structure: { path: 'structure.characterString' },
+                        pronunciation: { path: 'pronunciation.string' },
+                        meaning: { path: 'meaning.explanationsString', width: '200px' },
+                        language: { path: 'language.abbreviation' }
                     }}
                     customColumns={[
-                        <GridColumn
-                            header="Xóa"
-                            renderer={deleteEntityRenderer}
-                        />
+                        <GridColumn key="del-entity-grid" header="Xóa" renderer={deleteEntityRenderer} />
                     ]}
                     hiddenColumns={['hnomString', 'qnguString', 'explanationsString', 'pronunciationString', 'characterString', 'structureId']}
                 />
                 <AutoForm
                     service={EntityEndpoint}
-                    model={EntityDtoModel}
+                    model={EntityDtoModel as any}
                     item={selectedEntityDto}
                     onSubmitSuccess={() => {
                         setSelectedEntity(null);
                         refreshEntitiesTrigger();
                         entityGridRef.current?.refresh();
-                        //o day
                     }}
-                    onSubmitError={error => window.alert('Lỗi lưu thực thể: ' + error.error.message)}
+                    onSubmitError={(error: any) => window.alert('Lỗi lưu thực thể: ' + error.error.message)}
                     hiddenFields={['hnomString', 'qnguString', 'explanationsString']}
                     fieldOptions={{
                         structureId: {
-                            renderer: ({field}) => (
+                            renderer: ({field} : any) => (
                                 <ComboBox
-                                    label='Cấu tạo'
-                                    items={structures}
-                                    renderer={(item) =>
-                                        (<span>{item.item.id + ' - ' + (item.item.characterWithPronunciationsString || '[Không có ký tự]')}</span>)}
-                                    itemValuePath='id'
-                                    itemLabelPath='characterWithPronunciationsString'
+                                    label='Cấu tạo' items={structures}
+                                    renderer={(item : any) => (<span>{item.item.id + ' - ' + (item.item.characterWithPronunciationsString || '[Không có ký tự]')}</span>)}
+                                    itemValuePath='id' itemLabelPath='characterWithPronunciationsString'
                                     {...field}
                                 />
-                            ),
+                            )
                         },
                         languageId: {
-                            renderer: ({field}) => (
+                            renderer: ({field} : any) => (
                                 <ComboBox
-                                    label='Ngôn ngữ'
-                                    items={languages}
-                                    renderer={(item) =>
-                                        (<span>{item.item.id + ' - ' + item.item.abbreviation}</span>)}
-                                    itemValuePath= 'id'
-                                    itemLabelPath= 'abbreviation'
+                                    label='Ngôn ngữ' items={languages}
+                                    renderer={(item : any) => (<span>{item.item.id + ' - ' + item.item.abbreviation}</span>)}
+                                    itemValuePath='id' itemLabelPath='abbreviation'
                                     {...field}
                                 />
-                            ),
+                            )
                         },
                         pronunciationId: {
-                            renderer: ({field}) => (
+                            renderer: ({field} : any) => (
                                 <ComboBox
-                                    label='Phát âm'
-                                    items={pronunciationDtos}
-                                    renderer={(item) =>
-                                        (<span>{item.item.id + ' - ' + item.item.characterWithPronunciationsString}</span>)}
-                                    itemValuePath= 'id'
-                                    itemLabelPath= 'characterWithPronunciationsString'
+                                    label='Phát âm' items={pronunciationDtos}
+                                    renderer={(item : any) => (<span>{item.item.id + ' - ' + item.item.characterWithPronunciationsString}</span>)}
+                                    itemValuePath='id' itemLabelPath='characterWithPronunciationsString'
                                     {...field}
                                     onValueChanged={(e) => {
                                         MeaningService.findByPronunciationId(Number(e.detail.value))
                                             .then(data => data?.filter(meaning => meaning !== undefined))
                                             .then(data => {
                                                 if (data) {
-                                                    let tempMeanings = data;
-                                                    tempMeanings.push(...meanings);
+                                                    let tempMeanings = [...data, ...meanings];
                                                     setMeaningsWithSuggests(tempMeanings);
                                                 }
                                             })
                                             .catch(e => console.error('Error fetching meanings for pronunciation:', e));
                                     }}
                                 />
-                            ),
+                            )
                         },
                         meaningId: {
-                            renderer: ({field}) => (
+                            renderer: ({field} : any) => (
                                 <ComboBox
-                                    label='Ý nghĩa'
-                                    items={meaningsWithSuggests}
-                                    renderer={(item) =>
-                                        (<span>{item.item.id + ' - ' + item.item.explanationsString}</span>)}
-                                    itemValuePath='id'
-                                    itemLabelPath='explanationsString'
+                                    label='Ý nghĩa' items={meaningsWithSuggests}
+                                    renderer={(item : any) => (<span>{item.item.id + ' - ' + item.item.explanationsString}</span>)}
+                                    itemValuePath='id' itemLabelPath='explanationsString'
                                     {...field}
                                 />
-                            ),
+                            )
                         }
                     }}
                 />
@@ -2400,44 +2377,40 @@ const EntityTabContent = () => {
                 <h3>Cấu tạo thực thể</h3>
                 {(selectedEntity && selectedEntity.compound) ? (
                     <>
-                        <p style={{ fontSize: '14px', color: '#666', marginBottom: '10px' }}>
-                            Thực thể đã chọn: {selectedEntity.id}
-                        </p>
+                        <p style={{ fontSize: '14px', color: '#666', marginBottom: '10px' }}>Thực thể đã chọn: {selectedEntity.id}</p>
                         <AutoGrid
-                            service={compositionService}
+                            service={compositionService as any}
                             ref={compositionGridRef}
-                            model={EntityCompositionModel}
+                            model={EntityCompositionModel as any}
                             items={compositions}
                             selectedItems={[selectedComposition]}
                             onActiveItemChanged={i => setSelectedComposition(i.detail.value)}
                             columnOptions={{
                                 id: { hidden: true },
                                 parentEntity: { hidden: true },
-                                childEntity: {
-                                    header: 'Thực thể con',
-                                    path: 'childEntity.id',
-                                }
+                                childEntity: { header: 'Thực thể con', path: 'childEntity.id' }
                             }}
                             customColumns={[
-                                <GridColumn
-                                    header="Xóa"
-                                    renderer={deleteCompositionRenderer}
-                                />
+                                <GridColumn key="del-comp-ent-grid" header="Xóa" renderer={deleteCompositionRenderer} />
                             ]}
                         />
                         <AutoForm
                             service={{
                                 ...EntityCompositionEndpoint,
-                                save: async (item) => {
+                                save: async (item: EntityCompositionDto) => {
                                     if (!item) return undefined;
                                     return await EntityCompositionEndpoint.saveByIds(selectedEntity?.id, item.childEntityId, item.position);
+                                },
+                                delete: async (item: EntityCompositionDto) => {
+                                    if (item.parentEntityId && item.childEntityId && item.position) {
+                                        await EntityCompositionEndpoint.deleteByIds(item.parentEntityId, item.childEntityId, item.position);
+                                    }
                                 }
-                            }}
-                            model={EntityCompositionDtoModel}
+                            } as any}
+                            model={EntityCompositionDtoModel as any}
                             item={selectedCompositionDto}
                             onSubmitSuccess={() => {
                                 setSelectedComposition(null);
-                                // Reload the filtered list
                                 if (selectedEntity?.id) {
                                     EntityCompositionEndpoint.findByParentEntityId(selectedEntity.id)
                                         .then(async (dtos: any) => {
@@ -2448,66 +2421,49 @@ const EntityTabContent = () => {
                                         .catch((error: any) => console.error('Error reloading EntityCompositions:', error));
                                 }
                             }}
-                            onSubmitError={error => window.alert('Lỗi lưu cấu tạo: ' + error.error.message)}
+                            onSubmitError={(error: any) => window.alert('Lỗi lưu cấu tạo: ' + error.error.message)}
                             visibleFields={['childEntityId', 'order', 'position']}
                             fieldOptions={{
                                 childEntityId: {
                                     label: 'Thực thể con',
-                                    renderer: ({field}) => (
+                                    renderer: ({field} : any) => (
                                         <ComboBox
-                                            label='Thực thể con'
-                                            itemLabelPath='qnguString'
-                                            itemValuePath='id'
+                                            label='Thực thể con' itemLabelPath='qnguString' itemValuePath='id'
                                             items={entityDtos || []}
                                             {...field}
-                                            renderer={item =>
-                                        <span>{item.item.id + ' - ' + item.item.hnomString + ' ' + item.item.qnguString + ' ' + item.item.explanationsString}</span>}
+                                            renderer={(item : any) =>
+                                                <span>{item.item.id + ' - ' + item.item.hnomString + ' ' + item.item.qnguString + ' ' + item.item.explanationsString}</span>}
                                         />
                                     )
                                 },
-                                position: {
-                                    label: 'Vị trí',
-                                }
+                                position: { label: 'Vị trí' }
                             }}
                         />
                     </>
                 ) : (
-                    <p style={{ fontSize: '14px', color: '#999', fontStyle: 'italic' }}>
-                        Vui lòng chọn một thực thể phức để quản lý cấu tạo
-                    </p>
+                    <p style={{ fontSize: '14px', color: '#999', fontStyle: 'italic' }}>Vui lòng chọn một thực thể phức để quản lý cấu tạo</p>
                 )}
             </div>
             <div>
                 <h3>Diễn biến thực thể</h3>
                 {selectedEntity ? (
                     <>
-                        <p style={{ fontSize: '14px', color: '#666', marginBottom: '10px' }}>
-                            Thực thể đã chọn: {selectedEntity.id}
-                        </p>
+                        <p style={{ fontSize: '14px', color: '#666', marginBottom: '10px' }}>Thực thể đã chọn: {selectedEntity.id}</p>
                         <AutoGrid
-                            service={evolutionService}
+                            service={evolutionService as any}
                             ref={evolutionGridRef}
-                            model={EntityEvolutionModel}
+                            model={EntityEvolutionModel as any}
                             items={evolutions}
                             selectedItems={[selectedEvolution]}
                             onActiveItemChanged={i => setSelectedEvolution(i.detail.value)}
                             columnOptions={{
                                 id: { hidden: true },
                                 fromEntity: { hidden: true },
-                                toEntity: {
-                                    header: 'Thực thể đến',
-                                    path: 'toEntity.pronunciationString',
-                                },
-                                evolutionDescription: {
-                                    header: 'Mô tả',
-                                    path: 'evolutionDescription.description',
-                                },
+                                toEntity: { header: 'Thực thể đến', path: 'toEntity.pronunciationString' },
+                                evolutionDescription: { header: 'Mô tả', path: 'evolutionDescription.description' }
                             }}
                             customColumns={[
-                                <GridColumn
-                                    header="Xóa"
-                                    renderer={deleteEvolutionRenderer}
-                                />
+                                <GridColumn key="del-evol-ent-grid" header="Xóa" renderer={deleteEvolutionRenderer} />
                             ]}
                         />
                         <AutoForm
@@ -2515,13 +2471,17 @@ const EntityTabContent = () => {
                                 ...EntityEvolutionEndpoint,
                                 save: async (item: EntityEvolutionDto) => {
                                     return await EntityEvolutionEndpoint.saveByIds(selectedEntity?.id, item.toEntityId, item.descriptionId);
+                                },
+                                delete: async (item: EntityEvolutionDto) => {
+                                    if (item.fromEntityId && item.toEntityId && item.descriptionId) {
+                                        await EntityEvolutionEndpoint.deleteByEachId(item.fromEntityId, item.toEntityId, item.descriptionId);
+                                    }
                                 }
-                            }}
-                            model={EntityEvolutionDtoModel}
+                            } as any}
+                            model={EntityEvolutionDtoModel as any}
                             item={selectedEvolutionDto}
                             onSubmitSuccess={() => {
                                 setSelectedEvolution(null);
-                                // Reload the filtered list
                                 if (selectedEntity?.id) {
                                     EntityEvolutionEndpoint.findByFromEntityId(selectedEntity.id)
                                         .then(async (dtos: any) => {
@@ -2532,34 +2492,31 @@ const EntityTabContent = () => {
                                         .catch((error: any) => console.error('Error reloading EntityEvolutions:', error));
                                 }
                             }}
-                            onSubmitError={error => window.alert('Lỗi lưu diễn biến: ' + error.error.message)}
+                            onSubmitError={(error: any) => window.alert('Lỗi lưu diễn biến: ' + error.error.message)}
                             visibleFields={['toEntityId', 'descriptionId']}
                             fieldOptions={{
                                 toEntityId: {
                                     label: 'Đến thực thể',
-                                    renderer: ({field}) => (
+                                    renderer: ({field} : any) => (
                                         <ComboBox
-                                            label='Đến thực thể'
-                                            itemLabelPath='qnguString'
-                                            itemValuePath='id'
+                                            label='Đến thực thể' itemLabelPath='qnguString' itemValuePath='id'
                                             items={entityDtos || []}
                                             {...field}
-                                            renderer={item =>
-                                        <span>{item.item.id + ' - ' + item.item.hnomString + ' ' + item.item.qnguString + ' ' + item.item.explanationsString}</span>}
+                                            renderer={(item : any) =>
+                                                <span>{item.item.id + ' - ' + item.item.hnomString + ' ' + item.item.qnguString + ' ' + item.item.explanationsString}</span>}
                                         />
                                     )
                                 },
                                 descriptionId: {
                                     label: 'Mô tả',
-                                    renderer: ({field}) => (
+                                    renderer: ({field} : any) => (
                                         <ComboBox
-                                            label='Mô tả'
-                                            itemLabelPath='description'
-                                            itemValuePath='id'
+                                            label='Mô tả' itemLabelPath='description' itemValuePath='id'
                                             items={evolutionDescriptions || []}
                                             {...field}
-                                            renderer={item =>
-                                                <span>{item.item.id + ' - ' + item.item.description}</span>}
+                                            renderer={(item : any) =>
+                                                <span>{item.item.id + ' - ' + item.item.description}</span>
+                                            }
                                         />
                                     )
                                 }
@@ -2567,9 +2524,7 @@ const EntityTabContent = () => {
                         />
                     </>
                 ) : (
-                    <p style={{ fontSize: '14px', color: '#999', fontStyle: 'italic' }}>
-                        Vui lòng chọn một thực thể để quản lý diễn biến
-                    </p>
+                    <p style={{ fontSize: '14px', color: '#999', fontStyle: 'italic' }}>Vui lòng chọn một thực thể để quản lý diễn biến</p>
                 )}
             </div>
         </div>
@@ -2630,7 +2585,6 @@ const ExampleTabContent = () => {
                 if (item.id) {
                     try {
                         await ExampleEndpoint.delete(item.id);
-                        // Reload examples list
                         exampleGridRef.current?.refresh();
                         exampleWordGridRef.current?.refresh();
                         if (selectedExample?.id === item.id) {
@@ -2646,12 +2600,8 @@ const ExampleTabContent = () => {
                 <button
                     onClick={handleDelete}
                     style={{
-                        background: 'red',
-                        color: 'white',
-                        border: 'none',
-                        padding: '5px 10px',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
+                        background: 'red', color: 'white', border: 'none',
+                        padding: '5px 10px', borderRadius: '4px', cursor: 'pointer',
                     }}
                 >
                     Xóa
@@ -2663,7 +2613,6 @@ const ExampleTabContent = () => {
             if (selectedExampleDto?.id && item.entityId && item.position) {
                 try {
                     await ExampleWordEndpoint.deleteByEachId(selectedExampleDto?.id, item.entityId, item.position);
-                    // Reload examples list
                     exampleGridRef.current?.refresh();
                     exampleWordsTrigger();
                     exampleWordGridRef.current?.refresh();
@@ -2682,12 +2631,8 @@ const ExampleTabContent = () => {
             <button
                 onClick={handleDelete}
                 style={{
-                    background: 'red',
-                    color: 'white',
-                    border: 'none',
-                    padding: '5px 10px',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
+                    background: 'red', color: 'white', border: 'none',
+                    padding: '5px 10px', borderRadius: '4px', cursor: 'pointer',
                 }}
             >
                 Xóa
@@ -2710,85 +2655,39 @@ const ExampleTabContent = () => {
 
 
     return (
-        <div
-            style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gridGap: '20px',
-            }}
-        >
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridGap: '20px' }}>
             <div>
                 <AutoGrid
-                    service={ExampleService}
-                    model={ExampleModel}
-                    ref={exampleGridRef}
-                    selectedItems={[selectedExample]}
-                    onActiveItemChanged={(i) => setSelectedExample(i.detail.value)}
+                    service={ExampleService} model={ExampleModel} ref={exampleGridRef}
+                    selectedItems={[selectedExample]} onActiveItemChanged={(i) => setSelectedExample(i.detail.value)}
                     customColumns={[
-                        <GridColumn
-                            header="Xóa"
-                            renderer={deleteExampleRenderer}
-                        />,
-                        <GridColumn
-                            header='Nôm'
-                            renderer={({item}) => <HnomStringByExampleIdComponent exampleId={item.id}/>}
-                        />
+                        <GridColumn key="del-example" header="Xóa" renderer={deleteExampleRenderer} />,
+                        <GridColumn key="nom-string" header='Nôm' renderer={({item} : any) => <HnomStringByExampleIdComponent exampleId={item.id}/>} />
                     ]}
-                    columnOptions={{
-                        source: {
-                            title: 'Nguồn',
-                            path: 'source.name',
-                        },
-                    }}
+                    columnOptions={{ source: { title: 'Nguồn', path: 'source.nameQngu' } }}
                 />
                 <AutoForm
-                    service={ExampleEndpoint}
-                    model={ExampleDtoModel}
-                    item={selectedExampleDto || undefined}
-                    onSubmitSuccess={() => {
-                        setSelectedExample(null);
-                        exampleGridRef.current?.refresh();
-                    }}
-                    onSubmitError={error => window.alert('Lỗi lưu ví dụ: ' + error.error.message)}
+                    service={ExampleEndpoint} model={ExampleDtoModel} item={selectedExampleDto || undefined}
+                    onSubmitSuccess={() => { setSelectedExample(null); exampleGridRef.current?.refresh(); }}
+                    onSubmitError={(error: any) => window.alert('Lỗi lưu ví dụ: ' + error.error.message)}
                     fieldOptions={{
                         sourceId: {
-                            renderer: ({field}) => (
-                                <ComboBox
-                                    label='Nguồn'
-                                    items={sources}
-                                    itemValuePath='id'
-                                    itemLabelPath='name'
-                                    {...field}
-                                />
+                            renderer: ({field} : any) => (
+                                <ComboBox label='Nguồn' items={sources} itemValuePath='id' itemLabelPath='nameQngu' {...field} />
                             )
                         },
                     }}
-                    hiddenFields={['hnomString', 'qnguString', 'sourceName', 'sourceDescription']}
+                    hiddenFields={['hnomString', 'qnguString', 'sourceNameQngu', 'sourceNameHnom', 'sourceDescription', 
+                        'sourceAuthorHnom', 'sourceAuthorQngu', 'sourceWriterHnom', 'sourceWriterQngu', 'sourceStyleDescription']}
                 />
             </div>
             <div>
                 <AutoGrid
-                    service={exampleWordDtoService}
-                    model={ExampleWordDtoModel}
-                    ref={exampleWordGridRef}
-                    items={exampleWordDtos}
-                    selectedItems={[selectedExampleWordDto]}
+                    service={exampleWordDtoService as any} model={ExampleWordDtoModel} ref={exampleWordGridRef}
+                    items={exampleWordDtos} selectedItems={[selectedExampleWordDto]}
                     onActiveItemChanged={(i) => setSelectedExampleWordDto(i.detail.value)}
-                    customColumns={[
-                        <GridColumn
-                            header='Xóa'
-                            renderer={deleteExampleWordRenderer}
-                        />
-                    ]}
-                    columnOptions={{
-                        position: {
-                            header: 'Vị trí',
-                            filterable: false,
-                        },
-                        entity: {
-                            path: 'entity.hnomString',
-                        },
-                    }}
+                    customColumns={[ <GridColumn key="del-eword" header='Xóa' renderer={deleteExampleWordRenderer} /> ]}
+                    columnOptions={{ position: { header: 'Vị trí', filterable: false }, entity: { path: 'entity.hnomString' } }}
                     hiddenColumns={['exampleId', 'example', 'entityId',]}
                 />
                 <AutoForm
@@ -2800,41 +2699,23 @@ const ExampleTabContent = () => {
                             }
                             return undefined;
                         }
-                    }}
-                    model={ExampleWordDtoModel}
-                    item={selectedExampleWordDto || undefined}
-                    onSubmitSuccess={() => {
-                        setSelectedExampleWord(null);
-                        exampleWordGridRef.current?.refresh();
-                        exampleWordsTrigger();
-                        exampleGridRef.current?.refresh();
-                    }}
-                    onSubmitError={error => window.alert('Lỗi lưu ví dụ-thực thể: ' + error.error.message)}
+                    } as any}
+                    model={ExampleWordDtoModel} item={selectedExampleWordDto || undefined}
+                    onSubmitSuccess={() => { setSelectedExampleWord(null); exampleWordGridRef.current?.refresh(); exampleWordsTrigger(); exampleGridRef.current?.refresh(); }}
+                    onSubmitError={(error: any) => window.alert('Lỗi lưu ví dụ-thực thể: ' + error.error.message)}
                     fieldOptions={{
                         entityId: {
                             label: 'Thực thể',
-                            renderer: ({field}) => (
+                            renderer: ({field} : any) => (
                                 <ComboBox
-                                    label='Thực thể'
-                                    itemLabelPath='qnguString'
-                                    itemValuePath='id'
-                                    items={entities || []}
-                                    {...field}
-                                    renderer={item =>
+                                    label='Thực thể' itemLabelPath='qnguString' itemValuePath='id'
+                                    items={entities || []} {...field}
+                                    renderer={(item: any) =>
                                         <span>{item.item.id + ' - ' + item.item.hnomString + ' ' + item.item.qnguString + ' ' + item.item.explanationsString}</span>}
                                 />
                             )
                         },
-                        position: {
-                            label: 'Vị trí',
-                            renderer: ({field}) => (
-                                <TextField
-                                    {...field}
-                                    // value={exampleWordDtos.length + 1 + ""}
-                                    style={{ width: '100%' }}
-                                />
-                            )
-                        }
+                        position: { label: 'Vị trí', renderer: ({field} : any) => ( <TextField {...field} style={{ width: '100%' }} /> ) }
                     }}
                     hiddenFields={['entity', 'exampleId']}
                 />
@@ -2843,3 +2724,53 @@ const ExampleTabContent = () => {
     );
 };
 
+const AdditionTabContent = () => {
+    const imageGridRef = useRef<any>(null);
+    const markGridRef = useRef<any>(null);
+    const [selectedImage, setSelectedImage] = useState<ImageEntity | undefined | null>(null);
+    const [selectedMark, setSelectedMark] = useState<MarkEntity | undefined | null>(null);
+
+    return (
+        <div className="flex flex-column gap-l">
+            <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px'}}>
+                <div>
+                    <h3>Hình ảnh</h3>
+                    <AutoGrid
+                        service={ImageService}
+                        model={ImageModel}
+                        ref={imageGridRef}
+                        selectedItems={selectedImage ? [selectedImage] : []}
+                        onActiveItemChanged={e => setSelectedImage(e.detail.value)}
+                    />
+                    <AutoForm
+                        service={{ ...ImageService, delete: async () => {} } as any}
+                        model={ImageModel}
+                        item={selectedImage || undefined}
+                        onSubmitSuccess={() => imageGridRef.current?.refresh()}
+                    />
+                </div>
+                <div>
+                    <h3>Đánh dấu (Mark)</h3>
+                    <AutoGrid
+                        service={MarkService}
+                        model={MarkModel}
+                        ref={markGridRef}
+                        selectedItems={selectedMark ? [selectedMark] : []}
+                        onActiveItemChanged={e => setSelectedMark(e.detail.value)}
+                    />
+                    <AutoForm
+                        service={{ ...MarkService, delete: async () => {} } as any}
+                        model={MarkModel}
+                        item={selectedMark || undefined}
+                        onSubmitSuccess={() => markGridRef.current?.refresh()}
+                    />
+                </div>
+            </div>
+            <hr />
+            <div>
+                <h3>Công cụ tọa độ hình ảnh</h3>
+                <ImagePosUtil imgLink={selectedImage?.link || ""} />
+            </div>
+        </div>
+    );
+};

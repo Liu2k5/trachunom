@@ -21,7 +21,17 @@ public class Source {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
+    private String nameQngu; // nho doi ten cot trong db
+    private String nameHnom;
+    private String fullNameQngu;
+    private String fullNameHnom;
+    
+    private String fullName;
+
+    private String authorQngu;
+    private String authorHnom;
+    private String writerQngu;
+    private String writerHnom;
 
     @Column(columnDefinition = "TEXT")
     private String description;

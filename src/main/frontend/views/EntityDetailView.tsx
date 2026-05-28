@@ -314,7 +314,11 @@ export default function EntityDetailView() {
                                         )}
                                     </div>
                                     <p title={example?.sourceDescription ?? ''} style={{margin: '0', fontStyle: 'italic', color: 'var(--lumo-tertiary-text-color)', fontSize: '0.9em'}}>
-                                        {example?.sourceName ?? ''}
+                                        {example?.sourceNameQngu ?? ''}
+                                        {example?.sourceNameHnom && ` (${example.sourceNameHnom})`}
+                                        {example?.sourceAuthorQngu && ` - ${example.sourceAuthorQngu}`}
+                                        {example?.sourceAuthorHnom && ` (${example.sourceAuthorHnom})`}
+                                        {example?.sourceStyleDescription && ` [${example.sourceStyleDescription}]`}
                                     </p>
                                 </div>
                             )}

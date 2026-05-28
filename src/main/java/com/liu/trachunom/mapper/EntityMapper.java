@@ -26,6 +26,7 @@ import com.liu.trachunom.service.entity.EvolutionDescriptionService;
 import com.liu.trachunom.service.entity.LanguageService;
 import com.liu.trachunom.service.evidence.ImageService;
 import com.liu.trachunom.service.evidence.SourceService;
+import com.liu.trachunom.service.evidence.StyleService;
 import com.liu.trachunom.service.example.ExampleService;
 import com.liu.trachunom.service.example.ExampleWordService;
 import com.liu.trachunom.service.meaning.ExplanationService;
@@ -66,6 +67,7 @@ public class EntityMapper {
     private final ExplanationService explanationService;
     private final LanguageService languageService;
     private final SourceService sourceService;
+    private final StyleService styleService;
     private final PronunciationEvolutionService pronunciationEvolutionService;
     private final EvolutionDescriptionService evolutionDescriptionService;
     private final StructureTypeService structureTypeService;
@@ -346,8 +348,14 @@ public class EntityMapper {
                         .map(this::toExampleWordDto)
                         .collect(Collectors.toList()))
                 .sourceId(example.getSource() != null ? example.getSource().getId() : null)
-                .sourceName(example.getSource() != null ? example.getSource().getName() : null)
+                .sourceNameQngu(example.getSource() != null ? example.getSource().getNameQngu() : null)
+                .sourceNameHnom(example.getSource() != null ? example.getSource().getNameHnom() : null)
                 .sourceDescription(example.getSource() != null ? example.getSource().getDescription() : null)
+                .sourceAuthorQngu(example.getSource() != null ? example.getSource().getAuthorQngu() : null)
+                .sourceAuthorHnom(example.getSource() != null ? example.getSource().getAuthorHnom() : null)
+                .sourceWriterQngu(example.getSource() != null ? example.getSource().getWriterQngu() : null)
+                .sourceWriterHnom(example.getSource() != null ? example.getSource().getWriterHnom() : null)
+                .sourceStyleDescription(example.getSource() != null && example.getSource().getStyle() != null ? example.getSource().getStyle().getDescription() : null)
                 .build();
     }
 
@@ -402,8 +410,17 @@ public class EntityMapper {
         }
         return SourceDto.builder()
                 .id(source.getId())
-                .name(source.getName())
+                .nameQngu(source.getNameQngu())
+                .nameHnom(source.getNameHnom())
+                .fullNameQngu(source.getFullNameQngu())
+                .fullNameHnom(source.getFullNameHnom())
                 .description(source.getDescription())
+                .authorQngu(source.getAuthorQngu())
+                .authorHnom(source.getAuthorHnom())
+                .writerQngu(source.getWriterQngu())
+                .writerHnom(source.getWriterHnom())
+                .styleId(source.getStyle() != null ? source.getStyle().getId() : null)
+                .styleDescription(source.getStyle() != null ? source.getStyle().getDescription() : null)
                 .startYear(source.getStartYear())
                 .endYear(source.getEndYear())
                 .build();
@@ -415,8 +432,16 @@ public class EntityMapper {
         }
         return Source.builder()
                 .id(sourceDto.getId())
-                .name(sourceDto.getName())
+                .nameQngu(sourceDto.getNameQngu())
+                .nameHnom(sourceDto.getNameHnom())
+                .fullNameQngu(sourceDto.getFullNameQngu())
+                .fullNameHnom(sourceDto.getFullNameHnom())
                 .description(sourceDto.getDescription())
+                .authorQngu(sourceDto.getAuthorQngu())
+                .authorHnom(sourceDto.getAuthorHnom())
+                .writerQngu(sourceDto.getWriterQngu())
+                .writerHnom(sourceDto.getWriterHnom())
+                .style(sourceDto.getStyleId() != null ? styleService.findById(sourceDto.getStyleId()) : null)
                 .startYear(sourceDto.getStartYear())
                 .endYear(sourceDto.getEndYear())
                 .build();
@@ -930,7 +955,8 @@ public class EntityMapper {
                 .sourceId(image.getSource() != null ? image.getSource().getId() : null)
                 .page(image.getPage())
                 .link(image.getLink())
-                .sourceName(image.getSource() != null ? image.getSource().getName() : null)
+                .sourceNameQngu(image.getSource() != null ? image.getSource().getNameQngu() : null)
+                .sourceNameHnom(image.getSource() != null ? image.getSource().getNameHnom() : null)
                 .build();
     }
 

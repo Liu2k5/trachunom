@@ -8,5 +8,5 @@ import com.liu.trachunom.entity.evidence.Source;
 
 @Repository
 public interface SourceRepository extends JpaRepository<Source, Long>, JpaSpecificationExecutor<Source> {
-    boolean existsByName(String string);
+    boolean existsByNameQngu(String string);
 }

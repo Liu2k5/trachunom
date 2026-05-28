@@ -15,5 +15,6 @@ public class ImageDto {
     private Integer page;
     private String link;
 
-    private String sourceName;
+    private String sourceNameQngu;
+    private String sourceNameHnom;
 }

@@ -99,20 +99,27 @@ function ImagePosUtil({imgLink}: {imgLink: string}) {
 
     const highlight = (input: [number, number, number, number]) => {
         if (box) {
-            // isDrawing = true;
             box.style.left = input[0] + 'px';
             box.style.top = input[1] + 'px';
             box.style.width = input[2] + 'px';
             box.style.height = input[3] + 'px';
-            // window.dispatchEvent(new Event('mousemove'));
-            // isDrawing = false;
             printCoordinates(input[0], input[1], input[2], input[3]);
 
         }
     };
-    const deletefromSelectedArray = (i: number) => {
+    const deleteFromSelectedArray = (i: number) => {
         selectedArray.splice(i, 1);
         setSelectedArray(() => [...selectedArray]);
+        if (box) {
+            box.style.left = '0px';
+            box.style.top = '0px';
+            box.style.width = '0px';
+            box.style.height = '0px';
+        }
+    };
+
+    const copyToClipboard = (input: [number, number, number,  number]) => {
+        navigator.clipboard.writeText(`${input[0]}\t${input[1]}\t${input[2]}\t${input[3]}`).then();
     };
 
     // Hàm hiển thị tọa độ ra màn hình
@@ -134,12 +141,15 @@ function ImagePosUtil({imgLink}: {imgLink: string}) {
 
     return (
         <>
-            <div id="image-container" style={{ position: 'relative', display: 'inline-block', userSelect: 'none' }}>
+            <div id="image-container"
+                 style={{ position: 'relative', display: 'inline-block', userSelect: 'none' }}
+                 onMouseDown={() => window.dispatchEvent(new Event('mousedown'))}
+                 onMouseMove={() => window.dispatchEvent(new Event('mousemove'))}
+                 onMouseUp={() => window.dispatchEvent(new Event('mouseup'))}
+            >
                 <div id="selection-box"
                      style={{ border: '2px dashed #007bff', backgroundColor: 'rgba(0, 123, 255, 0.2)', position: 'absolute', display: 'none', pointerEvents: 'none' }}
-                     onMouseDown={() => window.dispatchEvent(new Event('mousedown'))}
-                     onMouseMove={() => window.dispatchEvent(new Event('mousemove'))}
-                     onMouseUp={() => window.dispatchEvent(new Event('mouseup'))}
+
                 ></div>
                 <img
                     src={imgLink}
@@ -182,9 +192,10 @@ function ImagePosUtil({imgLink}: {imgLink: string}) {
                                     // window.alert("clicked");
                                 }}
                             >{item[0]} {item[1]}, {item[2]} x {item[3]}</button>
+                            <button onClick={() => {copyToClipboard(item)}}>Copy</button>
                             <button
                                 onClick={() => {
-                                    deletefromSelectedArray(i);
+                                    deleteFromSelectedArray(i);
                                 }}
                             >x</button>
                         </div>

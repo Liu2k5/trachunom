@@ -16,8 +16,14 @@ public class ExampleDto {
     private String hnomString;
     private String qnguString;
     private List<ExampleWordDto> exampleWords;
-    private String sourceName;
+    private String sourceNameQngu;
+    private String sourceNameHnom;
     private String sourceDescription;
+    private String sourceAuthorQngu;
+    private String sourceAuthorHnom;
+    private String sourceWriterQngu;
+    private String sourceWriterHnom;
+    private String sourceStyleDescription;
     private Long sourceId;
 }
 

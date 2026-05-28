@@ -584,7 +584,7 @@ function DrawEntityYear({entityId}: {entityId: number | undefined}): JSX.Element
                                 borderRadius: '10px',
                                 boxSizing: 'border-box',
                             }}
-                            title={source.name + ' (' + (source.startYear ?? '?') + ' - ' + (source.endYear ?? '?') + ')'}
+                            title={source.nameQngu + ' (' + (source.startYear ?? '?') + ' - ' + (source.endYear ?? '?') + ')'}
                         />
                     );
                 }
