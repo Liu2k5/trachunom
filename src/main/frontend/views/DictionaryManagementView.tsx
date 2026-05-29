@@ -130,6 +130,8 @@ import ImageEntity from "Frontend/generated/com/liu/trachunom/entity/evidence/Im
 import MarkEntity from "Frontend/generated/com/liu/trachunom/entity/evidence/Mark";
 import ImageModel from "Frontend/generated/com/liu/trachunom/entity/evidence/ImageModel";
 import MarkModel from "Frontend/generated/com/liu/trachunom/entity/evidence/MarkModel";
+import ImageDtoModel from "Frontend/generated/com/liu/trachunom/dto/ImageDtoModel";
+import MarkDtoModel from "Frontend/generated/com/liu/trachunom/dto/MarkDtoModel";
 
 export const config: ViewConfig = {
     menu: {order: 2, icon: 'la la-book'},
@@ -183,9 +185,15 @@ export default function DictionaryManagementView() {
         <div
             style={{
                 width: '100%',
-                minHeight: '100vh',
+                minHeight: '50px',
                 background: '#f5f5f5',
                 fontFamily: 'sans-serif',
+            }}
+            onMouseMove={(e) => {
+                e.currentTarget.style.height = '300px';
+            }}
+            onMouseOut={(e) => {
+                e.currentTarget.style.height = '';
             }}
         >
             {/* Header */}
@@ -251,51 +259,19 @@ export default function DictionaryManagementView() {
                     }}
                 >
                     {activeTab === 'basics' && (
-                        <div>
-                            {/*<h2 style={{color: '#333', marginBottom: '20px'}}>*/}
-                            {/*    Quản lý thông tin cơ bản*/}
-                            {/*</h2>*/}
-                            {/*<p style={{color: '#666'}}>*/}
-                            {/*    Quản lý bộ thủ, ngôn ngữ, phong cách thư pháp, nguồn.*/}
-                            {/*</p>*/}
-                            <BasicsTabContent />
-                        </div>
+                        <BasicsTabContent />
                     )}
 
                     {activeTab === 'characters' && (
-                        <div>
-                            {/*<h2 style={{color: '#333', marginBottom: '20px'}}>*/}
-                            {/*    Quản lý ký tự*/}
-                            {/*</h2>*/}
-                            {/*<p style={{color: '#666'}}>*/}
-                            {/*    Quản lý ký tự chữ Nôm và chuẩn phồn/giản thể*/}
-                            {/*</p>*/}
-                            <CharactersTabContent />
-                        </div>
+                        <CharactersTabContent />
                     )}
 
                     {activeTab === 'structures' && (
-                        <div>
-                            {/*<h2 style={{color: '#333', marginBottom: '20px'}}>*/}
-                            {/*    Quản lý cấu tạo*/}
-                            {/*</h2>*/}
-                            {/*<p style={{color: '#666'}}>*/}
-                            {/*    Quản lý cấu tạo chữ Nôm và phân loại cấu tạo.*/}
-                            {/*</p>*/}
-                            <StructureTabContent />
-                        </div>
+                        <StructureTabContent />
                     )}
 
                     {activeTab === 'pronunciations' && (
-                        <div>
-                            {/*<h2 style={{color: '#333', marginBottom: '20px'}}>*/}
-                            {/*    Quản lý phát âm*/}
-                            {/*</h2>*/}
-                            {/*<p style={{color: '#666'}}>*/}
-                            {/*    Quản lý cách đọc, phân loại phát âm và thời kỳ phát âm.*/}
-                            {/*</p>*/}
-                            <PronunciationTabContent />
-                        </div>
+                        <PronunciationTabContent />
                     )}
 
                     {activeTab === 'meanings' && (
@@ -527,21 +503,22 @@ const BasicsTabContent = () => {
                       onActiveItemChanged={i => setSelectedSource(i.detail.value)}
                       columnOptions={{
                           nameQngu: {header: 'Tên (QN)'},
-                          nqmeHnom: {header: 'Tên (HN)'},
+                          nameHnom: {header: 'Tên (HN)'},
                           fullNameQngu: {header: 'Tên đầy đủ (QN)'},
                           fullNameHnom: {header: 'Tên đầy đủ (HN)'},
                           authorQngu: {header: 'Tác giả (QN)'},
                           authorHnom: {header: 'Tác giả (HN)'},
                           writerQngu: {header: 'Người chép (QN)'},
                           writerHnom: {header: 'Người chép (HN)'},
-                          'style.description': {header: 'Phong cách'},
+                          style: {header: 'Phong cách'},
                           startYear: {header: 'Năm bắt đầu'},
                           endYear: {header: 'Năm kết thúc'},
-                          description: {header: 'Mô tả', width: '200px'},
+                          // description: {header: 'Mô tả', width: '200px'},
                       }}
                       customColumns={[
                             <GridColumn key="del-source" header="Xóa" renderer={deleteSourceRenderer} />
                       ]}
+                      hiddenColumns={['description']}
             />
 
             <AutoForm service={SourceEndpoint}
@@ -551,10 +528,11 @@ const BasicsTabContent = () => {
                           setSelectedSourceDto(null);
                           sourceGridRef.current?.refresh();
                       }}
+                      style={{maxHeight:'450px', overflow:'auto'}}
                       onSubmitError={(error: any) => window.alert('Lỗi khi lưu nguồn: ' + error.error.message)}
                       fieldOptions={{
                           nameQngu: {label: 'Tên (Quốc ngữ)'},
-                          nqmeHnom: {label: 'Tên (Hán Nôm)'},
+                          nameHnom: {label: 'Tên (Hán Nôm)'},
                           fullNameQngu: {label: 'Tên đầy đủ (Quốc ngữ)'},
                           fullNameHnom: {label: 'Tên đầy đủ (Hán Nôm)'},
                           authorQngu: {label: 'Tác giả (Quốc ngữ)'},
@@ -2741,12 +2719,23 @@ const AdditionTabContent = () => {
                         ref={imageGridRef}
                         selectedItems={selectedImage ? [selectedImage] : []}
                         onActiveItemChanged={e => setSelectedImage(e.detail.value)}
+                        columnOptions={{
+                            source: {header: 'Nguồn'},
+                            page: {header: 'Trang'},
+                            link: {header: 'Liên kết'},
+                        }}
                     />
                     <AutoForm
                         service={{ ...ImageService, delete: async () => {} } as any}
-                        model={ImageModel}
+                        model={ImageDtoModel}
                         item={selectedImage || undefined}
                         onSubmitSuccess={() => imageGridRef.current?.refresh()}
+                        fieldOptions={{
+                            // source: {label: 'Nguồn', renderer: ({field} : any) => (
+                            //     <ComboBox
+                            //         label='Nguồn' items={sources} itemValuePath='id' itemLabelPath='nameQngu' {...field} />
+                            // )},
+                        }}
                     />
                 </div>
                 <div>
@@ -2760,7 +2749,7 @@ const AdditionTabContent = () => {
                     />
                     <AutoForm
                         service={{ ...MarkService, delete: async () => {} } as any}
-                        model={MarkModel}
+                        model={MarkDtoModel}
                         item={selectedMark || undefined}
                         onSubmitSuccess={() => markGridRef.current?.refresh()}
                     />
