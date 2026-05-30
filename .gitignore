@@ -35,3 +35,6 @@ build/
 
 ### Custom application properties ###
 /src/main/resources/application.private.properties
+
+### Auto-generated files ###
+/src/main/frontend/generated/

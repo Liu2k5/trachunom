@@ -2707,6 +2707,12 @@ const AdditionTabContent = () => {
     const markGridRef = useRef<any>(null);
     const [selectedImage, setSelectedImage] = useState<ImageEntity | undefined | null>(null);
     const [selectedMark, setSelectedMark] = useState<MarkEntity | undefined | null>(null);
+    const [sources, setSources] = useState<Source[] | undefined>([]);
+    useEffect(() => {
+        SourceService.findAll().then(sources => sources?.filter(source => source !== undefined))
+            .then(sources => setSources(sources))
+            .catch(error => console.error('Error fetching sources:', error));
+    }, []);
 
     return (
         <div className="flex flex-column gap-l">
@@ -2731,11 +2737,14 @@ const AdditionTabContent = () => {
                         item={selectedImage || undefined}
                         onSubmitSuccess={() => imageGridRef.current?.refresh()}
                         fieldOptions={{
-                            // source: {label: 'Nguồn', renderer: ({field} : any) => (
-                            //     <ComboBox
-                            //         label='Nguồn' items={sources} itemValuePath='id' itemLabelPath='nameQngu' {...field} />
-                            // )},
+                            sourceId: {label: 'Nguồn', renderer: ({field} : any) => (
+                                <ComboBox
+                                    label='Nguồn' items={sources} itemValuePath='id' itemLabelPath='nameQngu' {...field} />
+                            )},
+                            page: {label: 'Trang'},
+                            link: {label: 'Liên kết'},
                         }}
+                        hiddenFields={['sourceNameHnom', 'sourceNameQngu']}
                     />
                 </div>
                 <div>
@@ -2752,6 +2761,7 @@ const AdditionTabContent = () => {
                         model={MarkDtoModel}
                         item={selectedMark || undefined}
                         onSubmitSuccess={() => markGridRef.current?.refresh()}
+                        hiddenFields={["image", "entityStringsome "]}
                     />
                 </div>
             </div>
