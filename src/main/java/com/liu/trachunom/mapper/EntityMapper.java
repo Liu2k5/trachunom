@@ -265,9 +265,14 @@ public class EntityMapper {
             return new EntityDto();
         }
 
+        Structure structure = entity.getStructure();
+        Pronunciation pronunciation = entity.getPronunciation();
+        Meaning meaning = entity.getMeaning();
+        Language language = entity.getLanguage();
+
         String explanationsString = "";
         try {
-            List<Explanation> explanations = entity.getMeaning().getExplanations();
+            List<Explanation> explanations = meaning.getExplanations();
             if (explanations != null && !explanations.isEmpty()) {
                 explanationsString = explanations.getFirst().getDescription();
                 if (explanations.size() > 1) {
@@ -277,12 +282,13 @@ public class EntityMapper {
         } catch (NullPointerException ignored) {
         }
 
+
         return EntityDto.builder()
                 .id(entity.getId())
-                .structureId(entity.getStructure() == null ? null : entity.getStructure().getId())
-                .pronunciationId(entity.getPronunciation() == null ? null : entity.getPronunciation().getId())
-                .meaningId(entity.getMeaning() == null ? null : entity.getMeaning().getId())
-                .languageId(entity.getLanguage() == null ? null : entity.getLanguage().getId())
+                .structureId(structure == null ? null : structure.getId())
+                .pronunciationId(pronunciation == null ? null : pronunciation.getId())
+                .meaningId(meaning == null ? null : meaning.getId())
+                .languageId(language == null ? null : language.getId())
                 .description(entity.getDescription())
                 .compound(entity.isCompound())
                 .attested(entity.isAttested())
@@ -290,6 +296,9 @@ public class EntityMapper {
                 .hnomString(entity.getId() == null ? "lazy load?" : entityService.getHnomStringById(entity.getId()))
                 .qnguString(entity.getId() == null ? "lazy load?" : entityService.getQnguStringById(entity.getId()))
                 .explanationsString(explanationsString)
+                .structureString(structure != null ? structureService.getCharacterStringById(structure.getId()) : null)
+                .pronunciationString(pronunciation != null ? entityService.getQnguStringById(pronunciation.getId()) : null)
+                .languageString(language != null ? language.getAbbreviation() : null)
                 .build();
     }
 

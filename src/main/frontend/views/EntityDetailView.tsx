@@ -302,6 +302,36 @@ export default function EntityDetailView() {
                         </section>
                     )}
 
+                    {/* Images / marks*/}
+                    {entity.marks && (
+                        <section>
+                            <h2 className="section-title">Hình ảnh</h2>
+                            {entity?.marks.map((mark, index) => (
+                                <div>
+                                    <div>
+                                        <svg width="200" height="120">
+                                            <defs>
+                                                <clipPath id="crop">
+                                                    <rect
+                                                        x={mark?.x}
+                                                        y={mark?.y}
+                                                        width={mark?.width}
+                                                        height={mark?.height}
+                                                    />
+                                                </clipPath>
+                                            </defs>
+
+                                            <image
+                                                href={mark?.image?.link}
+                                                clipPath="url(#crop)"
+                                            />
+                                        </svg>
+                                    </div>
+                                </div>
+                            ))}
+                        </section>
+                    )}
+
                     {/* Examples */}
                     {entity.examples && entity.examples.length > 0 && (
                         <section>

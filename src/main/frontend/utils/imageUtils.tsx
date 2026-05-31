@@ -188,16 +188,16 @@ function ImagePosUtil({imgLink}: {imgLink: string}) {
                         >
                             <button
                                 onClick={() => {
+                                    deleteFromSelectedArray(i);
+                                }}
+                            >x</button>
+                            <button
+                                onClick={() => {
                                     highlight(item);
                                     // window.alert("clicked");
                                 }}
                             >{item[0]} {item[1]}, {item[2]} x {item[3]}</button>
                             <button onClick={() => {copyToClipboard(item)}}>Copy</button>
-                            <button
-                                onClick={() => {
-                                    deleteFromSelectedArray(i);
-                                }}
-                            >x</button>
                         </div>
                     ))}
                 </div>

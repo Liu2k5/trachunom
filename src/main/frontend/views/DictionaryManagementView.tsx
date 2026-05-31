@@ -1,5 +1,5 @@
 import {ViewConfig} from '@vaadin/hilla-file-router/types.js';
-import {useEffect, useRef, useState, useMemo} from 'react';
+import {useEffect, useState, useMemo} from 'react';
 import {AutoForm, AutoGrid} from "@vaadin/hilla-react-crud";
 import {ComboBox, GridColumn, TextField} from "@vaadin/react-components";
 import RadicalModel from 'Frontend/generated/com/liu/trachunom/entity/character/RadicalModel';
@@ -125,13 +125,15 @@ import EvolutionDescription from "Frontend/generated/com/liu/trachunom/entity/en
 import StructureType from "Frontend/generated/com/liu/trachunom/entity/structure/StructureType";
 
 import { ImagePosUtil } from "Frontend/utils/imageUtils";
-import { ImageService, MarkService } from "Frontend/generated/endpoints";
-import ImageEntity from "Frontend/generated/com/liu/trachunom/entity/evidence/Image";
-import MarkEntity from "Frontend/generated/com/liu/trachunom/entity/evidence/Mark";
+import { ImageService, MarkService, ImageEndpoint, MarkEndpoint } from "Frontend/generated/endpoints";
 import ImageModel from "Frontend/generated/com/liu/trachunom/entity/evidence/ImageModel";
 import MarkModel from "Frontend/generated/com/liu/trachunom/entity/evidence/MarkModel";
 import ImageDtoModel from "Frontend/generated/com/liu/trachunom/dto/ImageDtoModel";
 import MarkDtoModel from "Frontend/generated/com/liu/trachunom/dto/MarkDtoModel";
+import Image from "Frontend/generated/com/liu/trachunom/entity/evidence/Image";
+import Mark from "Frontend/generated/com/liu/trachunom/entity/evidence/Mark";
+import ImageDto from "Frontend/generated/com/liu/trachunom/dto/ImageDto";
+import MarkDto from "Frontend/generated/com/liu/trachunom/dto/MarkDto";
 
 export const config: ViewConfig = {
     menu: {order: 2, icon: 'la la-book'},
@@ -296,11 +298,6 @@ export default function DictionaryManagementView() {
 }
 
 const BasicsTabContent = () => {
-    const radicalGridRef = useRef<any>(null);
-    const sourceGridRef = useRef<any>(null);
-    const languageGridRef = useRef<any>(null);
-    const styleGridRef = useRef<any>(null);
-
     const [allStyles, setAllStyles] = useState<Style[] | undefined>(undefined);
     useEffect(() => {
         StyleService.findAll()
@@ -310,16 +307,43 @@ const BasicsTabContent = () => {
 
     const [selectedRadical, setSelectedRadical] = useState<Radical | undefined | null>(null);
     const [seletedRadicalDto, setSelectedRadicalDto] = useState<any>(null);
+    const [radicals, setRadicals] = useState<Radical[] | []>([]);
+    const [sources, setSources] = useState<Source[]>([]);
+    const [languages, setLanguages] = useState<Language[]>([]);
+    const [styles, setStyles] = useState<Style[]>([]);
     useEffect(() => {
         EntityMapper.toRadicalDto(selectedRadical ?? undefined).then(dto => setSelectedRadicalDto(dto))
             .catch(error => console.error('Error mapping Radical to DTO:', error));
     }, [selectedRadical]);
+    const refreshRadicalTrigger = () => {
+        RadicalService.findAll().then(data => data?.filter(o => o !== undefined))
+            .then(data => setRadicals(data || []));
+    };
+    const refreshSourceTrigger = () => {
+        SourceService.findAll().then(data => data?.filter(o => o !== undefined))
+            .then(data => setSources(data || []));
+    };
+    const refreshLanguageTrigger = () => {
+        LanguageService.findAll().then(data => data?.filter(o => o !== undefined))
+            .then(data => setLanguages(data || []));
+    };
+    const refreshStyleTrigger = () => {
+        StyleService.findAll().then(data => data?.filter(o => o !== undefined))
+            .then(data => setStyles(data || []));
+    };
+    useEffect(() => {
+        refreshRadicalTrigger();
+        refreshSourceTrigger();
+        refreshLanguageTrigger();
+        refreshStyleTrigger();
+    }, []);
+
     const deleteRadicalRenderer = ({item}: {item: Radical }) => {
         const handleDelete = async () => {
             if (item.id) {
                 try {
                     await RadicalEndpoint.delete(item.id);
-                    radicalGridRef.current?.refresh();
+                    refreshRadicalTrigger();
                     if (selectedRadical?.id === item.id) {
                         setSelectedRadical(null);
                     }
@@ -356,7 +380,7 @@ const BasicsTabContent = () => {
             if (item.id) {
                 try {
                     await SourceEndpoint.delete(item.id);
-                    sourceGridRef.current?.refresh();
+                    refreshSourceTrigger();
                     if (selectedSource?.id === item.id) {
                         setSelectedSource(null);
                     }
@@ -393,7 +417,7 @@ const BasicsTabContent = () => {
             if (item.id) {
                 try {
                     await LanguageEndpoint.delete(item.id);
-                    languageGridRef.current?.refresh();
+                    refreshLanguageTrigger();
                     if (selectedLanguage?.id === item.id) {
                         setSelectedLanguage(null);
                     }
@@ -430,7 +454,7 @@ const BasicsTabContent = () => {
             if (item.id) {
                 try {
                     await StyleEndpoint.delete(item.id);
-                    styleGridRef.current?.refresh();
+                    refreshStyleTrigger();
                     if (selectedStyle?.id === item.id) {
                         setSelectedStyle(null);
                     }
@@ -466,7 +490,7 @@ const BasicsTabContent = () => {
         >
             {/* TODO: Add management grids for Language, Style, Source, etc. */}
             <AutoGrid service={RadicalService}
-                      ref={radicalGridRef}
+                      items={radicals}
                       model={RadicalModel}
                       selectedItems={[selectedRadical]}
                       onActiveItemChanged={i => setSelectedRadical(i.detail.value)}
@@ -486,7 +510,7 @@ const BasicsTabContent = () => {
                       item={seletedRadicalDto}
                       onSubmitSuccess={() => {
                           setSelectedRadicalDto(null);
-                          radicalGridRef.current?.refresh();
+                           refreshRadicalTrigger();
                       }}
                       onSubmitError={(error: any) => window.alert('Lỗi khi lưu bộ thủ: ' + error.error.message)}
                         fieldOptions={{
@@ -497,7 +521,7 @@ const BasicsTabContent = () => {
             />
             
             <AutoGrid service={SourceService}
-                      ref={sourceGridRef}
+                      items={sources}
                       model={SourceModel}
                       selectedItems={[selectedSource]}
                       onActiveItemChanged={i => setSelectedSource(i.detail.value)}
@@ -526,7 +550,7 @@ const BasicsTabContent = () => {
                       item={selectedSourceDto}
                       onSubmitSuccess={() => {
                           setSelectedSourceDto(null);
-                          sourceGridRef.current?.refresh();
+                           refreshSourceTrigger();
                       }}
                       style={{maxHeight:'450px', overflow:'auto'}}
                       onSubmitError={(error: any) => window.alert('Lỗi khi lưu nguồn: ' + error.error.message)}
@@ -559,7 +583,7 @@ const BasicsTabContent = () => {
             />
 
             <AutoGrid service={LanguageService}
-                      ref={languageGridRef}
+                      items={languages}
                       model={LanguageModel}
                       selectedItems={[selectedLanguage]}
                       onActiveItemChanged={i => setSelectedLanguage(i.detail.value)}
@@ -576,7 +600,7 @@ const BasicsTabContent = () => {
                       item={selectedLanguageDto}
                       onSubmitSuccess={() => {
                           setSelectedLanguageDto(null);
-                          languageGridRef.current?.refresh();
+                           refreshLanguageTrigger();
                       }}
                       onSubmitError={(error: any) => window.alert('Lỗi khi lưu ngôn ngữ: ' + error.error.message)}
                       fieldOptions={{
@@ -585,7 +609,7 @@ const BasicsTabContent = () => {
             />
 
             <AutoGrid service={StyleService}
-                      ref={styleGridRef}
+                      items={styles}
                       model={StyleModel}
                       selectedItems={[selectedStyle]}
                       onActiveItemChanged={i => setSelectedStyle(i.detail.value)}
@@ -602,7 +626,7 @@ const BasicsTabContent = () => {
                       item={selectedStyleDto}
                       onSubmitSuccess={() => {
                           setSelectedStyleDto(null);
-                          styleGridRef.current?.refresh();
+                           refreshStyleTrigger();
                       }}
                       onSubmitError={(error: any) => window.alert('Lỗi khi lưu phong cách: ' + error.error.message)}
                       fieldOptions={{
@@ -614,13 +638,12 @@ const BasicsTabContent = () => {
 };
 
 const CharactersTabContent = () => {
-    const characterGridRef = useRef<any>(null);
-    const tradSimpStandardGridRef = useRef<any>(null);
-
     const [selectedCharacter, setSelectedCharacter] = useState<Character | undefined | null>(null);
     const [seletedCharacterDto, setSelectedCharacterDto] = useState<any>(null);
     const [selectedTradSimpStandard, setSelectedTradSimpStandard] = useState<TradSimpStandard | undefined | null>(null);
     const [seletedTradSimpStandardDto, setSelectedTradSimpStandardDto] = useState<any>(null);
+    const [characters, setCharacters] = useState<Character[]>([]);
+    const [tradSimpStandards, setTradSimpStandards] = useState<TradSimpStandard[]>([]);
 
     useEffect(() => {
         EntityMapper.toCharacterDto(selectedCharacter ?? undefined).then(dto => setSelectedCharacterDto(dto))
@@ -630,13 +653,25 @@ const CharactersTabContent = () => {
         EntityMapper.toTradSimpStandardDto(selectedTradSimpStandard ?? undefined).then(dto => setSelectedTradSimpStandardDto(dto))
             .catch(error => console.error('Error mapping Standard to DTO:', error));
     }, [selectedTradSimpStandard]);
+    const refreshCharacterTrigger = () => {
+        CharacterService.findAll().then(data => data?.filter(o => o !== undefined))
+            .then(data => setCharacters(data || []));
+    };
+    const refreshTradSimpStandardTrigger = () => {
+        TradSimpStandardService.findAll().then(data => data?.filter(o => o !== undefined))
+            .then(data => setTradSimpStandards(data || []));
+    };
+    useEffect(() => {
+        refreshCharacterTrigger();
+        refreshTradSimpStandardTrigger();
+    }, []);
 
     const deleteCharacterRenderer = ({item}: {item: Character }) => {
         const handleDelete = async () => {
             if (item.unicode) {
                 try {
                     await CharacterEndpoint.delete(item.unicode);
-                    characterGridRef.current?.refresh();
+                    refreshCharacterTrigger();
                     if (selectedCharacter?.unicode === item.unicode) {
                         setSelectedCharacter(null);
                     }
@@ -668,7 +703,7 @@ const CharactersTabContent = () => {
             if (item.id) {
                 try {
                     await TradSimpStandardEndpoint.delete(item.id);
-                    tradSimpStandardGridRef.current?.refresh();
+                    refreshTradSimpStandardTrigger();
                     if (selectedTradSimpStandard?.id === item.id) {
                         setSelectedTradSimpStandard(null);
                     }
@@ -718,7 +753,7 @@ const CharactersTabContent = () => {
             <div>
                 <AutoGrid
                     service={CharacterService}
-                    ref={characterGridRef}
+                    items={characters}
                     model={CharacterModel}
                     selectedItems={[selectedCharacter]}
                     onActiveItemChanged={i => setSelectedCharacter(i.detail.value)}
@@ -749,7 +784,7 @@ const CharactersTabContent = () => {
                     item={seletedCharacterDto}
                     onSubmitSuccess={() => {
                         setSelectedCharacterDto(null);
-                        characterGridRef.current?.refresh();
+                        refreshCharacterTrigger();
                     }}
                     onSubmitError={error => window.alert('Lỗi khi lưu ký tự: ' + error.error.message)}
                     hiddenFields={['radicalString','radicalStringByUnicode']}
@@ -778,7 +813,7 @@ const CharactersTabContent = () => {
             <div>
                 <AutoGrid
                     service={TradSimpStandardService}
-                    ref={tradSimpStandardGridRef}
+                    items={tradSimpStandards}
                     model={TradSimpStandardModel}
                     selectedItems={[selectedTradSimpStandard]}
                     onActiveItemChanged={i => setSelectedTradSimpStandard(i.detail.value)}
@@ -805,7 +840,7 @@ const CharactersTabContent = () => {
                     item={seletedTradSimpStandardDto}
                     onSubmitSuccess={() => {
                         setSelectedTradSimpStandardDto(null);
-                        tradSimpStandardGridRef.current?.refresh();
+                        refreshTradSimpStandardTrigger();
                     }}
                     onSubmitError={error => window.alert('Lỗi khi lưu chuẩn phồn/giản thể: ' + error.error.message)}
                     hiddenFields={['traditionalCharacter', 'simplifiedCharacter']}
@@ -816,8 +851,6 @@ const CharactersTabContent = () => {
 };
 
 const StructureTabContent = () => {
-    const structureGridRef = useRef<any>(null);
-    // const structureComponentGridRef = useRef<any>(null);
 
     const [selectedStructure, setSelectedStructure] = useState<Structure | undefined | null>(null);
     const [selectedStructureDto, setSelectedStructureDto] = useState<StructureDto | undefined | null>(null);
@@ -829,6 +862,43 @@ const StructureTabContent = () => {
     const [refreshDescriptionsTrigger, setRefreshDescriptionsTrigger] = useState(false);
     const [refreshTrigger, setRefreshTrigger] = useState(false);
     // const [refreshStructureComponentsTrigger, setRefreshStructureComponentTrigger] = useState(false);
+    const refreshStructureTrigger = () => {
+        StructureService.findAll()
+            .then((list: (Structure | undefined)[] | undefined) => {
+                const tempList: Structure[] = [];
+                list?.forEach((structure) => {
+                    if (structure) tempList.push(structure);
+                });
+                setStructures(tempList);
+            })
+            .catch((error) => console.error('Error fetching structures:', error));
+    };
+    const refreshStructureComponentsTrigger = () => {
+        if (!selectedStructure?.id) {
+            setStructureComponents(null);
+            return;
+        }
+        StructureComponentService.findByStructureId(selectedStructure.id)
+            .then(list => {
+                const tempList: StructureComponent[] = [];
+                list?.forEach(component => {
+                    if (component) tempList.push(component);
+                });
+                setStructureComponents(tempList);
+            })
+            .catch(error => console.error('Error fetching structure components:', error));
+    };
+    const refreshStructureDescriptionsTrigger = () => {
+        StructureDescriptionService.findAll()
+            .then(list => {
+                const tempList: StructureDescription[] = [];
+                list?.forEach(desc => {
+                    if (desc) tempList.push(desc);
+                });
+                setStructureDescriptions(tempList);
+            })
+            .catch(error => console.error('Error fetching structure descriptions:', error));
+    };
 
     useEffect(() => {
         EntityMapper.toStructureDto(selectedStructure ?? undefined).then(dto => setSelectedStructureDto(dto))
@@ -960,7 +1030,7 @@ const StructureTabContent = () => {
             if (item.id) {
                 try {
                     await StructureEndpoint.delete(item.id);
-                    structureGridRef.current?.refresh();
+                    refreshStructureTrigger();
                     if (selectedStructure?.id === item.id) {
                         setSelectedStructure(null);
                     }
@@ -993,7 +1063,7 @@ const StructureTabContent = () => {
             if (item.id) {
                 try {
                     await StructureComponentEndpoint.delete(item.id);
-                    // structureComponentGridRef.current?.refresh();
+                    refreshStructureComponentsTrigger();
                     setRefreshComponentsTrigger(!refreshComponentsTrigger);
                     if (selectedStructureComponent?.id === item.id) {
                         setSelectedStructureComponent(null);
@@ -1026,6 +1096,7 @@ const StructureTabContent = () => {
             if (item.id) {
                 try {
                     await StructureDescriptionEndpoint.delete(item.id);
+                    refreshStructureDescriptionsTrigger();
                     setRefreshDescriptionsTrigger(!refreshDescriptionsTrigger);
                     if (selectedStructureDescription?.id === item.id) {
                         setSelectedStructureDescription(null);
@@ -1081,7 +1152,7 @@ const StructureTabContent = () => {
                 />
                 <AutoGrid
                     service={StructureService}
-                    ref={structureGridRef}
+                    items={structures || []}
                     model={StructureModel}
                     selectedItems={[selectedStructure]}
                     onActiveItemChanged={i => setSelectedStructure(i.detail.value)}
@@ -1109,7 +1180,7 @@ const StructureTabContent = () => {
                     onSubmitSuccess={() => {
                         // setSelectedStructureDto(null);
 
-                        structureGridRef.current?.refresh();
+                        refreshStructureTrigger();
                         StructureService.findById(selectedStructureDto?.id)
                             .then(data => setSelectedStructure(data));
 
@@ -1150,7 +1221,6 @@ const StructureTabContent = () => {
             <div>
                 <AutoGrid
                     service={StructureComponentService}
-                    // ref={structureComponentGridRef}
                     model={StructureComponentModel}
                     selectedItems={[selectedStructureComponent]}
                     onActiveItemChanged={i => setSelectedStructureComponent(i.detail.value)}
@@ -1189,8 +1259,8 @@ const StructureTabContent = () => {
                         // setSelectedStructureComponentDto(null);
                         // setSelectedStructureComponent(null);
 
+                        refreshStructureComponentsTrigger();
                         setRefreshComponentsTrigger(!refreshComponentsTrigger);
-                        // structureComponentGridRef.current?.refresh();
                     }}
                     onSubmitError={error => window.alert('Lỗi khi lưu thành phần cấu tạo: ' + error.error.message)}
                     fieldOptions={{
@@ -1268,6 +1338,7 @@ const StructureTabContent = () => {
                     model={StructureDescriptionDtoModel}
                     item={selectedStructureDescriptionDto}
                     onSubmitSuccess={() => {
+                        refreshStructureDescriptionsTrigger();
                         setRefreshDescriptionsTrigger(!refreshDescriptionsTrigger);
                         setSelectedStructureDescription(null);
                     }}
@@ -1314,16 +1385,15 @@ const StructureTabContent = () => {
 };
 
 const PronunciationTabContent = () => {
-    const quocNguGridRef = useRef<any>(null);
-    const pronunciationGridRef = useRef<any>(null);
-    const pronunciationEvolutionGridRef = useRef<any>(null);
-
     const [selectedQuocNgu, setSelectedQuocNgu] = useState<QuocNgu | undefined | null>(null);
     const [selectedQuocNguDto, setSelectedQuocNguDto] = useState<any>(null);
     const [selectedPronunciation, setSelectedPronunciation] = useState<Pronunciation | undefined | null>(null);
     const [selectedPronunciationDto, setSelectedPronunciationDto] = useState<any>(null);
     const [selectedPronunciationEvolution, setSelectedPronunciationEvolution] = useState<PronunciationEvolution | undefined | null>(null);
     const [selectedPronunciationEvolutionDto, setSelectedPronunciationEvolutionDto] = useState<any>(null);
+    const [quocNgus, setQuocNgus] = useState<QuocNgu[]>([]);
+    const [pronunciations, setPronunciations] = useState<Pronunciation[]>([]);
+    const [pronunciationEvolutions, setPronunciationEvolutions] = useState<PronunciationEvolution[]>([]);
 
     useEffect(() => {
         EntityMapper.toQuocNguDto(selectedQuocNgu ?? undefined).then(dto => setSelectedQuocNguDto(dto))
@@ -1340,12 +1410,36 @@ const PronunciationTabContent = () => {
             .catch(error => console.error('Error mapping PronunciationEvolution to DTO:', error));
     }, [selectedPronunciationEvolution]);
 
+    const refreshQuocNguTrigger = () => {
+        QuocNguService.findAll()
+            .then(list => list?.filter(quocNgu => quocNgu !== undefined))
+            .then(list => setQuocNgus(list || []))
+            .catch(error => console.error('Error fetching quoc ngus:', error));
+    };
+    const refreshPronunciationTrigger = () => {
+        PronunciationService.findAll()
+            .then(list => list?.filter(pronunciation => pronunciation !== undefined))
+            .then(list => setPronunciations(list || []))
+            .catch(error => console.error('Error fetching pronunciations:', error));
+    };
+    const refreshPronunciationEvolutionTrigger = () => {
+        PronunciationEvolutionService.findAll()
+            .then(list => list?.filter(pe => pe !== undefined))
+            .then(list => setPronunciationEvolutions(list || []))
+            .catch(error => console.error('Error fetching pronunciation evolutions:', error));
+    };
+    useEffect(() => {
+        refreshQuocNguTrigger();
+        refreshPronunciationTrigger();
+        refreshPronunciationEvolutionTrigger();
+    }, []);
+
     const deleteQuocNguRenderer = ({item}: {item: QuocNgu }) => {
         const handleDelete = async () => {
             if (item.id) {
                 try {
                     await QuocNguEndpoint.delete(item.id);
-                    quocNguGridRef.current?.refresh();
+                    refreshQuocNguTrigger();
                     if (selectedQuocNgu?.id === item.id) {
                         setSelectedQuocNgu(null);
                     }
@@ -1377,7 +1471,7 @@ const PronunciationTabContent = () => {
             if (item.id) {
                 try {
                     await PronunciationEndpoint.delete(item.id);
-                    pronunciationGridRef.current?.refresh();
+                    refreshPronunciationTrigger();
                     if (selectedPronunciation?.id === item.id) {
                         setSelectedPronunciation(null);
                     }
@@ -1409,7 +1503,7 @@ const PronunciationTabContent = () => {
             if (item.id) {
                 try {
                     await PronunciationEvolutionEndpoint.delete(item.id);
-                    pronunciationEvolutionGridRef.current?.refresh();
+                    refreshPronunciationEvolutionTrigger();
                     if (selectedPronunciationEvolution?.id === item.id) {
                         setSelectedPronunciationEvolution(null);
                     }
@@ -1436,36 +1530,7 @@ const PronunciationTabContent = () => {
         );
     };
 
-    const [quocNgus, setQuocNgus] = useState<QuocNgu[] | undefined | null>(null);
-    const refreshQuocNgusTrigger = () => {
-        QuocNguService.findAll()
-            .then((list: (QuocNgu | undefined)[] | undefined) => {
-                const tempList: QuocNgu[] = [];
-                list?.forEach((quocNgu) => {
-                    if (quocNgu) tempList.push(quocNgu);
-                });
-                setQuocNgus(tempList);
-            })
-            .catch(error => console.error('Error fetching quoc ngus:', error));
-    };
-    useEffect(refreshQuocNgusTrigger, []);
-
-    const [pronunciations, setPronunciations] = useState<Pronunciation[] | undefined | null>(null);
     const [pronunciationDtos, setPronunciationDtos] = useState<PronunciationDto[] | undefined | null>(null);
-
-    const pronunciationsTrigger = () => {
-        PronunciationService.findAll()
-            .then((list: (Pronunciation | undefined)[] | undefined) => {
-                const tempList: Pronunciation[] = [];
-                list?.forEach((pronunciation) => {
-                    if (pronunciation) tempList.push(pronunciation);
-                });
-                setPronunciations(tempList);
-            })
-            .catch((error) => console.error('Error fetching pronunciations:', error));
-    };
-
-    useEffect(pronunciationsTrigger, []);
     useEffect(() => {
         if (pronunciations) {
             EntityMapper.toPronunciationDtoList(pronunciations)
@@ -1485,7 +1550,7 @@ const PronunciationTabContent = () => {
             <div>
                 <AutoGrid
                     service={QuocNguService}
-                    ref={quocNguGridRef}
+                    items={quocNgus}
                     model={QuocNguModel}
                     selectedItems={[selectedQuocNgu]}
                     onActiveItemChanged={i => setSelectedQuocNgu(i.detail.value)}
@@ -1505,8 +1570,7 @@ const PronunciationTabContent = () => {
                     item={selectedQuocNguDto}
                     onSubmitSuccess={() => {
                         setSelectedQuocNguDto(null);
-                        quocNguGridRef.current?.refresh();
-                        refreshQuocNgusTrigger();
+                        refreshQuocNguTrigger();
                     }}
                     onSubmitError={(error: any) => window.alert('Lỗi khi lưu quốc ngữ: ' + error.error.message)}
                     fieldOptions={{
@@ -1517,7 +1581,7 @@ const PronunciationTabContent = () => {
             <div>
                 <AutoGrid
                     service={PronunciationService}
-                    ref={pronunciationGridRef}
+                    items={pronunciations}
                     model={PronunciationModel}
                     selectedItems={[selectedPronunciation]}
                     onActiveItemChanged={i => setSelectedPronunciation(i.detail.value)}
@@ -1541,8 +1605,7 @@ const PronunciationTabContent = () => {
                     item={selectedPronunciationDto}
                     onSubmitSuccess={() => {
                         setSelectedPronunciationDto(null);
-                        pronunciationGridRef.current?.refresh();
-                        pronunciationsTrigger();
+                        refreshPronunciationTrigger();
                     }}
                     onSubmitError={(error: any) => window.alert('Lỗi khi lưu phát âm: ' + error.error.message)}
                     fieldOptions={{
@@ -1569,7 +1632,7 @@ const PronunciationTabContent = () => {
             <div>
                 <AutoGrid
                     service={PronunciationEvolutionService}
-                    ref={pronunciationEvolutionGridRef}
+                    items={pronunciationEvolutions}
                     model={PronunciationEvolutionModel}
                     selectedItems={[selectedPronunciationEvolution]}
                     onActiveItemChanged={i => setSelectedPronunciationEvolution(i.detail.value)}
@@ -1597,7 +1660,7 @@ const PronunciationTabContent = () => {
                     item={selectedPronunciationEvolutionDto}
                     onSubmitSuccess={() => {
                         setSelectedPronunciationEvolution(null);
-                        pronunciationEvolutionGridRef.current?.refresh();
+                        refreshPronunciationEvolutionTrigger();
                     }}
                     onSubmitError={(error: any) => window.alert('Lỗi lưu phát triển âm đọc: ' + error.error.message)}
                     fieldOptions={{
@@ -1645,10 +1708,6 @@ const MeaningTabContent = () => {
     const [explanationTrigger, setExplanationTrigger] = useState(false);
     const [explanationGroupTrigger, setExplanationGroupTrigger] = useState(false);
 
-    const explanationGridRef = useRef<any>(null);
-    const meaningGridRef = useRef<any>(null);
-    const meaningExplanationGridRef = useRef<any>(null);
-
     const [selectedExplanation, setSelectedExplanation] = useState<Explanation | undefined | null>(null);
     const [selectedExplanationDto, setSelectedExplanationDto] = useState<ExplanationDto | undefined | null>(null);
     const [selectedMeaning, setSelectedMeaning] = useState<Meaning | undefined | null>(null);
@@ -1658,6 +1717,12 @@ const MeaningTabContent = () => {
 
     const [explanations, setExplanations] = useState<Explanation[]>([]);
     const [meanings, setMeanings] = useState<Meaning[]>([]);
+    const refreshExplanationTrigger = () => {
+        ExplanationService.findAll().then(data => setExplanations((data || []).filter(e => e !== undefined) as Explanation[]));
+    };
+    const refreshMeaningTrigger = () => {
+        MeaningService.findAll().then(data => setMeanings((data || []).filter(m => m !== undefined) as Meaning[]));
+    };
 
     useEffect(() => {
         ExplanationService.findAll().then(data => setExplanations((data || []).filter(e => e !== undefined) as Explanation[]));
@@ -1713,12 +1778,12 @@ const MeaningTabContent = () => {
             if (item.id) {
                 try {
                     await ExplanationEndpoint.delete(item.id);
-                    explanationGridRef.current?.refresh();
+                    refreshExplanationTrigger();
                     if (selectedExplanation?.id === item.id) {
                         setSelectedExplanation(null);
                     }
                     setExplanationTrigger(!explanationTrigger);
-                    meaningGridRef.current?.refresh();
+                    refreshMeaningTrigger();
                 } catch (error) {
                     console.error('Error deleting Explanation:', error);
                 }
@@ -1747,7 +1812,7 @@ const MeaningTabContent = () => {
             if (item.id) {
                 try {
                     await MeaningEndpoint.delete(item.id);
-                    meaningGridRef.current?.refresh();
+                    refreshMeaningTrigger();
                     if (selectedMeaning?.id === item.id) {
                         setSelectedMeaning(null);
                     }
@@ -1815,7 +1880,7 @@ const MeaningTabContent = () => {
                 <h3>Giải nghĩa</h3>
                 <AutoGrid
                     service={ExplanationService}
-                    ref={explanationGridRef}
+                    items={explanations}
                     model={ExplanationModel}
                     selectedItems={[selectedExplanation]}
                     onActiveItemChanged={i => setSelectedExplanation(i.detail.value)}
@@ -1829,7 +1894,7 @@ const MeaningTabContent = () => {
                     item={selectedExplanationDto}
                     onSubmitSuccess={() => {
                         setSelectedExplanation(null);
-                        explanationGridRef.current?.refresh();
+                        refreshExplanationTrigger();
                         setExplanationTrigger(!explanationTrigger);
                     }}
                     onSubmitError={(error: any) => window.alert('Lỗi lưu giải nghĩa: ' + error.error.message)}
@@ -1839,7 +1904,7 @@ const MeaningTabContent = () => {
                 <h3>Ý nghĩa</h3>
                 <AutoGrid
                     service={MeaningService}
-                    ref={meaningGridRef}
+                    items={meanings}
                     model={MeaningModel}
                     selectedItems={[selectedMeaning]}
                     onActiveItemChanged={i => setSelectedMeaning(i.detail.value)}
@@ -1865,7 +1930,7 @@ const MeaningTabContent = () => {
                     item={selectedMeaningDto}
                     onSubmitSuccess={() => {
                         setSelectedMeaning(null);
-                        meaningGridRef.current?.refresh();
+                        refreshMeaningTrigger();
                     }}
                     onSubmitError={(error: any) => window.alert('Lỗi lưu ý nghĩa: ' + error.error.message)}
                     hiddenFields={['explanationsString', 'origin']}
@@ -1894,9 +1959,8 @@ const MeaningTabContent = () => {
                         <p style={{ fontSize: '14px', color: '#666', marginBottom: '10px' }}>
                             Ý nghĩa đã chọn: {selectedMeaning.id} - {selectedMeaning.explanationsString}
                         </p>
-                        <AutoGrid
-                            service={MeaningExplanationService}
-                            ref={meaningExplanationGridRef}
+                <AutoGrid
+                    service={MeaningExplanationService}
                             model={MeaningExplanationModel}
                             items={meaningExplanations}
                             selectedItems={[selectedMeaningExplanation]}
@@ -1929,7 +1993,7 @@ const MeaningTabContent = () => {
                                 setSelectedMeaningExplanation(null);
                                 // Reload the filtered list
                                 refreshMeaningExplanationsTrigger();
-                                if (meaningGridRef.current) meaningGridRef.current.refresh();
+                                refreshMeaningTrigger();
                                 setExplanationGroupTrigger(!explanationGroupTrigger);
                             }}
                             onSubmitError={(error: any) => window.alert('Lỗi lưu nhóm giải nghĩa: ' + error.error.message)}
@@ -1964,10 +2028,6 @@ const MeaningTabContent = () => {
 };
 
 const EntityTabContent = () => {
-    const entityGridRef = useRef<any>(null);
-    const compositionGridRef = useRef<any>(null);
-    const evolutionGridRef = useRef<any>(null);
-
     const [selectedEntity, setSelectedEntity] = useState<EntityX | undefined | null>(null);
     const [selectedEntityDto, setSelectedEntityDto] = useState<EntityDto | undefined | null>(null);
     const [selectedComposition, setSelectedComposition] = useState<EntityComposition | undefined | null>(null);
@@ -1985,6 +2045,17 @@ const EntityTabContent = () => {
     const [pronunciations, setPronunciations] = useState<Pronunciation[]>([]);
     const [pronunciationDtos, setPronunciationDtos] = useState<PronunciationDto[]>([]);
     const [evolutionDescriptions, setEvolutionDescriptions] = useState<EvolutionDescription[]>([]);
+    const refreshEntityTrigger = () => {
+        EntityService.findAll()
+            .then(data => data?.filter(entity => entity !== undefined))
+            .then(data => EntityMapper.toEntityDtoList(data))
+            .then(promises => Promise.all(promises || []))
+            .then(dtos => dtos.filter(dto => dto !== undefined))
+            .then(dtos => {
+                const checkedDtos = dtos as EntityDto[];
+                setEntityDtos(checkedDtos);
+            });
+    };
 
     const compositionService = useMemo(() => ({
         ...EntityCompositionEndpoint,
@@ -2000,18 +2071,7 @@ const EntityTabContent = () => {
         EntityMapper.toEntityDto(selectedEntity ?? undefined).then(dto => setSelectedEntityDto(dto))
     }, [selectedEntity]);
 
-    const refreshEntitiesTrigger = () => {
-        EntityService.findAll()
-            .then(data => data?.filter(entity => entity !== undefined))
-            .then(data => EntityMapper.toEntityDtoList(data))
-            .then(promises => Promise.all(promises || []))
-            .then(dtos => dtos.filter(dto => dto !== undefined))
-            .then(dtos => {
-                const checkedDtos = dtos as EntityDto[];
-                setEntityDtos(checkedDtos);
-            });
-    };
-    useEffect(refreshEntitiesTrigger, []);
+    useEffect(refreshEntityTrigger, []);
 
     // Map selected composition to DTO
     useEffect(() => {
@@ -2025,16 +2085,38 @@ const EntityTabContent = () => {
             .catch((error: any) => console.error('Error mapping EntityEvolution to DTO:', error));
     }, [selectedEvolution]);
 
+    const refreshCompositionTrigger = () => {
+        if (!selectedEntity?.id) {
+            setCompositions([]);
+            return;
+        }
+        EntityCompositionEndpoint.findByParentEntityId(selectedEntity.id)
+            .then(async (dtos: any) => {
+                EntityMapper.toEntityCompositionList(dtos)
+                    .then(data => data?.filter(c => c !== undefined))
+                    .then(data => setCompositions(data as EntityComposition[]));
+            })
+            .catch((error: any) => console.error('Error reloading EntityCompositions:', error));
+    };
+
+    const refreshEvolutionTrigger = () => {
+        if (!selectedEntity?.id) {
+            setEvolutions([]);
+            return;
+        }
+        EntityEvolutionEndpoint.findByFromEntityId(selectedEntity.id)
+            .then(async (dtos: any) => {
+                EntityMapper.toEntityEvolutionList(dtos)
+                    .then(data => data?.filter(e => e !== undefined))
+                    .then(data => setEvolutions(data as EntityEvolution[]));
+            })
+            .catch((error: any) => console.error('Error reloading EntityEvolutions:', error));
+    };
+
     // Load compositions when selectedEntity changes
     useEffect(() => {
         if (selectedEntity?.id) {
-            EntityCompositionEndpoint.findByParentEntityId(selectedEntity.id)
-                .then(async (dtos: any) => {
-                    EntityMapper.toEntityCompositionList(dtos)
-                        .then(data => data?.filter(c => c !== undefined))
-                        .then(data => setCompositions(data as EntityComposition[]));
-                })
-                .catch((error: any) => console.error('Error loading EntityCompositions:', error));
+            refreshCompositionTrigger();
         } else {
             setCompositions([]);
         }
@@ -2043,13 +2125,7 @@ const EntityTabContent = () => {
     // Load evolutions when selectedEntity changes
     useEffect(() => {
         if (selectedEntity?.id) {
-            EntityEvolutionEndpoint.findByFromEntityId(selectedEntity.id)
-                .then(async (dtos: any) => {
-                    EntityMapper.toEntityEvolutionList(dtos)
-                        .then(data => data?.filter(e => e !== undefined))
-                        .then(data => setEvolutions(data as EntityEvolution[]));
-                })
-                .catch((error: any) => console.error('Error loading EntityEvolutions:', error));
+            refreshEvolutionTrigger();
         } else {
             setEvolutions([]);
         }
@@ -2143,7 +2219,7 @@ const EntityTabContent = () => {
             if (item.id) {
                 try {
                     await EntityEndpoint.delete(item.id);
-                    entityGridRef.current?.refresh();
+                    refreshEntityTrigger();
                     if (selectedEntity?.id === item.id) {
                         setSelectedEntity(null);
                     }
@@ -2171,16 +2247,7 @@ const EntityTabContent = () => {
             if (item.id?.parentEntityId && item.id?.childEntityId !== undefined && item.id?.position !== undefined) {
                 try {
                     await EntityCompositionEndpoint.deleteByIds(item.id.parentEntityId, item.id.childEntityId, Number(item.id.position));
-                    // Reload the filtered list
-                    if (selectedEntity?.id) {
-                        EntityCompositionEndpoint.findByParentEntityId(selectedEntity.id)
-                            .then(async (dtos: any) => {
-                                EntityMapper.toEntityCompositionList(dtos)
-                                    .then(dtos => dtos?.filter(c => c !== undefined))
-                                    .then(c => setCompositions(c as EntityComposition[]));
-                            })
-                            .catch((error: any) => console.error('Error reloading EntityCompositions:', error));
-                    }
+                    refreshCompositionTrigger();
                     if (selectedComposition?.id?.parentEntityId === item.id?.parentEntityId &&
                         selectedComposition?.id?.childEntityId === item.id?.childEntityId &&
                         selectedComposition?.id?.position === item.id?.position) {
@@ -2210,15 +2277,7 @@ const EntityTabContent = () => {
             if (item.id?.fromEntityId && item.id?.toEntityId) {
                 try {
                     await EntityEvolutionEndpoint.deleteByEachId(item.id.fromEntityId, item.id.toEntityId, item.id.descriptionId);
-                    if (selectedEntity?.id) {
-                        EntityEvolutionEndpoint.findByFromEntityId(selectedEntity.id)
-                            .then(async (dtos: any) => {
-                                EntityMapper.toEntityEvolutionList(dtos)
-                                    .then(data => data?.filter(e => e !== undefined))
-                                    .then(data => setEvolutions(data as EntityEvolution[]));
-                            })
-                            .catch((error: any) => console.error('Error reloading EntityEvolutions:', error));
-                    }
+                    refreshEvolutionTrigger();
                     if (selectedEvolution?.id?.fromEntityId === item.id?.fromEntityId &&
                         selectedEvolution?.id?.toEntityId === item.id?.toEntityId &&
                         selectedEvolution?.id?.descriptionId === item.id?.descriptionId) {
@@ -2242,6 +2301,10 @@ const EntityTabContent = () => {
             </button>
         );
     };
+
+    const entityGridService = useMemo(() => ({
+        list: async () => entityDtos,
+    }), [entityDtos]);
 
     return (
         <div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr 1fr', gridGap: '20px' }}>
@@ -2268,17 +2331,16 @@ const EntityTabContent = () => {
                     }}
                 />
                 <AutoGrid
-                    service={EntityService}
-                    ref={entityGridRef}
-                    model={EntityXModel as any}
-                    selectedItems={[selectedEntity]}
-                    onActiveItemChanged={i => setSelectedEntity(i.detail.value)}
+                    service={entityGridService}
+                    items={entityDtos}
+                    model={EntityDtoModel as any}
+                    selectedItems={[selectedEntityDto]}
+                    onActiveItemChanged={i => setSelectedEntityDto(i.detail.value)}
                     columnOptions={{
                         id: { filterable: false },
-                        structure: { path: 'structure.characterString' },
-                        pronunciation: { path: 'pronunciation.string' },
-                        meaning: { path: 'meaning.explanationsString', width: '200px' },
-                        language: { path: 'language.abbreviation' }
+                        structureString: { header: 'Cấu tạo' },
+                        pronunciationString: { header: 'Phát âm' },
+                        languageString: { header: 'Ngôn ngữ' }
                     }}
                     customColumns={[
                         <GridColumn key="del-entity-grid" header="Xóa" renderer={deleteEntityRenderer} />
@@ -2291,8 +2353,7 @@ const EntityTabContent = () => {
                     item={selectedEntityDto}
                     onSubmitSuccess={() => {
                         setSelectedEntity(null);
-                        refreshEntitiesTrigger();
-                        entityGridRef.current?.refresh();
+                        refreshEntityTrigger();
                     }}
                     onSubmitError={(error: any) => window.alert('Lỗi lưu thực thể: ' + error.error.message)}
                     hiddenFields={['hnomString', 'qnguString', 'explanationsString']}
@@ -2358,7 +2419,6 @@ const EntityTabContent = () => {
                         <p style={{ fontSize: '14px', color: '#666', marginBottom: '10px' }}>Thực thể đã chọn: {selectedEntity.id}</p>
                         <AutoGrid
                             service={compositionService as any}
-                            ref={compositionGridRef}
                             model={EntityCompositionModel as any}
                             items={compositions}
                             selectedItems={[selectedComposition]}
@@ -2389,15 +2449,7 @@ const EntityTabContent = () => {
                             item={selectedCompositionDto}
                             onSubmitSuccess={() => {
                                 setSelectedComposition(null);
-                                if (selectedEntity?.id) {
-                                    EntityCompositionEndpoint.findByParentEntityId(selectedEntity.id)
-                                        .then(async (dtos: any) => {
-                                            EntityMapper.toEntityCompositionList(dtos)
-                                                .then(dtos => dtos?.filter(c => c !== undefined))
-                                                .then(c => setCompositions(c as EntityComposition[]));
-                                        })
-                                        .catch((error: any) => console.error('Error reloading EntityCompositions:', error));
-                                }
+                                refreshCompositionTrigger();
                             }}
                             onSubmitError={(error: any) => window.alert('Lỗi lưu cấu tạo: ' + error.error.message)}
                             visibleFields={['childEntityId', 'order', 'position']}
@@ -2429,7 +2481,6 @@ const EntityTabContent = () => {
                         <p style={{ fontSize: '14px', color: '#666', marginBottom: '10px' }}>Thực thể đã chọn: {selectedEntity.id}</p>
                         <AutoGrid
                             service={evolutionService as any}
-                            ref={evolutionGridRef}
                             model={EntityEvolutionModel as any}
                             items={evolutions}
                             selectedItems={[selectedEvolution]}
@@ -2460,15 +2511,7 @@ const EntityTabContent = () => {
                             item={selectedEvolutionDto}
                             onSubmitSuccess={() => {
                                 setSelectedEvolution(null);
-                                if (selectedEntity?.id) {
-                                    EntityEvolutionEndpoint.findByFromEntityId(selectedEntity.id)
-                                        .then(async (dtos: any) => {
-                                            EntityMapper.toEntityEvolutionList(dtos)
-                                                .then(data => data?.filter(e => e !== undefined))
-                                                .then(data => setEvolutions(data as EntityEvolution[]));
-                                        })
-                                        .catch((error: any) => console.error('Error reloading EntityEvolutions:', error));
-                                }
+                                refreshEvolutionTrigger();
                             }}
                             onSubmitError={(error: any) => window.alert('Lỗi lưu diễn biến: ' + error.error.message)}
                             visibleFields={['toEntityId', 'descriptionId']}
@@ -2514,11 +2557,26 @@ const ExampleTabContent = () => {
     const [selectedExampleDto, setSelectedExampleDto] = useState<ExampleDto | undefined | null>(null);
     const [selectedExampleWord, setSelectedExampleWord] = useState<ExampleWord | undefined | null>(null);
     const [selectedExampleWordDto, setSelectedExampleWordDto] = useState<ExampleWordDto | undefined | null>(null);
-    const exampleGridRef = useRef<any>(null);
-    const exampleWordGridRef = useRef<any>(null);
+    const [examples, setExamples] = useState<Example[]>([]);
     const [exampleWordDtos, setExampleWordDtos] = useState<ExampleWordDto[]>([]);
     const [sources, setSources] = useState<Source[]>([]);
     const [entities, setEntities] = useState<EntityDto[]>([]);
+    const refreshExampleGridTrigger = () => {
+        ExampleService.findAll()
+            .then(data => data?.filter(example => example !== undefined))
+            .then(data => setExamples(data || []))
+            .catch(error => console.error('Error fetching examples:', error));
+    };
+    const refreshExampleWordGridTrigger = () => {
+        if (selectedExample?.id) {
+            ExampleWordEndpoint.findByExampleId(selectedExample.id)
+                .then(data => data?.filter(exampleWord => exampleWord !== undefined))
+                .then(data => setExampleWordDtos(data as ExampleWordDto[]))
+                .catch(error => console.error('Error loading ExampleWords:', error));
+        } else {
+            setExampleWordDtos([]);
+        }
+    };
 
     useEffect(() => {
         EntityMapper.toExampleDto(selectedExample ?? undefined).then(dto => setSelectedExampleDto(dto))
@@ -2531,19 +2589,9 @@ const ExampleTabContent = () => {
             .catch((error: any) => console.error('Error mapping ExampleWord to ExampleWordDto:', error));
     }, [selectedExampleWord]);
 
-    const exampleWordsTrigger = () => {
-        if (selectedExample?.id) {
-            ExampleWordEndpoint.findByExampleId(selectedExample.id)
-                .then(data => data?.filter(exampleWord => exampleWord !== undefined))
-                .then(data => setExampleWordDtos(data as ExampleWordDto[]))
-                .catch(error => console.error('Error loading ExampleWords:', error));
-        } else {
-            setExampleWordDtos([]);
-        }
-    };
-
     useEffect(() => {
-        exampleWordsTrigger();
+        refreshExampleGridTrigger();
+        refreshExampleWordGridTrigger();
     }, [selectedExample]);
 
     useEffect(() => {
@@ -2563,8 +2611,8 @@ const ExampleTabContent = () => {
                 if (item.id) {
                     try {
                         await ExampleEndpoint.delete(item.id);
-                        exampleGridRef.current?.refresh();
-                        exampleWordGridRef.current?.refresh();
+                        refreshExampleGridTrigger();
+                        refreshExampleWordGridTrigger();
                         if (selectedExample?.id === item.id) {
                             setSelectedExample(null);
                         }
@@ -2591,9 +2639,8 @@ const ExampleTabContent = () => {
             if (selectedExampleDto?.id && item.entityId && item.position) {
                 try {
                     await ExampleWordEndpoint.deleteByEachId(selectedExampleDto?.id, item.entityId, item.position);
-                    exampleGridRef.current?.refresh();
-                    exampleWordsTrigger();
-                    exampleWordGridRef.current?.refresh();
+                    refreshExampleGridTrigger();
+                    refreshExampleWordGridTrigger();
                     if (selectedExampleDto?.id === item.exampleId &&
                         selectedExampleWord?.exampleWordId?.entityId === item.entityId &&
                         selectedExampleWord?.exampleWordId?.position === item.position) {
@@ -2636,7 +2683,7 @@ const ExampleTabContent = () => {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridGap: '20px' }}>
             <div>
                 <AutoGrid
-                    service={ExampleService} model={ExampleModel} ref={exampleGridRef}
+                    service={ExampleService} model={ExampleModel} items={examples}
                     selectedItems={[selectedExample]} onActiveItemChanged={(i) => setSelectedExample(i.detail.value)}
                     customColumns={[
                         <GridColumn key="del-example" header="Xóa" renderer={deleteExampleRenderer} />,
@@ -2646,7 +2693,7 @@ const ExampleTabContent = () => {
                 />
                 <AutoForm
                     service={ExampleEndpoint} model={ExampleDtoModel} item={selectedExampleDto || undefined}
-                    onSubmitSuccess={() => { setSelectedExample(null); exampleGridRef.current?.refresh(); }}
+                    onSubmitSuccess={() => { setSelectedExample(null); refreshExampleGridTrigger(); }}
                     onSubmitError={(error: any) => window.alert('Lỗi lưu ví dụ: ' + error.error.message)}
                     fieldOptions={{
                         sourceId: {
@@ -2661,7 +2708,7 @@ const ExampleTabContent = () => {
             </div>
             <div>
                 <AutoGrid
-                    service={exampleWordDtoService as any} model={ExampleWordDtoModel} ref={exampleWordGridRef}
+                    service={exampleWordDtoService as any} model={ExampleWordDtoModel}
                     items={exampleWordDtos} selectedItems={[selectedExampleWordDto]}
                     onActiveItemChanged={(i) => setSelectedExampleWordDto(i.detail.value)}
                     customColumns={[ <GridColumn key="del-eword" header='Xóa' renderer={deleteExampleWordRenderer} /> ]}
@@ -2679,7 +2726,7 @@ const ExampleTabContent = () => {
                         }
                     } as any}
                     model={ExampleWordDtoModel} item={selectedExampleWordDto || undefined}
-                    onSubmitSuccess={() => { setSelectedExampleWord(null); exampleWordGridRef.current?.refresh(); exampleWordsTrigger(); exampleGridRef.current?.refresh(); }}
+                    onSubmitSuccess={() => { setSelectedExampleWord(null); refreshExampleWordGridTrigger(); refreshExampleGridTrigger(); }}
                     onSubmitError={(error: any) => window.alert('Lỗi lưu ví dụ-thực thể: ' + error.error.message)}
                     fieldOptions={{
                         entityId: {
@@ -2703,72 +2750,202 @@ const ExampleTabContent = () => {
 };
 
 const AdditionTabContent = () => {
-    const imageGridRef = useRef<any>(null);
-    const markGridRef = useRef<any>(null);
-    const [selectedImage, setSelectedImage] = useState<ImageEntity | undefined | null>(null);
-    const [selectedMark, setSelectedMark] = useState<MarkEntity | undefined | null>(null);
-    const [sources, setSources] = useState<Source[] | undefined>([]);
+    const [selectedImage, setSelectedImage] = useState<Image | undefined>(undefined);
+    const [selectedMark, setSelectedMark] = useState<Mark | undefined>(undefined);
+    const [selectedImageDto, setSelectedImageDto] = useState<ImageDto | undefined>(undefined);
+    const [selectedMarkDto, setSelectedMarkDto] = useState<MarkDto | undefined>(undefined);
+    const deleteButtonStyle = {
+        background: 'red',
+        color: 'white',
+        border: 'none',
+        padding: '5px 10px',
+        borderRadius: '4px',
+        cursor: 'pointer',
+    };
+    const isSameMarkId = (left?: Mark['id'], right?: Mark['id']) => {
+        if (!left || !right) {
+            return false;
+        }
+
+        return left.entityId === right.entityId && left.imageId === right.imageId;
+    };
+    const deleteImageRenderer = ({item}: {item: Image}) => {
+        const handleDelete = async () => {
+            if (!item.id) {
+                return;
+            }
+
+            try {
+                await ImageService.delete(item.id);
+                refreshImagesTrigger();
+                if (selectedImage?.id === item.id) {
+                    setSelectedImage(undefined);
+                }
+            } catch (error) {
+                console.error('Error deleting Image:', error);
+            }
+        };
+
+        return (
+            <button
+                onClick={handleDelete}
+                style={deleteButtonStyle}
+            >
+                Xóa
+            </button>
+        );
+    };
+    const deleteMarkRenderer = ({item}: {item: Mark}) => {
+        const handleDelete = async () => {
+            if (!item.id) {
+                return;
+            }
+
+            try {
+                await MarkService.deleteById(item.id);
+                refreshMarksTrigger();
+                if (isSameMarkId(selectedMark?.id, item.id)) {
+                    setSelectedMark(undefined);
+                }
+            } catch (error) {
+                console.error('Error deleting Mark:', error);
+            }
+        };
+
+        return (
+            <button
+                onClick={handleDelete}
+                style={deleteButtonStyle}
+            >
+                Xóa
+            </button>
+        );
+    };
+    const [sources, setSources] = useState<Source[] | []>([]);
     useEffect(() => {
         SourceService.findAll().then(sources => sources?.filter(source => source !== undefined))
-            .then(sources => setSources(sources))
+            .then(sources => setSources(sources || []))
             .catch(error => console.error('Error fetching sources:', error));
     }, []);
+    const [images, setImages] = useState<Image[]>([]);
+    const refreshImagesTrigger = () => {
+        ImageService.findAll().then(data => data?.filter(image => image !== undefined))
+            .then(data => {
+                setImages(data || []);
+                setSelectedMark(undefined);
+            })
+            .catch(error => console.error('Error fetching images' + error));
+    };
+    useEffect(() => {
+        refreshImagesTrigger();
+    }, []);
+    const [marks, setMarks] = useState<Mark[]>([]);
+    const refreshMarksTrigger = () => {
+        MarkService.findByImageId(selectedImage?.id).then(data => data?.filter(mark => mark !== undefined))
+        .then(marks => setMarks(marks || []))
+    };
+    useEffect(() => {
+        refreshMarksTrigger();
+    }, [selectedImage]);
+    const [entities, setEntities] = useState<EntityDto[]>([]);
+    useEffect(() => {
+        EntityEndpoint.findAll().then(data => data?.filter(entity => entity !== undefined))
+            .then(data => setEntities(data || []))
+            .catch(error => console.error('Error fetching entities:', error));
+    }, []);
+
+    useEffect(() => {
+        EntityMapper.toImageDto(selectedImage).then(setSelectedImageDto);
+    }, [selectedImage]);
+
+    useEffect(() => {
+        EntityMapper.toMarkDto(selectedMark).then(data => setSelectedMarkDto({...data, imageId: selectedImage?.id}));
+    }, [selectedMark, selectedImage]);
+
 
     return (
         <div className="flex flex-column gap-l">
             <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px'}}>
-                <div>
-                    <h3>Hình ảnh</h3>
-                    <AutoGrid
-                        service={ImageService}
-                        model={ImageModel}
-                        ref={imageGridRef}
-                        selectedItems={selectedImage ? [selectedImage] : []}
-                        onActiveItemChanged={e => setSelectedImage(e.detail.value)}
-                        columnOptions={{
-                            source: {header: 'Nguồn'},
-                            page: {header: 'Trang'},
-                            link: {header: 'Liên kết'},
-                        }}
-                    />
-                    <AutoForm
-                        service={{ ...ImageService, delete: async () => {} } as any}
-                        model={ImageDtoModel}
-                        item={selectedImage || undefined}
-                        onSubmitSuccess={() => imageGridRef.current?.refresh()}
-                        fieldOptions={{
-                            sourceId: {label: 'Nguồn', renderer: ({field} : any) => (
-                                <ComboBox
-                                    label='Nguồn' items={sources} itemValuePath='id' itemLabelPath='nameQngu' {...field} />
-                            )},
-                            page: {label: 'Trang'},
-                            link: {label: 'Liên kết'},
-                        }}
-                        hiddenFields={['sourceNameHnom', 'sourceNameQngu']}
-                    />
+                <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px'}}>
+                    <div>
+                        <h3>Hình ảnh</h3>
+                        <AutoGrid
+                            service={ImageService}
+                            model={ImageModel}
+                            items={images}
+                            selectedItems={selectedImage ? [selectedImage] : []}
+                            onActiveItemChanged={e => setSelectedImage(e.detail.value || undefined)}
+                            columnOptions={{
+                                source: {header: 'Nguồn', path: 'source.nameQngu'},
+                                page: {header: 'Trang'},
+                                link: {header: 'Liên kết'},
+                            }}
+                            customColumns={[
+                                <GridColumn key="delete-image" header={'Xóa'} renderer={deleteImageRenderer} />
+                            ]}
+                        />
+                        <AutoForm
+                            service={{ ...ImageEndpoint, delete: async () => {} } as any}
+                            model={ImageDtoModel}
+                            item={selectedImageDto || undefined}
+                            onSubmitSuccess={() => refreshImagesTrigger()}
+                            fieldOptions={{
+                                sourceId: {
+                                    label: 'Nguồn',
+                                    renderer: ({field} : any) => (
+                                        <ComboBox
+                                            label='Nguồn' items={sources} itemValuePath='id' itemLabelPath='nameQngu' {...field} />
+                                    )},
+                                page: {label: 'Trang'},
+                                link: {label: 'Liên kết'},
+                            }}
+                            hiddenFields={['sourceNameHnom', 'sourceNameQngu']}
+                        />
+                    </div>
+                    <div>
+                        <h3>Đánh dấu (Mark)</h3>
+                        <AutoGrid
+                            service={MarkService}
+                            model={MarkModel}
+                            items={marks}
+                            selectedItems={selectedMark ? [selectedMark] : []}
+                            onActiveItemChanged={e => setSelectedMark(e.detail.value || undefined)}
+                            columnOptions={{
+                                width: {header: 'Rộng'},
+                                height: {header: 'Cao'},
+                            }}
+                            customColumns={[
+                                <GridColumn key="delete-mark" header={'Xóa'} renderer={deleteMarkRenderer} />
+                            ]}
+                        />
+                        <AutoForm
+                            service={{ ...MarkEndpoint, delete: async () => {} } as any}
+                            model={MarkDtoModel}
+                            item={selectedMarkDto || undefined}
+                            onSubmitSuccess={() => refreshMarksTrigger()}
+                            fieldOptions={{
+                                entityId: {renderer: ({field} : any) => (
+                                        <ComboBox
+                                            label={'Thực thể'}
+                                            items={entities}
+                                            itemValuePath={'id'}
+                                            {...field}
+                                            itemLabelPath={'qnguString'}
+                                            renderer={(item) =>
+                                                <span>{item.item.hnomString + ' ' + item.item.qnguString}</span>}
+                                        />
+                                    )},
+                                width: {label: 'Rộng'},
+                                height: {label: 'Cao'},
+                            }}
+                            hiddenFields={["image", "entityString", "imageId"]}
+                        />
+                    </div>
                 </div>
                 <div>
-                    <h3>Đánh dấu (Mark)</h3>
-                    <AutoGrid
-                        service={MarkService}
-                        model={MarkModel}
-                        ref={markGridRef}
-                        selectedItems={selectedMark ? [selectedMark] : []}
-                        onActiveItemChanged={e => setSelectedMark(e.detail.value)}
-                    />
-                    <AutoForm
-                        service={{ ...MarkService, delete: async () => {} } as any}
-                        model={MarkDtoModel}
-                        item={selectedMark || undefined}
-                        onSubmitSuccess={() => markGridRef.current?.refresh()}
-                        hiddenFields={["image", "entityStringsome "]}
-                    />
+                    <h3>Công cụ tọa độ hình ảnh</h3>
+                    <ImagePosUtil imgLink={selectedImage?.link || ""} />
                 </div>
-            </div>
-            <hr />
-            <div>
-                <h3>Công cụ tọa độ hình ảnh</h3>
-                <ImagePosUtil imgLink={selectedImage?.link || ""} />
             </div>
         </div>
     );

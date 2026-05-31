@@ -77,6 +77,7 @@ public class EntityService extends ListRepositoryService<EntityX, Long, EntityRe
 
     public String getHnomStringById(Long entityId) {
         EntityX entity = findById(entityId);
+        if (entity == null) return " ";
 
         List<EntityComposition> entityCompositions = entityCompositionService.findByParentEntityId(entity.getId());
         if (entityCompositions.isEmpty()) {
@@ -102,6 +103,7 @@ public class EntityService extends ListRepositoryService<EntityX, Long, EntityRe
 
     public String getQnguStringById(Long entityId) {
         EntityX entity = findById(entityId);
+        if (entity == null) return "";
 
         try {
             return entity.getPronunciation().getString();

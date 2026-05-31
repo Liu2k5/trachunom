@@ -29,5 +29,9 @@ public class EntityDto {
     private String hnomString;
     private String qnguString;
     private String explanationsString;
+
+    private String structureString;
+    private String pronunciationString;
+    private String languageString;
 }
 

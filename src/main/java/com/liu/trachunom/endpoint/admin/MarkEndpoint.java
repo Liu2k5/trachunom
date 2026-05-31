@@ -21,6 +21,7 @@ public class MarkEndpoint {
 
     public MarkDto save(MarkDto markDto) {
         Mark mark = entityMapper.toMark(markDto);
+        System.out.println("Saving mark: " + mark.getEntity().getId() + " on image: " + mark.getImage().getId());
         return entityMapper.toMarkDto(markService.save(mark));
     }
 

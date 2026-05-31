@@ -11,6 +11,8 @@ import com.liu.trachunom.mapper.EntityMapper;
 import com.liu.trachunom.service.entity.EntityCompositionService;
 import com.liu.trachunom.service.entity.EntityEvolutionService;
 import com.liu.trachunom.service.entity.EntityService;
+import com.liu.trachunom.service.evidence.ImageService;
+import com.liu.trachunom.service.evidence.MarkService;
 import com.liu.trachunom.service.example.ExampleService;
 import com.liu.trachunom.service.example.ExampleWordService;
 import com.liu.trachunom.service.structure.StructureComponentService;
@@ -33,7 +35,7 @@ public class EntityDetailEndpoint {
     private final ExampleService exampleService;
     private final StructureService structureService;
     private final StructureComponentService structureComponentService;
-    private final ExampleWordService exampleWordService;
+    private final MarkService markService;
 
     public EntityDetailDto getEntityDetail(Long id) {
         EntityX entity = entityService.findById(id);
@@ -80,6 +82,11 @@ public class EntityDetailEndpoint {
                         entityService.findHavingSameSemanticOrPhoneticComponentByEntityId(id, true))
                 .havingSamePhoneticComponents(
                         entityService.findHavingSameSemanticOrPhoneticComponentByEntityId(id, false))
+                .marks(
+                        markService.findByEntityId(entity.getId()).stream()
+                                .map(entityMapper::toMarkDto)
+                                .collect(Collectors.toList())
+                )
                 .build();
 
         // Get compositions for compound entities

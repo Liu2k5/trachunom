@@ -41,5 +41,6 @@ public class EntityDetailDto {
     private List<EntityDto> beingPhoneticComponents;
     private Map<String, List<EntityX>> havingSameSemanticComponents;
     private Map<String, List<EntityX>> havingSamePhoneticComponents;
+    private List<MarkDto> marks;
 }
 

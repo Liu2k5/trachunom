@@ -131,9 +131,6 @@ export default function IndexView() {
               Quản lý từ điển
             </Button>
           </div>
-          <div>
-              <ImagePosUtil imgLink={"https://lib.nomfoundation.org/site_media/nom/nlvnpf-0026/large/nlvnpf-0026-001.jpg"} />
-          </div>
       </div>
     </div>
   );
