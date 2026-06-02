@@ -10,7 +10,7 @@ import {
     DrawMeaningEvolution,
     DrawPronunciationEvolution,
     AnalyseStructure,
-    HnomQngu,
+    HnomQngu, ShowImage,
 } from 'Frontend/utils/entityUtils';
 import {SearchBar} from "Frontend/views/SearchBar";
 import {Button} from "@vaadin/react-components";
@@ -307,25 +307,15 @@ export default function EntityDetailView() {
                         <section>
                             <h2 className="section-title">Hình ảnh</h2>
                             {entity?.marks.map((mark, index) => (
-                                <div>
+                                <div key={index}>
                                     <div>
-                                        <svg width="200" height="120">
-                                            <defs>
-                                                <clipPath id="crop">
-                                                    <rect
-                                                        x={mark?.x}
-                                                        y={mark?.y}
-                                                        width={mark?.width}
-                                                        height={mark?.height}
-                                                    />
-                                                </clipPath>
-                                            </defs>
-
-                                            <image
-                                                href={mark?.image?.link}
-                                                clipPath="url(#crop)"
-                                            />
-                                        </svg>
+                                        <ShowImage link={mark?.image?.link}
+                                                   x={mark?.x} y={mark?.y} width={mark?.width} height={mark?.height}
+                                                   writerHnom={mark?.image?.writerHnom}
+                                                   writerQngu={mark?.image?.writerQngu}
+                                                   sourceNameHnom={mark?.image?.sourceNameHnom}
+                                                   sourceNameQngu={mark?.image?.sourceNameQngu}
+                                                   key={index}/>
                                     </div>
                                 </div>
                             ))}

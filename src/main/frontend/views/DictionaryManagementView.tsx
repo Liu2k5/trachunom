@@ -109,7 +109,6 @@ import EntityEvolutionModel from "Frontend/generated/com/liu/trachunom/entity/en
 import EntityEvolutionDto from "Frontend/generated/com/liu/trachunom/dto/EntityEvolutionDto";
 import EntityEvolutionDtoModel from "Frontend/generated/com/liu/trachunom/dto/EntityEvolutionDtoModel";
 import * as EntityEvolutionEndpoint from 'Frontend/generated/EntityEvolutionEndpoint';
-import EntityXModel from "Frontend/generated/com/liu/trachunom/entity/entity/EntityXModel";
 import Example from "Frontend/generated/com/liu/trachunom/entity/example/Example";
 import ExampleModel from "Frontend/generated/com/liu/trachunom/entity/example/ExampleModel";
 import ExampleWord from "Frontend/generated/com/liu/trachunom/entity/example/ExampleWord";
@@ -119,7 +118,7 @@ import ExampleDtoModel from "Frontend/generated/com/liu/trachunom/dto/ExampleDto
 import ExampleWordDto from "Frontend/generated/com/liu/trachunom/dto/ExampleWordDto";
 import ExampleDto from "Frontend/generated/com/liu/trachunom/dto/ExampleDto";
 import ExampleWordDtoModel from "Frontend/generated/com/liu/trachunom/dto/ExampleWordDtoModel";
-import {HnomStringByExampleIdComponent} from "Frontend/utils/entityUtils";
+import {HnomStringByExampleId} from "Frontend/utils/entityUtils";
 import PronunciationDto from "Frontend/generated/com/liu/trachunom/dto/PronunciationDto";
 import EvolutionDescription from "Frontend/generated/com/liu/trachunom/entity/entity/EvolutionDescription";
 import StructureType from "Frontend/generated/com/liu/trachunom/entity/structure/StructureType";
@@ -2356,7 +2355,7 @@ const EntityTabContent = () => {
                         refreshEntityTrigger();
                     }}
                     onSubmitError={(error: any) => window.alert('Lỗi lưu thực thể: ' + error.error.message)}
-                    hiddenFields={['hnomString', 'qnguString', 'explanationsString']}
+                    hiddenFields={['hnomString', 'qnguString', 'explanationsString', 'structureString', 'pronunciationString', 'languageString']}
                     fieldOptions={{
                         structureId: {
                             renderer: ({field} : any) => (
@@ -2687,7 +2686,7 @@ const ExampleTabContent = () => {
                     selectedItems={[selectedExample]} onActiveItemChanged={(i) => setSelectedExample(i.detail.value)}
                     customColumns={[
                         <GridColumn key="del-example" header="Xóa" renderer={deleteExampleRenderer} />,
-                        <GridColumn key="nom-string" header='Nôm' renderer={({item} : any) => <HnomStringByExampleIdComponent exampleId={item.id}/>} />
+                        <GridColumn key="nom-string" header='Nôm' renderer={({item} : any) => <HnomStringByExampleId exampleId={item.id}/>} />
                     ]}
                     columnOptions={{ source: { title: 'Nguồn', path: 'source.nameQngu' } }}
                 />
@@ -2899,7 +2898,7 @@ const AdditionTabContent = () => {
                                 page: {label: 'Trang'},
                                 link: {label: 'Liên kết'},
                             }}
-                            hiddenFields={['sourceNameHnom', 'sourceNameQngu']}
+                            hiddenFields={['sourceNameHnom', 'sourceNameQngu', 'authorHnom', 'authorQngu', 'writerHnom', 'writerQngu']}
                         />
                     </div>
                     <div>

@@ -966,6 +966,10 @@ public class EntityMapper {
                 .link(image.getLink())
                 .sourceNameQngu(image.getSource() != null ? image.getSource().getNameQngu() : null)
                 .sourceNameHnom(image.getSource() != null ? image.getSource().getNameHnom() : null)
+                .authorHnom(image.getSource() != null ? image.getSource().getAuthorHnom() : null)
+                .authorQngu(image.getSource() != null ? image.getSource().getAuthorQngu() : null)
+                .writerHnom(image.getSource() != null ? image.getSource().getWriterHnom() : null)
+                .writerQngu(image.getSource() != null ? image.getSource().getWriterQngu() : null)
                 .build();
     }
 

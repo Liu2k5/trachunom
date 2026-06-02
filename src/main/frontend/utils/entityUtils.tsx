@@ -27,14 +27,15 @@ import EntityEvolution from "Frontend/generated/com/liu/trachunom/entity/entity/
 import {inSupportedCjkRange} from "Frontend/utils/displayTroubleshooter";
 
 export {
-    HnomQngu as HnomQngu,
-    HnomStringByExampleId as HnomStringByExampleIdComponent,
-    DrawEvolution as DrawEvolution,
-    AnalyseStructure as AnalyseStructure,
-    DrawPronunciationEvolution as DrawPronunciationEvolution,
-    DrawMeaningEvolution as DrawMeaningEvolution,
-    DrawEntityYear as DrawEntityYear,
+    HnomQngu,
+    HnomStringByExampleId,
+    DrawEvolution,
+    AnalyseStructure,
+    DrawPronunciationEvolution,
+    DrawMeaningEvolution,
+    DrawEntityYear,
     DrawStructureInitialiser as DrawStructure,
+    ShowImage,
 };
 
 const HnomQngu = ({entityId, markedId}: {entityId: number | undefined, markedId: number}): JSX.Element => {
@@ -1252,3 +1253,63 @@ async function adjustStructureTree(input: (string | number)[]): Promise<(string 
     return output;
 }
 
+function ShowImage({link, x, y, width, height, writerHnom, writerQngu, sourceNameHnom, sourceNameQngu}: {
+        link: string | undefined,
+        x: number | undefined,
+        y: number | undefined,
+        width: number | undefined,
+        height: number | undefined,
+        writerHnom: string | undefined,
+        writerQngu: string | undefined,
+        sourceNameHnom: string | undefined,
+        sourceNameQngu: string | undefined,
+}) {
+    const [imageSize, setImageSize] = useState<{width: number; height: number} | null>(null);
+
+    useEffect(() => {
+        if (!link) {
+            setImageSize(null);
+            return;
+        }
+
+        const image = new window.Image();
+        image.onload = () => {
+            setImageSize({
+                width: image.naturalWidth,
+                height: image.naturalHeight,
+            });
+        };
+        image.onerror = () => setImageSize(null);
+        image.src = link;
+    }, [link]);
+
+    if (!link || x == null || y == null || width == null || height == null || !imageSize) {
+        return <div />;
+    }
+
+    return (
+        <>
+            <svg
+                width={width}
+                height={height}
+                viewBox={`${x} ${y} ${width} ${height}`}
+                style={{display: 'block'}}
+            >
+                <image
+                    href={link}
+                    x={0}
+                    y={0}
+                    width={imageSize.width}
+                    height={imageSize.height}
+                    preserveAspectRatio="none"
+                />
+            </svg>
+            <div
+                title={(sourceNameQngu ?? '') + (writerQngu ? (" (" + writerQngu + ")") : '')}
+            >
+                <p>{sourceNameHnom ?? ''}</p>
+                {(writerHnom ? (<p>{"(" + writerHnom + ")"}</p>) : '')}</div>
+        </>
+
+    );
+}

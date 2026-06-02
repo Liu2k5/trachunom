@@ -17,4 +17,8 @@ public class ImageDto {
 
     private String sourceNameQngu;
     private String sourceNameHnom;
+    private String authorQngu;
+    private String authorHnom;
+    private String writerQngu;
+    private String writerHnom;
 }

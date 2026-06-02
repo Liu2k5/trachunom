@@ -2,32 +2,11 @@ import {useEffect, useState} from "react";
 
 export { ImagePosUtil }
 function ImagePosUtil({imgLink}: {imgLink: string}) {
-    const [imgHeight, setImgHeight] = useState(0);
-    const [imgWidth, setImgWidth] = useState(0);
-    // const [loading, setLoading] = useState<boolean>();
-    useEffect(() => {
-        if (!imgLink) return;
-        // setLoading(true);
-        const image = new Image();
-        image.onload = () => {
-            setImgWidth(image.naturalWidth);
-            setImgHeight(image.naturalHeight);
-            // setLoading(false);
-        }
-        image.onerror = () => {
-            console.error("Error loading image", imgLink);
-            // setLoading(false);
-        }
-
-        image.src = imgLink;
-    }, [imgLink]);
 
     const [selectedArray, setSelectedArray] = useState<[number, number, number, number][]>([]);
     const pushToSelectedArray = (x: number, y: number, w: number, h: number) => {
         setSelectedArray(() => [...selectedArray, [x, y, w, h]]);
-    }
-
-
+    };
 
     const container = document.getElementById('image-container');
     const box = document.getElementById('selection-box');
@@ -104,7 +83,6 @@ function ImagePosUtil({imgLink}: {imgLink: string}) {
             box.style.width = input[2] + 'px';
             box.style.height = input[3] + 'px';
             printCoordinates(input[0], input[1], input[2], input[3]);
-
         }
     };
     const deleteFromSelectedArray = (i: number) => {
@@ -156,8 +134,6 @@ function ImagePosUtil({imgLink}: {imgLink: string}) {
                     draggable="false" // Ngăn chặn hành động kéo thả mặc định của trình duyệt
                     style={{
                         display: 'block',
-                        width: imgWidth,
-                        height: imgHeight,
                         userSelect: 'none', // Ngăn bôi đen ảnh
                         WebkitUserDrag: 'none' // Thuộc tính bổ trợ cho một số trình duyệt cũ
                     }}
@@ -194,7 +170,6 @@ function ImagePosUtil({imgLink}: {imgLink: string}) {
                             <button
                                 onClick={() => {
                                     highlight(item);
-                                    // window.alert("clicked");
                                 }}
                             >{item[0]} {item[1]}, {item[2]} x {item[3]}</button>
                             <button onClick={() => {copyToClipboard(item)}}>Copy</button>
