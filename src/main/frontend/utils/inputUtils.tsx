@@ -57,6 +57,14 @@ const wVowels = [
     'oa', 'oă', 'oe', 'uă', 'uâ', 'ue', 'uê', 'uơ', 'uy',
     'uyê', 'oai', 'oao', 'uao', 'oeo', 'uyu', 'oay', 'uây'
 ];
+const ieEeVowels = [
+    'ia', 'iê', 'iu', 'yê',
+    'e', 'ê', 'i'
+];
+const exceptions = [
+    'kạn', 'đắk', 'lắk', 'ku',
+    'gịa', 'gỵa', 'quốc'
+];
 
 function correct(input: string) {
     // ignores strings containing cjk characters
@@ -90,24 +98,24 @@ function correct(input: string) {
 
         // case 1: clear combinations
         if (!confusingConsonants.includes(initialConsonant)) {
-            if (['kạn', 'đắk', 'lắk', 'ku'].includes(splitStrings[i])) {
+            if (exceptions.includes(splitStrings[i])) {
                 output.push(splitStrings[i]);
             } else {
                 if (initialConsonant !== '' && vowel === 'y') {
                     vowel = 'i';
                 } else if (vowel === 'ui' && finalConsonant !== '') {
                     vowel = 'uy';
-                } else if (initialConsonant === 'c' && ['e', 'ê', 'i'].includes(vowel.charAt(0))) {
+                } else if (initialConsonant === 'c' && ieEeVowels.includes(vowel)) {
                     initialConsonant = 'k';
-                } else if (initialConsonant === 'k' && !['e', 'ê', 'i'].includes(vowel.charAt(0))) {
+                } else if (initialConsonant === 'k' && !ieEeVowels.includes(vowel)) {
                     initialConsonant = 'c';
-                } else if (initialConsonant === 'g' && ['e', 'ê', 'i'].includes(vowel.charAt(0))) {
+                } else if (initialConsonant === 'g' && ieEeVowels.includes(vowel)) {
                     initialConsonant = 'gh';
-                } else if (initialConsonant === 'gh' && !['e', 'ê', 'i'].includes(vowel.charAt(0))) {
+                } else if (initialConsonant === 'gh' && !ieEeVowels.includes(vowel)) {
                     initialConsonant = 'g';
-                } else if (initialConsonant === 'ng' && ['e', 'ê', 'i'].includes(vowel.charAt(0))) {
+                } else if (initialConsonant === 'ng' && ieEeVowels.includes(vowel)) {
                     initialConsonant = 'ngh';
-                } else if (initialConsonant === 'ngh' && !['e', 'ê', 'i'].includes(vowel.charAt(0))) {
+                } else if (initialConsonant === 'ngh' && !ieEeVowels.includes(vowel)) {
                     initialConsonant = 'ng';
                 }
                 if (['c', 'k'].includes(initialConsonant) &&
@@ -122,22 +130,17 @@ function correct(input: string) {
         }
         // case 2: gi/qu combinations
         else {
-            if (['gịa', 'gỵa', 'quốc'].includes(splitStrings[i])) {
+            if (exceptions.includes(splitStrings[i])) {
                 output.push(splitStrings[i])
             } else if (initialConsonant === 'gi') {
                 if (vowel.charAt(0) === 'i') {
                     initialConsonant = 'g'; // delete one redundant 'i'
                 }
-                vowel = combineToneDiacritic(
-                    // vowel.charAt(0) === 'i'
-                    //     ? vowel.slice(1)
-                    //     :
-                        vowel
-                    , tone); // eliminate the redundant 'i'
+                vowel = combineToneDiacritic(vowel, tone);
                 output.push(initialConsonant + vowel + finalConsonant);
             } else if (initialConsonant === 'qu') {
                 if (vowel.charAt(0) === 'u') {
-                    vowel = vowel.slice(1);
+                    vowel = vowel.slice(1); // delete one redundant 'u'
                 }
                 if (vowel.charAt(0) === 'i') {
                     vowel = 'y' + vowel.slice(1);
