@@ -770,7 +770,6 @@ function DrawStructure({ structureId, fontSize , parentStructureType, index}: { 
     }, [structureComponents]);
 
     let description = descriptionStructure?.structureType?.description ?? structure?.structureType?.description ?? 'null';
-    let output: (string | number)[] = [];
 
     let structureIds = structures?.map(o => o.id).filter(o => o != undefined);
     const structureIdsKey = JSON.stringify(structureIds);
@@ -794,18 +793,19 @@ function DrawStructure({ structureId, fontSize , parentStructureType, index}: { 
 
     // console.log(description);
     // console.log(structureIds);
-    output = [description ?? '⿰', ...(structureIds ?? [])];
     // output=  // ⿰ is default
     // console.log("output: " + output);
-
+    let inSupportedCjkRangeResult = inSupportedCjkRange(structure?.character?.unicode ?? 0);
     if (
         // !structureTypeId
-        structure?.character && inSupportedCjkRange(structure.character.unicode ?? 0)
+        structure?.character && inSupportedCjkRangeResult
     ) {
         // console.log("entered this case");
 
         return <GlyphAdjustment structureId={structureId ?? 0} structureType={parentStructureType ?? ''} fontSize={fontSize} index={index} key={structureId}/>;
     }
+
+    let output: (string | number)[] = [description ?? '⿰', ...(structureIds ?? [])];
 
     // console.log("entered the last case");
     return (
@@ -821,7 +821,7 @@ function DrawStructure({ structureId, fontSize , parentStructureType, index}: { 
 }
 
 function DrawStructureTree({input, fontSize}: {input: (string | number)[], fontSize: [number, number]}): JSX.Element {
-    console.log("input: " + input);
+    // console.log("input: " + input);
     // let structureType = input[0] as string;
     const [structureType, setStructureType] = useState<string>("null");
     const inputKey = JSON.stringify(input);
@@ -852,7 +852,7 @@ function DrawStructureTree({input, fontSize}: {input: (string | number)[], fontS
         (async () => {
             for (let i = 0; i < splitSequences.length; i++) {
                 tempSizeList.push(await aggregateStructureTreeWidthHeight(splitSequences[i]));
-                console.log('splitSequence: ' + splitSequences[i] + " size: " + tempSizeList.at(-1));
+                // console.log('splitSequence: ' + splitSequences[i] + " size: " + tempSizeList.at(-1));
             }
             if (isActive) setSizeList(tempSizeList);
         })();
@@ -927,18 +927,14 @@ function DrawStructureTree({input, fontSize}: {input: (string | number)[], fontS
     else if (!tripleGroup.includes(structureType)) {
         if (horizontalGroup.includes(structureType)) {
             // example: 吅， 棗, ... have the first component a little narrower
-            if (percentWidthList[0] == percentWidthList[1]) {
-                percentWidthList = [0.44, 0.56];
-            }
-            // example: 咾 and 𦒵
-            else if (percentWidthList[0] > percentWidthList[1]) {
-                percentWidthList = [0.5, 0.5];
+            if (percentWidthList[0] >= percentWidthList[1]) {
+                percentWidthList = [percentWidthList[0] * 0.8, percentWidthList[1] * 1.2];
             }
         }
-        else if (verticalGroup.includes(structureType) &&
-        percentHeightList[0] == percentHeightList[1]) {
-            percentHeightList = [0.44, 0.56];
-        }
+        // else if (verticalGroup.includes(structureType) &&
+        // percentHeightList[0] == percentHeightList[1]) {
+        //     percentHeightList = [0.44, 0.56];
+        // }
     }
 
 
@@ -1189,20 +1185,13 @@ async function adjustStructureTree(input: (string | number)[]): Promise<(string 
     }
 
     let firstStSequences = splitStructureSequence([firstStTypeDes, ...firstStSequence]);
+    // boolean isTheWrappingCompInSupportedRange =
 
     output = [stTypeDes, ...splitSequences.flat()];
     // case 1
     if (wrapGroup.includes(stTypeDes) &&
         !structureTypes.includes(firstStTypeDes)) {
-        // console.log("case 1: " + stTypeDes + " " + firstStTypeDes);
-        // console.log('firstStTypeDes splitSequence[1]: ' + firstStTypeDes + ', ' + splitSequences[1]);
-        //⿸⿹⿵⿶'.includes(stTypeDes)) output = ['⿱', firstStTypeDes, ...splitSequences[1]];
-        // if (fetchedFromDb) {
-            output = [stTypeDes, firstStTypeDes, ...splitSequences[1]]
-        // } else {
-        //     if ('⿸⿹⿵⿶'.includes(stTypeDes)) output = ['⿱', firstStTypeDes, ...splitSequences[1]];
-        //     else if ('⿺⿽⿷⿼'.includes(stTypeDes)) output = ['⿰', firstStTypeDes, ...splitSequences[1]];
-        // }
+            output = [stTypeDes, firstStTypeDes, ...splitSequences[1]];
     }
 
     // case 2

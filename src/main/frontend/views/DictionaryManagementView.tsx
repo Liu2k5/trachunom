@@ -1877,6 +1877,26 @@ const MeaningTabContent = () => {
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 2fr', gridGap: '20px' }}>
             <div>
                 <h3>Giải nghĩa</h3>
+                <ComboBox
+                    label="Tìm giải nghĩa"
+                    items={explanations || []}
+                    itemValuePath='id'
+                    itemLabelPath='description'
+                    renderer={(item) => (
+                        <span>{item.item.id + ' - ' + item.item.description}</span>
+                    )}
+                    onValueChanged={(e) => {
+                        const raw = e.detail.value;
+                        const id = (raw == null || raw === '') ? undefined : Number(raw);
+                        if (id == null || isNaN(id)) {
+                            setSelectedExplanation(null);
+                        } else {
+                            ExplanationService.findById(id)
+                                .then(exp => setSelectedExplanation(exp))
+                                .catch(err => console.error('Error fetching explanation by id:', err));
+                        }
+                    }}
+                />
                 <AutoGrid
                     service={ExplanationService}
                     items={explanations}

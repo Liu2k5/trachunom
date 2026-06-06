@@ -68,6 +68,8 @@ function findAdjustment(character: string, structureType: string, index: number)
             }
         }
     }
+    // if (['⿸', '⿺', '⿵', '⿶'].includes(structureType)) return ['', 1, 1, 0, 0, 0, 0, 0, 0];
+    // if (['⿹', '⿽', '⿵', '⿶'].includes(structureType)) return ['', 1, 0.5, 0, 0, 0, 0, 0, 0];
     return ['', 1, 1, 0, 0, 0, 0, 0, 0];
 }
 
